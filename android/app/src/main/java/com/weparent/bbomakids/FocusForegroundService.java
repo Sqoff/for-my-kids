@@ -111,6 +111,21 @@ public class FocusForegroundService extends Service {
         }
     }
 
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        stopFocusTimer();
+        stopForeground(true);
+        stopSelf();
+        super.onTaskRemoved(rootIntent);
+    }
+
+    @Override
+    public void onDestroy() {
+        stopFocusTimer();
+        stopForeground(true);
+        super.onDestroy();
+    }
+
     private void onFocusCompleted() {
         stopFocusTimer();
         stopForeground(true);
@@ -127,6 +142,7 @@ public class FocusForegroundService extends Service {
         int mins = Math.max(1, totalSeconds / 60);
         Notification completeNotif = new NotificationCompat.Builder(this, COMPLETE_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_bboma)
+                .setColor(0xFF10B981) // Green badge
                 .setContentTitle("🎉 [뽀마키즈] 육아 집중 완주 성공!")
                 .setContentText(userName + "(" + userRole + ")님, " + mins + "분 동안 아이에게 온전히 집중하셨습니다! (+50 EXP)")
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -152,6 +168,7 @@ public class FocusForegroundService extends Service {
 
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_bboma)
+                .setColor(0xFFFF5E8A) // Pink/Rose badge for high visibility
                 .setContentTitle("👶 뽀마키즈 | " + userName + "(" + userRole + ") 육아 집중 가동 중")
                 .setContentText("아이와 눈맞춤 집중 중 • 남은 시간: " + timeFormatted)
                 .setSubText("동작 중")

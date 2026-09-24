@@ -210,6 +210,30 @@
     .animate-pink-glow {
       animation: pink-glow-pulse 2s infinite ease-in-out;
     }
+
+    /* --- 🌟 Interactive Onboarding Guide & Spotlight Styles --- */
+    .guide-target-active {
+      position: relative !important;
+      z-index: 60 !important;
+      outline: 3px solid #f59e0b !important;
+      box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.45), 0 0 35px rgba(245, 158, 11, 0.75) !important;
+      border-radius: 18px !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      animation: guide-spotlight-pulse 2s infinite ease-in-out !important;
+    }
+    @keyframes guide-spotlight-pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.45), 0 0 25px rgba(245, 158, 11, 0.65);
+        outline-color: #f59e0b;
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.85), 0 0 45px rgba(245, 158, 11, 0.95);
+        outline-color: #fbbf24;
+      }
+    }
+    .guide-card-shadow {
+      box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.85), 0 0 35px rgba(245, 158, 11, 0.3);
+    }
   </style>
 
 
@@ -259,6 +283,10 @@
       </div>
 
       <!-- Quick Action Buttons -->
+      <button onclick="startOnboardingGuide(0)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 hover:brightness-110 text-slate-950 font-black flex items-center gap-1 shadow transition">
+        <span>🌟 온보딩 가이드</span>
+      </button>
+
       <button onclick="openTutorialVideoModal(true)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold flex items-center gap-1 shadow transition">
         <span>🎬 튜토리얼</span>
       </button>
@@ -569,52 +597,57 @@
     </div>
   </div>
 
-  <!-- 🎬 Official Tutorial / Prologue Video Modal (Auto-played on App Launch) -->
-  <div id="tutorialVideoModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-slate-900 border-2 border-amber-500/70 rounded-3xl p-5 md:p-6 max-w-2xl w-full shadow-[0_0_40px_rgba(245,158,11,0.35)] relative text-slate-100 animate-dialog flex flex-col gap-3.5">
-      <!-- Close Button -->
-      <button onclick="closeTutorialVideoModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg p-1.5 rounded-xl hover:bg-slate-800 transition z-10">✕</button>
-
-      <!-- Modal Header -->
-      <div class="flex items-center gap-3 pb-2 border-b border-slate-800">
-        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-2xl shadow-lg animate-float">
-          🐣
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h2 class="text-base font-black text-white">우리아이 타임 (WeParent) 튜토리얼</h2>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
-              공식 프롤로그 가이드
-            </span>
-          </div>
-          <p class="text-xs text-slate-400">수호 요정 '뽀마'와 함께하는 부부 공동 육아 RPG 룰 소개 영상</p>
+  <!-- 🎬 Fullscreen Mobile Tutorial / Prologue Video Modal (Auto-played on App Launch) -->
+  <div id="tutorialVideoModal" class="hidden fixed inset-0 z-50 bg-black flex flex-col justify-between select-none">
+    <!-- Top Bar with Close/Skip -->
+    <div class="w-full px-4 py-3.5 bg-gradient-to-b from-black/90 via-black/60 to-transparent flex items-center justify-between z-20 shrink-0">
+      <div class="flex items-center gap-2 text-white">
+        <span class="text-xl">🐣</span>
+        <div class="flex flex-col">
+          <span class="font-black text-xs text-amber-300">뽀마키즈 튜토리얼</span>
+          <span class="text-[10px] text-slate-400">부부 공동 육아 RPG 룰 소개</span>
         </div>
       </div>
+      <button onclick="skipTutorialVideo()" class="px-3.5 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold border border-slate-700 transition flex items-center gap-1">
+        <span>스킵 ✕</span>
+      </button>
+    </div>
 
-      <!-- Video Player Container -->
-      <div class="relative w-full rounded-2xl overflow-hidden bg-black border border-slate-800 shadow-inner flex items-center justify-center min-h-[240px]">
-        <video id="tutorialVideoPlayer" src="assets/videos/tutorial.mp4" controls playsinline preload="auto" class="w-full max-h-[58vh] rounded-2xl object-contain bg-black">
-          브라우저가 동영상 재생을 지원하지 않습니다.
-        </video>
-      </div>
+    <!-- Fullscreen Video Container -->
+    <div class="flex-1 w-full flex items-center justify-center relative bg-black overflow-hidden">
+      <video id="tutorialVideoPlayer" src="assets/videos/tutorial.mp4" controls playsinline preload="auto" class="w-full h-full object-contain max-h-[100dvh] bg-black">
+        동영상을 지원하지 않는 환경입니다.
+      </video>
+    </div>
 
-      <!-- Modal Footer Controls -->
-      <div class="flex items-center justify-between gap-3 pt-1 flex-wrap">
-        <div class="flex items-center gap-2 text-[11px] text-slate-400">
-          <label class="flex items-center gap-1.5 cursor-pointer hover:text-slate-200 transition select-none">
-            <input type="checkbox" id="tutorialDoNotShowTodayCheckbox" class="rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-0">
-            <span>오늘 하루 시작 시 자동 팝업 끄기</span>
-          </label>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="restartTutorialVideo()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-slate-700 transition flex items-center gap-1">
-            <span>🔄 처음부터 재생</span>
-          </button>
-          <button onclick="closeTutorialVideoModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-lg transition flex items-center gap-1.5">
-            <span>앱 시작하기 🚀</span>
-          </button>
-        </div>
+    <!-- Bottom Action Overlay with Prominent Skip Button -->
+    <div class="w-full p-4 pb-6 bg-gradient-to-t from-black/95 via-black/80 to-transparent flex flex-col gap-2.5 z-20 shrink-0">
+      <!-- Big Skip Button -->
+      <button onclick="skipTutorialVideo()" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-sm shadow-[0_0_25px_rgba(245,158,11,0.5)] flex items-center justify-center gap-2 transition active:scale-95">
+        <span>⏭️ 튜토리얼 건너뛰고 가이드 시작하기</span>
+      </button>
+      
+      <!-- Sub controls -->
+      <div class="flex items-center justify-between text-xs text-slate-400 px-1">
+        <label class="flex items-center gap-1.5 cursor-pointer hover:text-slate-200 transition select-none text-[11px]">
+          <input type="checkbox" id="tutorialDoNotShowTodayCheckbox" class="rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-0">
+          <span>오늘 하루 자동 팝업 끄기</span>
+        </label>
+        <button onclick="restartTutorialVideo()" class="text-amber-400 hover:text-amber-300 font-medium text-[11px] flex items-center gap-1">
+          <span>🔄 처음부터 재생</span>
+        </button>
       </div>
+    </div>
+  </div>
+
+  <!-- 🌟 Interactive Onboarding Guide Modal & Spotlight Tour -->
+  <div id="onboardingGuideOverlay" class="hidden fixed inset-0 z-50 flex flex-col justify-end p-4 pb-8 transition-all duration-300">
+    <!-- Dim Backdrop (Blocks accidental touches behind guide) -->
+    <div class="absolute inset-0 bg-black/75 backdrop-blur-[2px]" onclick="/* backdrop block */"></div>
+
+    <!-- Floating Interactive Guide Card -->
+    <div id="onboardingGuideCard" class="relative z-60 bg-slate-900/98 border-2 border-amber-500/80 rounded-3xl p-5 max-w-md w-full mx-auto guide-card-shadow text-slate-100 animate-dialog flex flex-col gap-3.5">
+      <!-- Dynamically filled by renderGuideStep() -->
     </div>
   </div>
 
@@ -1166,12 +1199,12 @@
         <!-- 📱 Native Mobile App Header (AppBar) -->
         <div class="mobile-app-header h-12 bg-slate-900/95 border-b border-slate-800/80 px-3 flex items-center justify-between z-25 select-none shrink-0 shadow-sm">
           <!-- Profile Badge & Account Switcher -->
-          <button onclick="setViewMode('dad')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 text-rose-200 transition text-left" title="클릭하여 배우자(아빠) 앱으로 전환">
+          <button id="momProfileButton" onclick="setViewMode('dad')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 text-rose-200 transition text-left" title="클릭하여 배우자(아빠) 앱으로 전환">
             <span class="text-base">👩</span>
             <div class="flex flex-col leading-none">
               <span class="font-black text-xs text-rose-300 flex items-center gap-1">
-                <span>지은</span>
-                <span class="text-[9px] text-rose-400/80 font-normal">(엄마)</span>
+                <span id="momHeaderNameDisplay">지은</span>
+                <span id="momHeaderRoleDisplay" class="text-[9px] text-rose-400/80 font-normal">(엄마)</span>
                 <span class="text-[8px] text-slate-400">⇄</span>
               </span>
             </div>
@@ -1184,14 +1217,17 @@
           </div>
 
           <!-- Right Action Icons -->
-          <div class="flex items-center gap-1">
+          <div id="momHeaderActions" class="flex items-center gap-1">
+            <button onclick="startOnboardingGuide(0)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="온보딩 가이드 투어">
+              <span class="text-xs">🌟</span>
+            </button>
             <button onclick="openTutorialVideoModal(true)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="튜토리얼 영상">
               <span class="text-xs">🎬</span>
             </button>
             <button onclick="openParentingReportModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-slate-800 transition" title="부부 통계/비교">
               <span class="text-xs">📊</span>
             </button>
-            <button onclick="openNotificationModal('mom')" class="relative p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="알림 센터">
+            <button id="momNotificationButton" onclick="openNotificationModal('mom')" class="relative p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="알림 센터">
               <i data-lucide="bell" class="w-3.5 h-3.5"></i>
               <span id="momNotifBadge" class="hidden absolute top-0.5 right-0.5 min-w-[14px] h-[14px] bg-rose-500 text-white rounded-full text-[8px] font-black flex items-center justify-center px-0.5 animate-pulse">0</span>
             </button>
@@ -1355,12 +1391,12 @@
         <!-- 📱 Native Mobile App Header (AppBar) -->
         <div class="mobile-app-header h-12 bg-slate-900/95 border-b border-slate-800/80 px-3 flex items-center justify-between z-25 select-none shrink-0 shadow-sm">
           <!-- Profile Badge & Account Switcher -->
-          <button onclick="setViewMode('mom')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-sky-950/60 hover:bg-sky-900/80 border border-sky-500/40 text-sky-200 transition text-left" title="클릭하여 배우자(엄마) 앱으로 전환">
+          <button id="dadProfileButton" onclick="setViewMode('mom')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-sky-950/60 hover:bg-sky-900/80 border border-sky-500/40 text-sky-200 transition text-left" title="클릭하여 배우자(엄마) 앱으로 전환">
             <span class="text-base">👨</span>
             <div class="flex flex-col leading-none">
               <span class="font-black text-xs text-sky-300 flex items-center gap-1">
-                <span>민수</span>
-                <span class="text-[9px] text-sky-400/80 font-normal">(아빠)</span>
+                <span id="dadHeaderNameDisplay">민수</span>
+                <span id="dadHeaderRoleDisplay" class="text-[9px] text-sky-400/80 font-normal">(아빠)</span>
                 <span class="text-[8px] text-slate-400">⇄</span>
               </span>
             </div>
@@ -1373,14 +1409,17 @@
           </div>
 
           <!-- Right Action Icons -->
-          <div class="flex items-center gap-1">
+          <div id="dadHeaderActions" class="flex items-center gap-1">
+            <button onclick="startOnboardingGuide(0)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="온보딩 가이드 투어">
+              <span class="text-xs">🌟</span>
+            </button>
             <button onclick="openTutorialVideoModal(true)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="튜토리얼 영상">
               <span class="text-xs">🎬</span>
             </button>
             <button onclick="openParentingReportModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-slate-800 transition" title="부부 통계/비교">
               <span class="text-xs">📊</span>
             </button>
-            <button onclick="openNotificationModal('dad')" class="relative p-1.5 rounded-lg text-slate-400 hover:text-sky-300 hover:bg-slate-800 transition" title="알림 센터">
+            <button id="dadNotificationButton" onclick="openNotificationModal('dad')" class="relative p-1.5 rounded-lg text-slate-400 hover:text-sky-300 hover:bg-slate-800 transition" title="알림 센터">
               <i data-lucide="bell" class="w-3.5 h-3.5"></i>
               <span id="dadNotifBadge" class="hidden absolute top-0.5 right-0.5 min-w-[14px] h-[14px] bg-rose-500 text-white rounded-full text-[8px] font-black flex items-center justify-center px-0.5 animate-pulse">0</span>
             </button>
@@ -3271,7 +3310,7 @@
       return `
         <div class="flex flex-col items-center text-center gap-3">
           <!-- Top Focus Card -->
-          <div class="w-full bg-slate-800/90 border border-slate-700 rounded-2xl p-3.5 shadow">
+          <div id="${userKey}FocusMainCard" class="w-full bg-slate-800/90 border border-slate-700 rounded-2xl p-3.5 shadow">
             <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
               <span>동작 상태</span>
               <span class="px-2 py-0.5 rounded-full ${user.focusActive ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse' : 'bg-slate-700 text-slate-300'} font-semibold text-[11px] flex items-center gap-1">
@@ -3317,7 +3356,7 @@
               </div>
             ` : `
               <!-- Configuration UI (When idle) -->
-              <div class="mt-2.5 pt-2.5 border-t border-slate-700/80 flex flex-col gap-2.5 text-left">
+              <div id="${userKey}FocusSettingsSection" class="mt-2.5 pt-2.5 border-t border-slate-700/80 flex flex-col gap-2.5 text-left">
                 <!-- Mode Switcher Tabs -->
                 <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-700/80 text-[11px]">
                   <button onclick="setFocusConfigMode('${userKey}', 'preset')" class="flex-1 py-1 rounded-lg font-bold transition flex items-center justify-center gap-1 ${settings.mode === 'preset' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow' : 'text-slate-400 hover:text-slate-200'}">
@@ -3429,7 +3468,7 @@
           </div>
 
           <!-- Virtual App Launcher -->
-          <div class="w-full bg-slate-800/60 border border-slate-700/80 rounded-2xl p-3 text-left">
+          <div id="${userKey}AppLauncherCard" class="w-full bg-slate-800/60 border border-slate-700/80 rounded-2xl p-3 text-left">
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-bold text-slate-200">📱 다른 앱 사용 테스트</span>
               <button onclick="openAppFilterModal()" class="px-2 py-0.5 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[9px] font-bold transition flex items-center gap-1">
@@ -3553,7 +3592,7 @@
       return `
         <div class="flex flex-col gap-2.5 text-xs">
           <!-- 📅 Calendar Header & Navigation Bar -->
-          <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 shadow flex flex-col gap-2">
+          <div id="${userKey}TodoHeaderBar" class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 shadow flex flex-col gap-2">
             <div class="flex items-center justify-between text-[11px]">
               <div class="flex items-center gap-1.5 font-black text-slate-200">
                 <button onclick="shiftCalendarDate(-1)" class="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition">◀</button>
@@ -3593,7 +3632,7 @@
           </div>
 
           <!-- 👤 View Scope Switcher: [내 할 일 (기본)] vs [상대방 할 일 보기] -->
-          <div class="flex items-center bg-slate-950 p-1 rounded-2xl border border-slate-800 text-[11px] shadow">
+          <div id="${userKey}TodoScopeSection" class="flex items-center bg-slate-950 p-1 rounded-2xl border border-slate-800 text-[11px] shadow">
             <button type="button" onclick="setTodoViewScope('${userKey}', 'mine')" class="flex-1 py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5 ${viewScope === 'mine' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md font-black' : 'text-slate-400 hover:text-slate-200'}">
               <span>${user.avatar} 내 할 일</span>
               <span class="px-1.5 py-0.2 text-[9px] rounded-full ${viewScope === 'mine' ? 'bg-slate-950/20 text-slate-950 font-black' : 'bg-slate-800 text-slate-400'}">${myDateTasks.length}</span>
@@ -6033,13 +6072,18 @@
       const modal = document.getElementById('tutorialVideoModal');
       const player = document.getElementById('tutorialVideoPlayer');
       if (modal) modal.classList.remove('hidden');
-      if (player && autoplay) {
-        player.currentTime = 0;
-        const playPromise = player.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(err => {
-            console.log('Autoplay restriction prevented direct play, user can click play:', err);
-          });
+      if (player) {
+        player.onended = () => {
+          skipTutorialVideo();
+        };
+        if (autoplay) {
+          player.currentTime = 0;
+          const playPromise = player.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(err => {
+              console.log('Autoplay restriction prevented direct play, user can click play:', err);
+            });
+          }
         }
       }
     }
@@ -6060,12 +6104,431 @@
       if (modal) modal.classList.add('hidden');
     }
 
+    function skipTutorialVideo() {
+      closeTutorialVideoModal();
+      startOnboardingGuide(0);
+    }
+
     function restartTutorialVideo() {
       const player = document.getElementById('tutorialVideoPlayer');
       if (player) {
         player.currentTime = 0;
         player.play();
       }
+    }
+
+    // --- 🌟 Interactive Step-by-Step Onboarding Guide Engine ---
+    const ONBOARDING = {
+      isActive: false,
+      currentStep: 0,
+      userData: {
+        name: '지은',
+        gender: 'female',
+        relation: 'spouse', // 'spouse', 'partner', 'other'
+        otherText: ''
+      },
+      isMatchingExpanded: false,
+      
+      steps: [
+        {
+          step: 0,
+          title: '가이드를 시작합니다! 👶✨',
+          subtitle: '뽀마키즈에 오신 것을 환영해요',
+          icon: '🐣',
+          highlightId: null,
+          tab: null,
+          desc: '수호 요정 <strong>뽀마</strong>와 함께하는 부부 공동 육아 RPG 앱입니다.<br/>평화롭고 행복한 육아 분담을 위한 핵심 기능을 짧은 가이드로 안내해 드릴게요!',
+          buttonText: '시작하기 🚀'
+        },
+        {
+          step: 1,
+          title: '사용자 정보 입력 📝',
+          subtitle: '이름과 역할을 알려주세요',
+          icon: '👤',
+          highlightId: 'momProfileButton',
+          tab: 'focus',
+          desc: '앱에서 사용할 사용자 이름과 성별, 파트너와의 관계를 알려주세요.',
+          isForm: true,
+          buttonText: '다음 (매칭 안내) ➔'
+        },
+        {
+          step: 2,
+          title: '상대방과 어플 연결하기 🔗',
+          subtitle: '실시간 공동 육아 매칭',
+          icon: '🤝',
+          highlightId: 'momProfileButton',
+          tab: 'focus',
+          desc: '상대방과 어플을 연결하면 실시간으로 일과를 공유하고 서로 체크할 수 있습니다.<br/><span class="text-slate-400 text-xs">(매칭은 지금 바로 하거나, 나중에 언제든 설정할 수 있습니다.)</span>',
+          isMatchingPrompt: true
+        },
+        {
+          step: 3,
+          title: '오늘 할 일을 지정해주세요 📋',
+          subtitle: '오늘의 육아/가사 일과 등록',
+          icon: '📅',
+          highlightId: 'momTodoHeaderBar',
+          tab: 'todo',
+          desc: '오늘 수행할 아기 목욕, 분유 수유, 이유식, 청소 등 육아/가사 일과를 <strong>[+ 할 일 추가]</strong> 버튼이나 달력으로 지정하고 관리할 수 있습니다.',
+          buttonText: '다음 (할 일 체크 안내) ➔'
+        },
+        {
+          step: 4,
+          title: '내가 할 일과 상대방의 할 일을 체크할 수 있습니다 ✅',
+          subtitle: '실시간 일과 확인 및 체크',
+          icon: '👥',
+          highlightId: 'momTodoScopeSection',
+          tab: 'todo',
+          desc: '<strong>[내 할 일]</strong>과 <strong>[상대방 할 일]</strong> 탭을 넘나들며 서로의 일과를 한눈에 확인하고, 완료된 항목은 터치하여 실시간으로 체크할 수 있습니다.',
+          buttonText: '다음 (완료 알림 안내) ➔'
+        },
+        {
+          step: 5,
+          title: '완료 시 상대방에게 알림이 갑니다 🔔',
+          subtitle: '실시간 부부 알림 전송',
+          icon: '🎉',
+          highlightId: 'momHeaderActions',
+          tab: 'todo',
+          desc: '내가 맡은 일을 체크 완료하면, 상대방의 스마트폰으로 <em>"지은님이 아기 목욕을 완료했습니다! 🎉"</em> 축하 알림이 즉시 전송됩니다.',
+          buttonText: '다음 (육아 집중 시간 안내) ➔'
+        },
+        {
+          step: 6,
+          title: '육아 집중 시간을 사용할 수 있습니다 👶',
+          subtitle: '스마트폰 딴짓 방지 & 눈맞춤 집중',
+          icon: '⏳',
+          highlightId: 'momTab_focus',
+          tab: 'focus',
+          desc: '아이에게 온전히 눈을 맞추는 <strong>육아 집중 모드</strong>를 시작하면 스마트폰 상태바에 실시간으로 동작 중 표시가 상주합니다.<br/>지금 사용해보시겠습니까?',
+          isFocusPrompt: true
+        },
+        {
+          step: 7,
+          title: '집중할 시간을 설정해주세요 ⏱️',
+          subtitle: '원하는 시간만큼 유연하게 설정',
+          icon: '⚙️',
+          highlightId: 'momFocusSettingsSection',
+          tab: 'focus',
+          desc: '<strong>[⚡ 간편 분 단위]</strong>(15분, 25분, 50분 등) 또는 <strong>[⏰ 시간대 직접 지정]</strong>(13:30~18:30)으로 원하는 육아 집중 시간을 자유롭게 설정하세요.',
+          buttonText: '다음 (허용 앱 설정) ➔'
+        },
+        {
+          step: 8,
+          title: '미차단/허용할 어플을 지정해주세요 🛡️',
+          subtitle: '화이트리스트 & 딴짓 앱 차단',
+          icon: '📱',
+          highlightId: 'momAppLauncherCard',
+          tab: 'focus',
+          desc: '육아 집중 시간 동안 꼭 필요한 <strong>허용 앱</strong>(전화, 카메라, 카카오톡 등)과 차단할 <strong>딴짓 앱</strong>(유튜브, SNS 등)을 안전하게 지정할 수 있습니다.',
+          buttonText: '가이드 완료 ➔'
+        },
+        {
+          step: 9,
+          title: '🎉 뽀마키즈를 시작합니다!',
+          subtitle: '모든 설정이 완료되었습니다',
+          icon: '🚀',
+          highlightId: null,
+          tab: 'focus',
+          desc: '이제 수호 요정 뽀마와 함께 평화롭고 행복한 공동 육아를 시작해보세요! 🍼✨',
+          isFinal: true,
+          buttonText: '🚀 뽀마키즈 시작하기'
+        }
+      ]
+    };
+
+    function startOnboardingGuide(startStep = 0) {
+      ONBOARDING.isActive = true;
+      ONBOARDING.currentStep = startStep;
+      ONBOARDING.isMatchingExpanded = false;
+
+      // Ensure Mom view is focused for the tour
+      setViewMode('mom');
+
+      const overlay = document.getElementById('onboardingGuideOverlay');
+      if (overlay) overlay.classList.remove('hidden');
+
+      renderGuideStep();
+    }
+
+    function cleanupGuideHighlights() {
+      document.querySelectorAll('.guide-target-active').forEach(el => {
+        el.classList.remove('guide-target-active');
+      });
+    }
+
+    function renderGuideStep() {
+      cleanupGuideHighlights();
+
+      const step = ONBOARDING.steps[ONBOARDING.currentStep];
+      if (!step) return;
+
+      // 1. Switch tab if needed
+      if (step.tab) {
+        switchTab('mom', step.tab);
+      }
+
+      // 2. Highlight target element after tab rendering
+      setTimeout(() => {
+        if (step.highlightId) {
+          const target = document.getElementById(step.highlightId);
+          if (target) {
+            target.classList.add('guide-target-active');
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      }, 50);
+
+      // 3. Trigger confetti on step 9
+      if (step.isFinal && typeof confetti === 'function') {
+        confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
+      }
+
+      // 4. Render Guide Card Content
+      const card = document.getElementById('onboardingGuideCard');
+      if (!card) return;
+
+      let customContent = '';
+
+      if (step.isForm) {
+        customContent = `
+          <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 flex flex-col gap-2.5 my-1">
+            <!-- Name Input -->
+            <div class="flex flex-col gap-1">
+              <label class="text-[11px] text-slate-400 font-bold">이름</label>
+              <input id="guideInputName" type="text" value="${ONBOARDING.userData.name}" placeholder="이름을 입력하세요" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-amber-300 font-bold focus:border-amber-400 focus:outline-none" />
+            </div>
+
+            <!-- Gender Toggle -->
+            <div class="flex flex-col gap-1">
+              <label class="text-[11px] text-slate-400 font-bold">성별</label>
+              <div class="flex gap-2">
+                <button type="button" onclick="setGuideGender('female')" class="flex-1 py-1.5 rounded-xl border text-xs font-bold transition ${ONBOARDING.userData.gender === 'female' ? 'bg-rose-500/20 border-rose-400 text-rose-300 shadow-sm' : 'bg-slate-900 border-slate-700 text-slate-400'}">
+                  👩 여성
+                </button>
+                <button type="button" onclick="setGuideGender('male')" class="flex-1 py-1.5 rounded-xl border text-xs font-bold transition ${ONBOARDING.userData.gender === 'male' ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-sm' : 'bg-slate-900 border-slate-700 text-slate-400'}">
+                  👨 남성
+                </button>
+              </div>
+            </div>
+
+            <!-- Relation Toggle -->
+            <div class="flex flex-col gap-1">
+              <label class="text-[11px] text-slate-400 font-bold">관계</label>
+              <div class="grid grid-cols-3 gap-1.5">
+                <button type="button" onclick="setGuideRelation('spouse')" class="py-1.5 rounded-xl border text-xs font-bold transition ${ONBOARDING.userData.relation === 'spouse' ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm' : 'bg-slate-900 border-slate-700 text-slate-400'}">
+                  💍 배우자
+                </button>
+                <button type="button" onclick="setGuideRelation('partner')" class="py-1.5 rounded-xl border text-xs font-bold transition ${ONBOARDING.userData.relation === 'partner' ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm' : 'bg-slate-900 border-slate-700 text-slate-400'}">
+                  🤝 파트너
+                </button>
+                <button type="button" onclick="setGuideRelation('other')" class="py-1.5 rounded-xl border text-xs font-bold transition ${ONBOARDING.userData.relation === 'other' ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm' : 'bg-slate-900 border-slate-700 text-slate-400'}">
+                  🌟 기타
+                </button>
+              </div>
+              ${ONBOARDING.userData.relation === 'other' ? `
+                <input id="guideInputRelationOther" type="text" value="${ONBOARDING.userData.otherText}" placeholder="관계를 직접 입력하세요 (예: 조부모, 이모)" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-amber-300 font-bold focus:border-amber-400 focus:outline-none" />
+              ` : ''}
+            </div>
+          </div>
+        `;
+      } else if (step.isMatchingPrompt) {
+        customContent = `
+          <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 flex flex-col gap-2.5 my-1">
+            <div class="font-bold text-xs text-amber-300 flex items-center gap-1.5">
+              <span>💬</span>
+              <span>지금 상대방과 매칭하시겠습니까?</span>
+            </div>
+
+            ${ONBOARDING.isMatchingExpanded ? `
+              <div class="p-3 bg-gradient-to-tr from-amber-950/50 to-slate-900 border border-amber-500/40 rounded-xl flex flex-col gap-2 animate-shield">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-slate-300 font-medium">나의 부부 매칭 초대 코드:</span>
+                  <span class="px-2 py-0.5 rounded bg-amber-500/30 text-amber-200 font-mono font-black text-xs">BBOMA-7749</span>
+                </div>
+                <button type="button" onclick="copyGuideInviteCode()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black rounded-xl text-xs shadow transition flex items-center justify-center gap-1.5">
+                  <span>📋 초대 링크 & 코드 복사하기</span>
+                </button>
+                <p class="text-[10px] text-slate-400 text-center">상대방 스마트폰에 코드를 전달하면 즉시 1:1 매칭됩니다.</p>
+              </div>
+            ` : ''}
+
+            <div class="flex flex-col gap-1.5 pt-1">
+              ${!ONBOARDING.isMatchingExpanded ? `
+                <button type="button" onclick="expandGuideMatching()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-slate-950 font-black rounded-xl text-xs shadow transition flex items-center justify-center gap-1.5">
+                  <span>🔗 지금 바로 매칭하기</span>
+                </button>
+              ` : `
+                <button type="button" onclick="nextGuideStep()" class="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black rounded-xl text-xs shadow transition flex items-center justify-center gap-1.5">
+                  <span>✅ 매칭 안내 확인 (다음으로) ➔</span>
+                </button>
+              `}
+              <button type="button" onclick="nextGuideStep()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-700 transition flex items-center justify-center gap-1">
+                <span>⏳ 나중에 매칭할게요 (가이드 계속하기)</span>
+              </button>
+            </div>
+          </div>
+        `;
+      } else if (step.isFocusPrompt) {
+        customContent = `
+          <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 flex flex-col gap-2.5 my-1">
+            <div class="font-bold text-xs text-amber-300 flex items-center gap-1.5">
+              <span>💬</span>
+              <span>육아 집중 시간을 지금 사용해보시겠습니까?</span>
+            </div>
+            <div class="flex flex-col gap-1.5 pt-1">
+              <button type="button" onclick="handleGuideFocusChoice('use')" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-slate-950 font-black rounded-xl text-xs shadow transition flex items-center justify-center gap-1.5">
+                <span>👶 네, 시간 설정해볼래요! (추천)</span>
+              </button>
+              <button type="button" onclick="handleGuideFocusChoice('later')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-700 transition flex items-center justify-center gap-1">
+                <span>⏳ 나중에 설정할게요 (가이드 완료로 이동)</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <!-- Top Step Header -->
+        <div class="flex items-center justify-between pb-1 border-b border-slate-800">
+          <div class="flex items-center gap-1.5">
+            <span class="text-base">${step.icon}</span>
+            <span class="text-[11px] font-black text-amber-300">뽀마 온보딩 가이드 (${step.step + 1} / 10)</span>
+          </div>
+          <button onclick="skipOnboardingGuide()" class="text-slate-400 hover:text-white text-xs px-2 py-0.5 rounded-lg hover:bg-slate-800 transition">
+            건너뛰기 ✕
+          </button>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 transition-all duration-300" style="width: ${((step.step + 1) / 10) * 100}%"></div>
+        </div>
+
+        <!-- Step Title & Description -->
+        <div class="flex flex-col gap-1 text-left">
+          <h3 class="text-base font-black text-white flex items-center gap-1.5">
+            <span>${step.title}</span>
+          </h3>
+          <p class="text-xs text-slate-300 leading-relaxed">${step.desc}</p>
+        </div>
+
+        <!-- Custom Interactive Area (if any) -->
+        ${customContent}
+
+        <!-- Bottom Action Buttons (Hidden if step has its own choice branch) -->
+        ${!step.isMatchingPrompt && !step.isFocusPrompt ? `
+          <div class="flex items-center gap-2 pt-1">
+            ${step.step > 0 && !step.isFinal ? `
+              <button type="button" onclick="prevGuideStep()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs transition">
+                ◀ 이전
+              </button>
+            ` : ''}
+            <button type="button" onclick="${step.isFinal ? 'finishOnboardingGuide()' : 'nextGuideStep()'}" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-xs shadow-lg transition flex items-center justify-center gap-1.5 active:scale-95">
+              <span>${step.buttonText || '다음 ➔'}</span>
+            </button>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    function setGuideGender(gender) {
+      ONBOARDING.userData.gender = gender;
+      renderGuideStep();
+    }
+
+    function setGuideRelation(rel) {
+      ONBOARDING.userData.relation = rel;
+      renderGuideStep();
+    }
+
+    function expandGuideMatching() {
+      ONBOARDING.isMatchingExpanded = true;
+      renderGuideStep();
+    }
+
+    function copyGuideInviteCode() {
+      showToast('📋 초대 코드(BBOMA-7749)와 링크가 복사되었습니다!');
+      logEvent('가이드 초대 코드 복사');
+    }
+
+    function handleGuideFocusChoice(choice) {
+      if (choice === 'use') {
+        ONBOARDING.currentStep = 7;
+        renderGuideStep();
+      } else {
+        ONBOARDING.currentStep = 9;
+        renderGuideStep();
+      }
+    }
+
+    function nextGuideStep() {
+      if (ONBOARDING.currentStep === 1) {
+        const nameInput = document.getElementById('guideInputName');
+        const otherInput = document.getElementById('guideInputRelationOther');
+        if (nameInput && nameInput.value.trim()) {
+          ONBOARDING.userData.name = nameInput.value.trim();
+        }
+        if (otherInput && otherInput.value.trim()) {
+          ONBOARDING.userData.otherText = otherInput.value.trim();
+        }
+
+        const momUser = STATE.users.mom;
+        if (momUser) {
+          momUser.name = ONBOARDING.userData.name;
+          momUser.avatar = ONBOARDING.userData.gender === 'female' ? '👩' : '👨';
+          if (ONBOARDING.userData.relation === 'spouse') {
+            momUser.role = ONBOARDING.userData.gender === 'female' ? '엄마' : '아빠';
+          } else if (ONBOARDING.userData.relation === 'partner') {
+            momUser.role = '파트너';
+          } else {
+            momUser.role = ONBOARDING.userData.otherText || '보호자';
+          }
+        }
+
+        const nameDisplay = document.getElementById('momHeaderNameDisplay');
+        const roleDisplay = document.getElementById('momHeaderRoleDisplay');
+        if (nameDisplay) nameDisplay.innerText = ONBOARDING.userData.name;
+        if (roleDisplay && momUser) roleDisplay.innerText = `(${momUser.role})`;
+
+        renderApp('mom');
+        renderApp('dad');
+      }
+
+      if (ONBOARDING.currentStep < ONBOARDING.steps.length - 1) {
+        ONBOARDING.currentStep++;
+        renderGuideStep();
+      } else {
+        finishOnboardingGuide();
+      }
+    }
+
+    function prevGuideStep() {
+      if (ONBOARDING.currentStep > 0) {
+        ONBOARDING.currentStep--;
+        renderGuideStep();
+      }
+    }
+
+    function finishOnboardingGuide() {
+      cleanupGuideHighlights();
+      const overlay = document.getElementById('onboardingGuideOverlay');
+      if (overlay) overlay.classList.add('hidden');
+      ONBOARDING.isActive = false;
+      try {
+        localStorage.setItem('bbomakids_onboarding_completed', 'true');
+      } catch(e) {}
+      showToast('🎉 뽀마키즈 가이드가 완료되었습니다. 시작을 환영합니다!');
+      logEvent('온보딩 가이드 완료');
+    }
+
+    function skipOnboardingGuide() {
+      cleanupGuideHighlights();
+      const overlay = document.getElementById('onboardingGuideOverlay');
+      if (overlay) overlay.classList.add('hidden');
+      ONBOARDING.isActive = false;
+      try {
+        localStorage.setItem('bbomakids_onboarding_completed', 'true');
+      } catch(e) {}
+      showToast('💡 [상단 🌟 아이콘]을 눌러 가이드를 언제든 다시 볼 수 있습니다.');
     }
 
     // Initialize
@@ -6086,6 +6549,15 @@
         setTimeout(() => {
           openTutorialVideoModal(true);
         }, 350);
+      } else {
+        try {
+          const onboardingDone = localStorage.getItem('bbomakids_onboarding_completed');
+          if (!onboardingDone) {
+            setTimeout(() => {
+              startOnboardingGuide(0);
+            }, 350);
+          }
+        } catch(e) {}
       }
 
       setInterval(() => {
