@@ -14,23 +14,69 @@
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 
   <style>
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+    }
     body {
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
     ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
+      width: 4px;
+      height: 4px;
     }
     ::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.05);
+      background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.2);
+      background: rgba(255, 255, 255, 0.15);
       border-radius: 9999px;
     }
+    /* Mobile App & Responsive Rules */
     .phone-screen {
       height: 740px;
       width: 360px;
+      transition: all 0.2s ease-in-out;
+    }
+    @media (max-width: 768px), (display-mode: standalone) {
+      body {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        height: 100vh;
+        overflow: hidden !important;
+        background: #090d16 !important;
+      }
+      #desktopHeader, #desktopFooter {
+        display: none !important;
+      }
+      main {
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        gap: 0 !important;
+      }
+      .phone-container {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100% !important;
+      }
+      .phone-top-label {
+        display: none !important;
+      }
+      .phone-screen {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
     }
     @keyframes float-gentle {
       0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -161,95 +207,65 @@
 
 
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center p-4">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-0 md:p-4 selection:bg-amber-500 selection:text-slate-950">
 
-  <!-- Header & Control Bar -->
-  <header class="w-full max-w-6xl flex flex-wrap items-center justify-between gap-4 py-3 px-6 bg-slate-800/80 backdrop-blur border border-slate-700/60 rounded-2xl shadow-xl mb-6">
+  <!-- Desktop Simulator Header & Control Bar (Auto-hidden on Mobile / Native App) -->
+  <header id="desktopHeader" class="w-full max-w-6xl flex flex-wrap items-center justify-between gap-4 py-3 px-6 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-2xl shadow-xl mb-6">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-2xl shadow-md cursor-pointer hover:scale-105 transition" onclick="openPenaltyManageModal('ai')">
         🐣
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="font-bold text-lg text-white">WeParent (우리아이 타임)</h1>
+          <h1 class="font-bold text-base text-white">뽀마키즈 (Bbomakids)</h1>
           <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
-            RPG 게이미피케이션 시뮬레이터
+            공동 육아 RPG
           </span>
         </div>
-        <p class="text-xs text-slate-400">수호 요정 '뽀마'와 함께하는 부부 공동 육아 RPG</p>
+        <p class="text-[11px] text-slate-400">수호 요정 '뽀마'와 함께하는 부부 평화 육아 앱</p>
       </div>
     </div>
 
     <!-- Global Controls -->
-    <div class="flex items-center flex-wrap gap-3 text-xs">
-      <!-- Task Management Button -->
-      <button onclick="openTaskManageModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 hover:scale-105 active:scale-95 text-white font-black flex items-center gap-1.5 shadow-lg transition">
-        <span>📋 할 일 추가/관리</span>
-      </button>
-
-      <!-- Penalty Management & AI Recommendation Button -->
-      <button onclick="openPenaltyManageModal('list')" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 hover:from-amber-400 hover:to-pink-400 hover:scale-105 active:scale-95 text-white font-black flex items-center gap-1.5 shadow-lg transition">
-        <span>⚡ 패널티권 관리 (AI 추천)</span>
-      </button>
-
-      <!-- Notification Center Button -->
-      <button onclick="openNotificationModal('mom')" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 hover:scale-105 active:scale-95 text-white font-black flex items-center gap-1.5 shadow-lg transition relative">
-        <i data-lucide="bell" class="w-3.5 h-3.5"></i>
-        <span>📢 알림 센터</span>
-      </button>
-
-      <!-- Parenting Stats & Comparison Report Button -->
-      <button onclick="openParentingReportModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-600 hover:from-purple-500 hover:to-sky-500 hover:scale-105 active:scale-95 text-white font-black flex items-center gap-1.5 shadow-lg transition">
-        <span>📊 부부 육아 통계 & 비교</span>
-      </button>
-
-      <!-- Tutorial Video Button -->
-      <button onclick="openTutorialVideoModal(true)" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 hover:scale-105 active:scale-95 text-slate-950 font-black flex items-center gap-1.5 shadow-lg transition">
-        <span>🎬 튜토리얼 영상</span>
-      </button>
+    <div class="flex items-center flex-wrap gap-2 text-xs">
+      <!-- View Layout Selector -->
+      <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <button id="viewMomBtn" onclick="setViewMode('mom')" class="px-2.5 py-1 rounded-lg font-medium bg-rose-600 text-white shadow">
+          👩 엄마(지은) 앱
+        </button>
+        <button id="viewDadBtn" onclick="setViewMode('dad')" class="px-2.5 py-1 rounded-lg font-medium text-slate-400 hover:text-slate-200">
+          👨 아빠(민수) 앱
+        </button>
+        <button id="viewDualBtn" onclick="setViewMode('dual')" class="px-2.5 py-1 rounded-lg font-medium text-slate-400 hover:text-slate-200">
+          👥 2인 시뮬레이터
+        </button>
+      </div>
 
       <!-- Mode Toggle -->
-
-      <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-700">
-        <button id="modeEasyBtn" onclick="setAppMode('easy')" class="px-3 py-1.5 rounded-lg font-medium transition-all bg-emerald-500 text-white shadow">
-          🟢 이지 모드 (배려/유예)
+      <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <button id="modeEasyBtn" onclick="setAppMode('easy')" class="px-2.5 py-1 rounded-lg font-medium bg-emerald-500 text-white shadow text-[11px]">
+          🟢 이지 모드
         </button>
-        <button id="modeHardBtn" onclick="setAppMode('hard')" class="px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition-all">
-          🔴 하드 모드 (즉시 페널티)
-        </button>
-      </div>
-
-      <!-- View Layout Selector -->
-      <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-700">
-        <button id="viewDualBtn" onclick="setViewMode('dual')" class="px-3 py-1.5 rounded-lg font-medium bg-indigo-600 text-white shadow">
-          👥 부부 동시 뷰 (2인)
-        </button>
-        <button id="viewMomBtn" onclick="setViewMode('mom')" class="px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200">
-          👩 엄마(지은)
-        </button>
-        <button id="viewDadBtn" onclick="setViewMode('dad')" class="px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200">
-          👨 아빠(민수)
+        <button id="modeHardBtn" onclick="setAppMode('hard')" class="px-2.5 py-1 rounded-lg font-medium text-slate-400 hover:text-slate-200 text-[11px]">
+          🔴 하드 모드
         </button>
       </div>
 
-      <!-- Rule Settings Button -->
-      <button onclick="openRuleSettingsModal()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white font-bold flex items-center gap-1.5 shadow-lg transition">
-        <i data-lucide="settings" class="w-3.5 h-3.5"></i> ⚙️ 퀘스트 룰 설정
+      <!-- Quick Action Buttons -->
+      <button onclick="openTutorialVideoModal(true)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold flex items-center gap-1 shadow transition">
+        <span>🎬 튜토리얼</span>
       </button>
 
-      <!-- App Filter Settings Button -->
-      <button onclick="openAppFilterModal()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-700 to-red-600 hover:from-rose-600 hover:to-red-500 text-white font-bold flex items-center gap-1.5 shadow-lg transition">
-        <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> 📵 차단 앱 관리
+      <button onclick="openParentingReportModal()" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center gap-1 shadow transition">
+        <span>📊 부부 통계</span>
       </button>
 
-      <!-- Mobile Connect Button -->
-      <button onclick="toggleQrModal()" class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold flex items-center gap-1.5 shadow transition">
-        <i data-lucide="smartphone" class="w-3.5 h-3.5"></i> 📱 모바일 접속
+      <button onclick="openRuleSettingsModal()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium flex items-center gap-1 transition">
+        <span>⚙️ 룰 설정</span>
       </button>
 
-      <!-- Reset -->
-      <button onclick="resetAllState()" class="px-3 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 flex items-center gap-1 transition">
-        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> 초기화
+      <button onclick="resetAllState()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 flex items-center gap-1 transition">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> 리셋
       </button>
     </div>
   </header>
@@ -1110,39 +1126,71 @@
 
 
     <!-- Phone 1: 엄마 (지은) -->
-    <div id="phoneMomContainer" class="flex flex-col items-center">
-      <div class="mb-2 flex items-center justify-between w-[360px] px-2 text-xs">
+    <div id="phoneMomContainer" class="phone-container flex flex-col items-center w-full md:w-auto transition-all">
+      <div class="phone-top-label mb-2 flex items-center justify-between w-[360px] px-2 text-xs">
         <span class="flex items-center gap-1.5 font-bold text-rose-300">
           <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
           👩 지은의 스마트폰 (엄마)
         </span>
-        <span class="text-slate-400 text-[11px]">Galaxy S24 / Flutter</span>
+        <span class="text-slate-400 text-[11px]">뽀마키즈 Mobile App</span>
       </div>
 
-      <!-- Phone Frame -->
-      <div class="phone-screen bg-slate-950 rounded-[40px] border-4 border-slate-700 shadow-2xl relative overflow-hidden flex flex-col">
+      <!-- Phone Frame / App Window -->
+      <div class="phone-screen bg-slate-950 rounded-[40px] border-4 border-slate-800 shadow-2xl relative overflow-hidden flex flex-col w-full md:w-[360px] h-[100dvh] md:h-[740px]">
         
-        <!-- Phone Top Status Bar (시계줄) -->
-        <div class="h-8 bg-slate-900 px-4 flex justify-between items-center text-[10px] text-slate-400 select-none z-30 border-b border-slate-800/50">
+        <!-- Native Top Status Bar -->
+        <div class="h-9 bg-slate-900/90 px-4 flex justify-between items-center text-[10px] text-slate-400 select-none z-30 border-b border-slate-800/60 backdrop-blur">
           <div class="flex items-center gap-1.5">
-            <span id="phoneClockMom">17:35</span>
-            <!-- Minimal Status Bar Icon -->
+            <span id="phoneClockMom" class="font-bold font-mono text-slate-300">17:35</span>
             <span id="statusBarIconMom" class="hidden text-amber-300 font-bold flex items-center gap-1 bg-amber-500/20 px-1.5 py-0.5 rounded-md text-[9px] border border-amber-500/40 animate-pulse">
               <span>👶</span>
               <span id="statusBarTimerMom" class="font-mono text-[9px]">25:00</span>
             </span>
           </div>
-          <div class="w-16 h-3.5 bg-black rounded-full mx-auto flex items-center justify-center">
+          <div class="w-16 h-3 bg-black/60 rounded-full mx-auto flex items-center justify-center">
             <span class="w-2 h-2 rounded-full bg-slate-800"></span>
           </div>
-          <div class="flex items-center gap-2">
-            <!-- 🔔 Notification Bell Button with Unread Badge -->
-            <button onclick="openNotificationModal('mom')" class="relative p-0.5 text-slate-300 hover:text-amber-300 transition" title="알림 센터">
-              <i data-lucide="bell" class="w-3.5 h-3.5"></i>
-              <span id="momNotifBadge" class="hidden absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-rose-500 text-white rounded-full text-[8px] font-black flex items-center justify-center px-0.5 animate-pulse">0</span>
-            </button>
+          <div class="flex items-center gap-1.5 text-slate-400">
             <i data-lucide="wifi" class="w-3 h-3"></i>
-            <i data-lucide="battery" class="w-3 h-3"></i>
+            <i data-lucide="battery" class="w-3.5 h-3.5"></i>
+          </div>
+        </div>
+
+        <!-- 📱 Native Mobile App Header (AppBar) -->
+        <div class="h-12 bg-slate-900/95 border-b border-slate-800/80 px-3 flex items-center justify-between z-25 select-none shrink-0 shadow-sm">
+          <!-- Profile Badge & Account Switcher -->
+          <button onclick="setViewMode('dad')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 text-rose-200 transition text-left" title="클릭하여 배우자(아빠) 앱으로 전환">
+            <span class="text-base">👩</span>
+            <div class="flex flex-col leading-none">
+              <span class="font-black text-xs text-rose-300 flex items-center gap-1">
+                <span>지은</span>
+                <span class="text-[9px] text-rose-400/80 font-normal">(엄마)</span>
+                <span class="text-[8px] text-slate-400">⇄</span>
+              </span>
+            </div>
+          </button>
+
+          <!-- Center Bboma Mini Status -->
+          <div onclick="openParentingReportModal()" class="flex items-center gap-1 p-1 px-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 cursor-pointer transition" title="부부 육아 통계 & 리포트 열기">
+            <span class="text-xs">🐣</span>
+            <span class="text-[10px] font-black text-amber-300">뽀마 Lv.3</span>
+          </div>
+
+          <!-- Right Action Icons -->
+          <div class="flex items-center gap-1">
+            <button onclick="openTutorialVideoModal(true)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="튜토리얼 영상">
+              <span class="text-xs">🎬</span>
+            </button>
+            <button onclick="openParentingReportModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-slate-800 transition" title="부부 통계/비교">
+              <span class="text-xs">📊</span>
+            </button>
+            <button onclick="openNotificationModal('mom')" class="relative p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="알림 센터">
+              <i data-lucide="bell" class="w-3.5 h-3.5"></i>
+              <span id="momNotifBadge" class="hidden absolute top-0.5 right-0.5 min-w-[14px] h-[14px] bg-rose-500 text-white rounded-full text-[8px] font-black flex items-center justify-center px-0.5 animate-pulse">0</span>
+            </button>
+            <button onclick="openRuleSettingsModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition" title="룰 설정">
+              <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+            </button>
           </div>
         </div>
 
@@ -1183,7 +1231,6 @@
             <button onclick="resolveTaskAlert('mom', false)" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl font-medium text-xs text-slate-300 transition">
               ⏳ 15분 뒤 다시 알림
             </button>
-            <!-- 📋 Requested Task List Link -->
             <button onclick="viewTodayTasksFromAlert('mom')" class="text-[11px] text-slate-400 hover:text-amber-300 underline underline-offset-4 py-1.5 transition flex items-center justify-center gap-1">
               <span>📋 오늘 할 일 리스트 확인하기</span>
             </button>
@@ -1191,7 +1238,7 @@
         </div>
 
         <!-- 👉 Nudge Gesture Overlay (Mom) -->
-        <div id="nudgeOverlayMom" class="hidden absolute top-10 inset-x-3 z-50 bg-slate-900/95 border-2 border-indigo-500/80 rounded-2xl p-3 text-white shadow-2xl animate-shield flex items-center gap-3">
+        <div id="nudgeOverlayMom" class="hidden absolute top-12 inset-x-3 z-50 bg-slate-900/95 border-2 border-indigo-500/80 rounded-2xl p-3 text-white shadow-2xl animate-shield flex items-center gap-3">
           <span class="text-3xl shrink-0 p-1.5 bg-indigo-500/20 rounded-xl" id="nudgeIconMom">⚠️</span>
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between">
@@ -1217,7 +1264,7 @@
           <div class="grid grid-cols-4 gap-4 w-full text-center text-xs">
             <button onclick="restoreApp('mom')" class="flex flex-col items-center gap-1">
               <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-xl shadow-lg border border-amber-300/40">🐣</div>
-              <span class="text-[10px] text-amber-300 font-semibold">WeParent</span>
+              <span class="text-[10px] text-amber-300 font-semibold">뽀마키즈</span>
             </button>
             <button onclick="tryOpenApp('mom', '카카오톡', false)" class="flex flex-col items-center gap-1">
               <div class="w-12 h-12 rounded-2xl bg-yellow-400 text-slate-900 flex items-center justify-center text-xl shadow">💬</div>
@@ -1238,27 +1285,27 @@
           </div>
         </div>
 
-        <!-- Phone App Content -->
-        <div class="flex-1 flex flex-col overflow-y-auto bg-slate-900 text-slate-100 p-4 pb-16 relative" id="momAppBody">
+        <!-- Phone App Content Area -->
+        <div class="flex-1 flex flex-col overflow-y-auto bg-slate-900 text-slate-100 p-3.5 pb-20 relative" id="momAppBody">
           <!-- Rendered by JS -->
         </div>
 
-        <!-- Phone Bottom Navigation Bar -->
-        <div id="momBottomNav" class="h-14 bg-slate-900/95 border-t border-slate-800 flex justify-around items-center px-2 select-none absolute bottom-0 inset-x-0 z-20">
-          <button onclick="switchTab('mom', 'focus')" id="momTab_focus" class="flex flex-col items-center gap-0.5 text-xs text-amber-400 font-semibold transition">
+        <!-- Native Bottom Navigation Bar -->
+        <div id="momBottomNav" class="h-16 bg-slate-900/98 border-t border-slate-800 flex justify-around items-center px-2 select-none absolute bottom-0 inset-x-0 z-20 backdrop-blur pb-safe">
+          <button onclick="switchTab('mom', 'focus')" id="momTab_focus" class="flex-1 flex flex-col items-center gap-1 py-1 text-xs text-amber-400 font-bold transition">
             <i data-lucide="timer" class="w-4 h-4"></i>
             <span class="text-[10px]">육아 집중</span>
           </button>
-          <button onclick="switchTab('mom', 'todo')" id="momTab_todo" class="flex flex-col items-center gap-0.5 text-xs text-slate-400 hover:text-slate-200 transition">
+          <button onclick="switchTab('mom', 'todo')" id="momTab_todo" class="flex-1 flex flex-col items-center gap-1 py-1 text-xs text-slate-400 hover:text-slate-200 transition">
             <i data-lucide="check-square" class="w-4 h-4"></i>
             <span class="text-[10px]">오늘의 할 일</span>
           </button>
-          <button onclick="switchTab('mom', 'battle')" id="momTab_battle" class="flex flex-col items-center gap-0.5 text-xs text-slate-400 hover:text-slate-200 relative transition">
+          <button onclick="switchTab('mom', 'battle')" id="momTab_battle" class="flex-1 flex flex-col items-center gap-1 py-1 text-xs text-slate-400 hover:text-slate-200 relative transition">
             <i data-lucide="swords" class="w-4 h-4"></i>
             <span class="text-[10px]">페널티&방어</span>
-            <span id="momPenaltyBadge" class="hidden absolute -top-1 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+            <span id="momPenaltyBadge" class="hidden absolute top-1 right-5 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
-          <button onclick="switchTab('mom', 'quest')" id="momTab_quest" class="flex flex-col items-center gap-0.5 text-xs text-slate-400 hover:text-slate-200 transition">
+          <button onclick="switchTab('mom', 'quest')" id="momTab_quest" class="flex-1 flex flex-col items-center gap-1 py-1 text-xs text-slate-400 hover:text-slate-200 transition">
             <i data-lucide="sparkles" class="w-4 h-4"></i>
             <span class="text-[10px]">뽀마 & 퀘스트</span>
           </button>
@@ -1268,39 +1315,71 @@
 
 
     <!-- Phone 2: 아빠 (민수) -->
-    <div id="phoneDadContainer" class="flex flex-col items-center">
-      <div class="mb-2 flex items-center justify-between w-[360px] px-2 text-xs">
+    <div id="phoneDadContainer" class="phone-container flex flex-col items-center w-full md:w-auto transition-all">
+      <div class="phone-top-label mb-2 flex items-center justify-between w-[360px] px-2 text-xs">
         <span class="flex items-center gap-1.5 font-bold text-sky-300">
           <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
           👨 민수의 스마트폰 (아빠)
         </span>
-        <span class="text-slate-400 text-[11px]">Pixel 8 / Flutter</span>
+        <span class="text-slate-400 text-[11px]">뽀마키즈 Mobile App</span>
       </div>
 
-      <!-- Phone Frame -->
-      <div class="phone-screen bg-slate-950 rounded-[40px] border-4 border-slate-700 shadow-2xl relative overflow-hidden flex flex-col">
+      <!-- Phone Frame / App Window -->
+      <div class="phone-screen bg-slate-950 rounded-[40px] border-4 border-slate-800 shadow-2xl relative overflow-hidden flex flex-col w-full md:w-[360px] h-[100dvh] md:h-[740px]">
         
-        <!-- Phone Top Status Bar (시계줄) -->
-        <div class="h-8 bg-slate-900 px-4 flex justify-between items-center text-[10px] text-slate-400 select-none z-30 border-b border-slate-800/50">
+        <!-- Native Top Status Bar -->
+        <div class="h-9 bg-slate-900/90 px-4 flex justify-between items-center text-[10px] text-slate-400 select-none z-30 border-b border-slate-800/60 backdrop-blur">
           <div class="flex items-center gap-1.5">
-            <span id="phoneClockDad">17:35</span>
-            <!-- Minimal Status Bar Icon -->
+            <span id="phoneClockDad" class="font-bold font-mono text-slate-300">17:35</span>
             <span id="statusBarIconDad" class="hidden text-amber-300 font-bold flex items-center gap-1 bg-amber-500/20 px-1.5 py-0.5 rounded-md text-[9px] border border-amber-500/40 animate-pulse">
               <span>👶</span>
               <span id="statusBarTimerDad" class="font-mono text-[9px]">25:00</span>
             </span>
           </div>
-          <div class="w-16 h-3.5 bg-black rounded-full mx-auto flex items-center justify-center">
+          <div class="w-16 h-3 bg-black/60 rounded-full mx-auto flex items-center justify-center">
             <span class="w-2 h-2 rounded-full bg-slate-800"></span>
           </div>
-          <div class="flex items-center gap-2">
-            <!-- 🔔 Notification Bell Button with Unread Badge -->
-            <button onclick="openNotificationModal('dad')" class="relative p-0.5 text-slate-300 hover:text-sky-300 transition" title="알림 센터">
-              <i data-lucide="bell" class="w-3.5 h-3.5"></i>
-              <span id="dadNotifBadge" class="hidden absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-rose-500 text-white rounded-full text-[8px] font-black flex items-center justify-center px-0.5 animate-pulse">0</span>
-            </button>
+          <div class="flex items-center gap-1.5 text-slate-400">
             <i data-lucide="wifi" class="w-3 h-3"></i>
-            <i data-lucide="battery" class="w-3 h-3"></i>
+            <i data-lucide="battery" class="w-3.5 h-3.5"></i>
+          </div>
+        </div>
+
+        <!-- 📱 Native Mobile App Header (AppBar) -->
+        <div class="h-12 bg-slate-900/95 border-b border-slate-800/80 px-3 flex items-center justify-between z-25 select-none shrink-0 shadow-sm">
+          <!-- Profile Badge & Account Switcher -->
+          <button onclick="setViewMode('mom')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-sky-950/60 hover:bg-sky-900/80 border border-sky-500/40 text-sky-200 transition text-left" title="클릭하여 배우자(엄마) 앱으로 전환">
+            <span class="text-base">👨</span>
+            <div class="flex flex-col leading-none">
+              <span class="font-black text-xs text-sky-300 flex items-center gap-1">
+                <span>민수</span>
+                <span class="text-[9px] text-sky-400/80 font-normal">(아빠)</span>
+                <span class="text-[8px] text-slate-400">⇄</span>
+              </span>
+            </div>
+          </button>
+
+          <!-- Center Bboma Mini Status -->
+          <div onclick="openParentingReportModal()" class="flex items-center gap-1 p-1 px-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 cursor-pointer transition" title="부부 육아 통계 & 리포트 열기">
+            <span class="text-xs">🐣</span>
+            <span class="text-[10px] font-black text-amber-300">뽀마 Lv.3</span>
+          </div>
+
+          <!-- Right Action Icons -->
+          <div class="flex items-center gap-1">
+            <button onclick="openTutorialVideoModal(true)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="튜토리얼 영상">
+              <span class="text-xs">🎬</span>
+            </button>
+            <button onclick="openParentingReportModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-slate-800 transition" title="부부 통계/비교">
+              <span class="text-xs">📊</span>
+            </button>
+            <button onclick="openNotificationModal('dad')" class="relative p-1.5 rounded-lg text-slate-400 hover:text-sky-300 hover:bg-slate-800 transition" title="알림 센터">
+              <i data-lucide="bell" class="w-3.5 h-3.5"></i>
+              <span id="dadNotifBadge" class="hidden absolute top-0.5 right-0.5 min-w-[14px] h-[14px] bg-rose-500 text-white rounded-full text-[8px] font-black flex items-center justify-center px-0.5 animate-pulse">0</span>
+            </button>
+            <button onclick="openRuleSettingsModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition" title="룰 설정">
+              <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+            </button>
           </div>
         </div>
 
@@ -1396,27 +1475,27 @@
           </div>
         </div>
 
-        <!-- Phone App Content -->
-        <div class="flex-1 flex flex-col overflow-y-auto bg-slate-900 text-slate-100 p-4 pb-16 relative" id="dadAppBody">
+        <!-- Phone App Content Area -->
+        <div class="flex-1 flex flex-col overflow-y-auto bg-slate-900 text-slate-100 p-3.5 pb-20 relative" id="dadAppBody">
           <!-- Rendered by JS -->
         </div>
 
-        <!-- Phone Bottom Navigation Bar -->
-        <div id="dadBottomNav" class="h-14 bg-slate-900/95 border-t border-slate-800 flex justify-around items-center px-2 select-none absolute bottom-0 inset-x-0 z-20">
-          <button onclick="switchTab('dad', 'focus')" id="dadTab_focus" class="flex flex-col items-center gap-0.5 text-xs text-amber-400 font-semibold transition">
+        <!-- Native Bottom Navigation Bar -->
+        <div id="dadBottomNav" class="h-16 bg-slate-900/98 border-t border-slate-800 flex justify-around items-center px-2 select-none absolute bottom-0 inset-x-0 z-20 backdrop-blur pb-safe">
+          <button onclick="switchTab('dad', 'focus')" id="dadTab_focus" class="flex-1 flex flex-col items-center gap-1 py-1 text-xs text-amber-400 font-bold transition">
             <i data-lucide="timer" class="w-4 h-4"></i>
             <span class="text-[10px]">육아 집중</span>
           </button>
-          <button onclick="switchTab('dad', 'todo')" id="dadTab_todo" class="flex flex-col items-center gap-0.5 text-xs text-slate-400 hover:text-slate-200 transition">
+          <button onclick="switchTab('dad', 'todo')" id="dadTab_todo" class="flex-1 flex flex-col items-center gap-1 py-1 text-xs text-slate-400 hover:text-slate-200 transition">
             <i data-lucide="check-square" class="w-4 h-4"></i>
             <span class="text-[10px]">오늘의 할 일</span>
           </button>
-          <button onclick="switchTab('dad', 'battle')" id="dadTab_battle" class="flex flex-col items-center gap-0.5 text-xs text-slate-400 hover:text-slate-200 relative transition">
+          <button onclick="switchTab('dad', 'battle')" id="dadTab_battle" class="flex-1 flex flex-col items-center gap-1 py-1 text-xs text-slate-400 hover:text-slate-200 relative transition">
             <i data-lucide="swords" class="w-4 h-4"></i>
             <span class="text-[10px]">페널티&방어</span>
-            <span id="dadPenaltyBadge" class="hidden absolute -top-1 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+            <span id="dadPenaltyBadge" class="hidden absolute top-1 right-5 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
-          <button onclick="switchTab('dad', 'quest')" id="dadTab_quest" class="flex flex-col items-center gap-0.5 text-xs text-slate-400 hover:text-slate-200 transition">
+          <button onclick="switchTab('dad', 'quest')" id="dadTab_quest" class="flex-1 flex flex-col items-center gap-1 py-1 text-xs text-slate-400 hover:text-slate-200 transition">
             <i data-lucide="sparkles" class="w-4 h-4"></i>
             <span class="text-[10px]">뽀마 & 퀘스트</span>
           </button>
@@ -1424,8 +1503,8 @@
       </div>
     </div>
 
-    <!-- Live Event & Rule Inspector Side Panel -->
-    <div class="w-full lg:w-80 flex flex-col gap-4">
+    <!-- Live Event & Rule Inspector Side Panel (Desktop only) -->
+    <div id="desktopSidePanel" class="w-full lg:w-80 hidden lg:flex flex-col gap-4">
       <!-- Character Co-Op Status Side Widget -->
       <div class="bg-gradient-to-br from-amber-950/40 via-slate-800/90 to-slate-900 border border-amber-500/40 rounded-2xl p-4 shadow-xl text-xs">
         <div class="flex items-center justify-between mb-2">
@@ -1504,7 +1583,7 @@
 
   </main>
 
-  <footer class="mt-8 text-slate-500 text-xs text-center max-w-2xl leading-relaxed">
+  <footer id="desktopFooter" class="mt-8 text-slate-500 text-xs text-center max-w-2xl leading-relaxed hidden lg:block">
     <p>WeParent Prototype Engine • Designed with Game Prototyping Pipeline (Phases 1-5)</p>
     <p class="mt-1 text-[11px]">수호 요정 뽀마 캐릭터 육성 & 천사 배우자 퀘스트(가사 돕기 ➔ 방어권 획득) 사양이 적용되었습니다.</p>
   </footer>
@@ -2921,6 +3000,13 @@
     // --- Core UI & Tab Renderers ---
 
     function initApp() {
+      // Auto-detect mobile device / Capacitor webview or small screen
+      const isMobile = window.innerWidth <= 768 || window.Capacitor !== undefined || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isMobile) {
+        setViewMode('mom');
+      } else {
+        setViewMode('dual');
+      }
       lucide.createIcons();
       updatePetUI();
       updateNotifBadges();
@@ -2966,21 +3052,21 @@
       const dadBtn = document.getElementById('viewDadBtn');
 
       [dualBtn, momBtn, dadBtn].forEach(b => {
-        b.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200';
+        if (b) b.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200';
       });
 
       if (view === 'dual') {
-        momPhone.classList.remove('hidden');
-        dadPhone.classList.remove('hidden');
-        dualBtn.className = 'px-3 py-1.5 rounded-lg font-medium bg-indigo-600 text-white shadow';
+        if (momPhone) momPhone.classList.remove('hidden');
+        if (dadPhone) dadPhone.classList.remove('hidden');
+        if (dualBtn) dualBtn.className = 'px-3 py-1.5 rounded-lg font-medium bg-indigo-600 text-white shadow';
       } else if (view === 'mom') {
-        momPhone.classList.remove('hidden');
-        dadPhone.classList.add('hidden');
-        momBtn.className = 'px-3 py-1.5 rounded-lg font-medium bg-rose-600 text-white shadow';
+        if (momPhone) momPhone.classList.remove('hidden');
+        if (dadPhone) dadPhone.classList.add('hidden');
+        if (momBtn) momBtn.className = 'px-3 py-1.5 rounded-lg font-medium bg-rose-600 text-white shadow';
       } else if (view === 'dad') {
-        momPhone.classList.add('hidden');
-        dadPhone.classList.remove('hidden');
-        dadBtn.className = 'px-3 py-1.5 rounded-lg font-medium bg-sky-600 text-white shadow';
+        if (momPhone) momPhone.classList.add('hidden');
+        if (dadPhone) dadPhone.classList.remove('hidden');
+        if (dadBtn) dadBtn.className = 'px-3 py-1.5 rounded-lg font-medium bg-sky-600 text-white shadow';
       }
     }
 
@@ -2990,9 +3076,9 @@
         const btn = document.getElementById(`${userKey}Tab_${t}`);
         if (btn) {
           if (t === tabName) {
-            btn.className = 'flex flex-col items-center gap-0.5 text-xs text-amber-400 font-semibold transition';
+            btn.className = 'flex-1 flex flex-col items-center gap-1 py-1 text-xs text-amber-400 font-bold transition';
           } else {
-            btn.className = 'flex flex-col items-center gap-0.5 text-xs text-slate-400 hover:text-slate-200 transition';
+            btn.className = 'flex-1 flex flex-col items-center gap-1 py-1 text-xs text-slate-400 hover:text-slate-200 transition';
           }
         }
       });

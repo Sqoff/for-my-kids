@@ -64,13 +64,14 @@ jobs:
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         with:
           tag_name: v1.0.0
-          name: "📱 뽀마키즈 (Bbomakids) v1.0.0 APK Release"
+          name: "📱 뽀마키즈 (Bbomakids) 최신 Android APK Release"
           body: |
-            ## 👶 뽀마키즈(Bbomakids) Android APK 설치 파일
+            ## 👶 뽀마키즈(Bbomakids) 모바일 네이티브 앱 Android APK 설치 파일
             
-            부부 평화 육아 게이미피케이션 플랫폼 **뽀마키즈**의 최신 Android APK 빌드입니다.
+            부부 평화 육아 게이미피케이션 플랫폼 **뽀마키즈**의 안드로이드 전용 최신 빌드입니다.
             
             ### ✨ 주요 기능 및 업데이트
+            * 📱 **모바일 네이티브 앱 풀스크린 UI**: 100% 모바일 전체화면 레이아웃, 상단 네이티브 앱바(프로필/전환/튜토리얼/통계/알림/설정) 및 하단 엄지 친화적 바텀 내비게이션 바 탑재
             * 🎬 **튜토리얼 비디오 탑재**: 앱 실행 시 자동 가이드 및 상시 시청 기능
             * ⏱️ **육아 집중 타이머**: 6대 프리셋 휠 다이얼 및 세부 시간 설정(예: 13:30~18:30)
             * 🛡️ **방어권 & 페널티권 3단계 공방 시스템**: 방어 성공 시 공격자 페널티권 48시간 쿨타임 안전 복구
