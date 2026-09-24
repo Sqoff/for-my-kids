@@ -53,6 +53,13 @@
       #desktopHeader, #desktopFooter {
         display: none !important;
       }
+      .mockup-status-bar {
+        display: none !important;
+      }
+      .mobile-app-header {
+        padding-top: max(8px, env(safe-area-inset-top, 0px)) !important;
+        height: calc(48px + max(8px, env(safe-area-inset-top, 0px))) !important;
+      }
       main {
         max-width: 100% !important;
         width: 100% !important;
@@ -1138,8 +1145,8 @@
       <!-- Phone Frame / App Window -->
       <div class="phone-screen bg-slate-950 rounded-[40px] border-4 border-slate-800 shadow-2xl relative overflow-hidden flex flex-col w-full md:w-[360px] h-[100dvh] md:h-[740px]">
         
-        <!-- Native Top Status Bar -->
-        <div class="h-9 bg-slate-900/90 px-4 flex justify-between items-center text-[10px] text-slate-400 select-none z-30 border-b border-slate-800/60 backdrop-blur">
+        <!-- Native Top Status Bar (PC Mockup frame only) -->
+        <div class="mockup-status-bar h-9 bg-slate-900/90 px-4 flex justify-between items-center text-[10px] text-slate-400 select-none z-30 border-b border-slate-800/60 backdrop-blur">
           <div class="flex items-center gap-1.5">
             <span id="phoneClockMom" class="font-bold font-mono text-slate-300">17:35</span>
             <span id="statusBarIconMom" class="hidden text-amber-300 font-bold flex items-center gap-1 bg-amber-500/20 px-1.5 py-0.5 rounded-md text-[9px] border border-amber-500/40 animate-pulse">
@@ -1157,7 +1164,7 @@
         </div>
 
         <!-- 📱 Native Mobile App Header (AppBar) -->
-        <div class="h-12 bg-slate-900/95 border-b border-slate-800/80 px-3 flex items-center justify-between z-25 select-none shrink-0 shadow-sm">
+        <div class="mobile-app-header h-12 bg-slate-900/95 border-b border-slate-800/80 px-3 flex items-center justify-between z-25 select-none shrink-0 shadow-sm">
           <!-- Profile Badge & Account Switcher -->
           <button onclick="setViewMode('dad')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 text-rose-200 transition text-left" title="클릭하여 배우자(아빠) 앱으로 전환">
             <span class="text-base">👩</span>
@@ -1327,8 +1334,8 @@
       <!-- Phone Frame / App Window -->
       <div class="phone-screen bg-slate-950 rounded-[40px] border-4 border-slate-800 shadow-2xl relative overflow-hidden flex flex-col w-full md:w-[360px] h-[100dvh] md:h-[740px]">
         
-        <!-- Native Top Status Bar -->
-        <div class="h-9 bg-slate-900/90 px-4 flex justify-between items-center text-[10px] text-slate-400 select-none z-30 border-b border-slate-800/60 backdrop-blur">
+        <!-- Native Top Status Bar (PC Mockup frame only) -->
+        <div class="mockup-status-bar h-9 bg-slate-900/90 px-4 flex justify-between items-center text-[10px] text-slate-400 select-none z-30 border-b border-slate-800/60 backdrop-blur">
           <div class="flex items-center gap-1.5">
             <span id="phoneClockDad" class="font-bold font-mono text-slate-300">17:35</span>
             <span id="statusBarIconDad" class="hidden text-amber-300 font-bold flex items-center gap-1 bg-amber-500/20 px-1.5 py-0.5 rounded-md text-[9px] border border-amber-500/40 animate-pulse">
@@ -1346,7 +1353,7 @@
         </div>
 
         <!-- 📱 Native Mobile App Header (AppBar) -->
-        <div class="h-12 bg-slate-900/95 border-b border-slate-800/80 px-3 flex items-center justify-between z-25 select-none shrink-0 shadow-sm">
+        <div class="mobile-app-header h-12 bg-slate-900/95 border-b border-slate-800/80 px-3 flex items-center justify-between z-25 select-none shrink-0 shadow-sm">
           <!-- Profile Badge & Account Switcher -->
           <button onclick="setViewMode('mom')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-sky-950/60 hover:bg-sky-900/80 border border-sky-500/40 text-sky-200 transition text-left" title="클릭하여 배우자(엄마) 앱으로 전환">
             <span class="text-base">👨</span>
@@ -3007,6 +3014,9 @@
       } else {
         setViewMode('dual');
       }
+      if (typeof NativeNotificationManager !== 'undefined') {
+        NativeNotificationManager.init();
+      }
       lucide.createIcons();
       updatePetUI();
       updateNotifBadges();
@@ -4196,6 +4206,115 @@
       renderApp(userKey);
     }
 
+    // --- 📱 Android Native System Status Bar & Background Notification Service ---
+    const NativeNotificationManager = {
+      _lastSec: null,
+      async init() {
+        try {
+          if (window.Capacitor && window.Capacitor.Plugins) {
+            const { StatusBar, LocalNotifications } = window.Capacitor.Plugins;
+            if (StatusBar) {
+              await StatusBar.setBackgroundColor({ color: '#090d16' }).catch(() => {});
+              await StatusBar.setStyle({ style: 'DARK' }).catch(() => {});
+            }
+            if (LocalNotifications) {
+              const perm = await LocalNotifications.checkPermissions().catch(() => ({ display: 'prompt' }));
+              if (perm && perm.display !== 'granted') {
+                await LocalNotifications.requestPermissions().catch(() => {});
+              }
+            }
+          } else if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission().catch(() => {});
+          }
+        } catch (err) {
+          console.log('Notification init notice:', err);
+        }
+      },
+
+      async showFocusNotification(userKey, secondsLeft, totalSeconds) {
+        const user = STATE.users[userKey];
+        if (!user) return;
+        const mins = Math.floor(secondsLeft / 60);
+        const secs = secondsLeft % 60;
+        const timeStr = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        const title = `👶 [뽀마키즈] ${user.name}(${user.role}) 육아 집중 모드`;
+        const body = `스마트폰 딴짓 차단 및 아이와 눈맞춤 진행 중 • 남은 시간: ${timeStr}`;
+
+        try {
+          if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+            const { LocalNotifications } = window.Capacitor.Plugins;
+            // Schedule/update ongoing notification in Android Status Bar
+            await LocalNotifications.schedule({
+              notifications: [
+                {
+                  id: userKey === 'mom' ? 1001 : 1002,
+                  title: title,
+                  body: body,
+                  ongoing: true,
+                  autoCancel: false,
+                  schedule: { at: new Date(Date.now() + 50) },
+                  sound: null,
+                  extra: { type: 'focus', userKey: userKey }
+                }
+              ]
+            });
+          } else if ('Notification' in window && Notification.permission === 'granted') {
+            if (this._lastSec === null || Math.abs(this._lastSec - secondsLeft) >= 15 || secondsLeft <= 5) {
+              this._lastSec = secondsLeft;
+              new Notification(title, {
+                body: body,
+                tag: 'focus_' + userKey,
+                silent: true
+              });
+            }
+          }
+        } catch (e) {
+          console.log('Focus notification error:', e);
+        }
+      },
+
+      async clearFocusNotification(userKey) {
+        this._lastSec = null;
+        try {
+          if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+            const { LocalNotifications } = window.Capacitor.Plugins;
+            await LocalNotifications.cancel({
+              notifications: [{ id: userKey === 'mom' ? 1001 : 1002 }]
+            });
+          }
+        } catch (e) {
+          console.log('Clear notification error:', e);
+        }
+      },
+
+      async showCompleteNotification(userKey, minutes, expEarned) {
+        const user = STATE.users[userKey];
+        if (!user) return;
+        const title = `🎉 [뽀마키즈] ${user.name} 육아 집중 ${minutes}분 완주 성공!`;
+        const body = `아이에게 온전히 집중하셨습니다. 뽀마 경험치 +${expEarned} EXP 획득! 🐣`;
+
+        try {
+          if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+            const { LocalNotifications } = window.Capacitor.Plugins;
+            await LocalNotifications.schedule({
+              notifications: [
+                {
+                  id: userKey === 'mom' ? 2001 : 2002,
+                  title: title,
+                  body: body,
+                  schedule: { at: new Date(Date.now() + 100) }
+                }
+              ]
+            });
+          } else if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, { body: body });
+          }
+        } catch (e) {
+          console.log('Complete notification error:', e);
+        }
+      }
+    };
+
     function startFocusMode(userKey) {
       const user = STATE.users[userKey];
       const settings = user.focusSettings || { mode: 'preset', presetMinutes: 25, startTime: '13:30', endTime: '18:30' };
@@ -4221,6 +4340,9 @@
       const statusSpan = document.getElementById(userKey === 'mom' ? 'statusBarTimerMom' : 'statusBarTimerDad');
       if (statusSpan) statusSpan.innerText = formatTimeRemaining(user.focusSecondsLeft);
 
+      // Trigger Native Android System Status Bar Notification
+      NativeNotificationManager.showFocusNotification(userKey, user.focusSecondsLeft, user.focusTotalSeconds);
+
       if (user.focusTimerId) clearInterval(user.focusTimerId);
       user.focusTimerId = setInterval(() => {
         if (user.focusSecondsLeft > 0) {
@@ -4237,13 +4359,18 @@
             const pct = Math.min(100, Math.max(0, Math.round(((user.focusTotalSeconds - user.focusSecondsLeft) / user.focusTotalSeconds) * 100)));
             liveProgress.style.width = `${pct}%`;
           }
+
+          // Update Android notification periodically
+          if (user.focusSecondsLeft % 10 === 0 || user.focusSecondsLeft <= 5) {
+            NativeNotificationManager.showFocusNotification(userKey, user.focusSecondsLeft, user.focusTotalSeconds);
+          }
         } else {
           completeFocusMode(userKey);
         }
       }, 1000);
 
-      showToast(`👶 ${user.name}의 육아 집중 모드 시작! (${durationDesc}) 상단 시계줄에 아이콘이 상주합니다.`);
-      logEvent(`[상태바 상주 시작] ${user.name}의 상단 시계줄에 👶 아이콘 표시됨 (${durationDesc})`);
+      showToast(`👶 ${user.name}의 육아 집중 모드 시작! (${durationDesc}) 휴대폰 시스템 상태바에 상주합니다.`);
+      logEvent(`[시스템 상태바 상주 시작] ${user.name}의 안드로이드 상태바에 👶 알림 표시됨 (${durationDesc})`);
       renderApp(userKey);
     }
 
@@ -4255,6 +4382,10 @@
       const hours = +(totalSec / 3600).toFixed(1);
       const minutes = Math.round(totalSec / 60);
       const expEarned = Math.max(30, Math.round(minutes * 2));
+
+      // Clear ongoing notification and show completion alert
+      NativeNotificationManager.clearFocusNotification(userKey);
+      NativeNotificationManager.showCompleteNotification(userKey, minutes, expEarned);
 
       // Realtime stats sync
       if (STATE.stats && STATE.stats.daily && STATE.stats.daily[6]) {
@@ -4286,9 +4417,12 @@
       const icon = document.getElementById(userKey === 'mom' ? 'statusBarIconMom' : 'statusBarIconDad');
       if (icon) icon.classList.add('hidden');
 
+      // Clear Android Native Notification
+      NativeNotificationManager.clearFocusNotification(userKey);
+
       if (showNotice) {
         showToast(`⏹️ ${user.name}의 육아 집중 모드가 종료되었습니다.`);
-        logEvent(`[상태바 상주 종료] ${user.name} 육아 집중 서비스 해제`);
+        logEvent(`[시스템 상태바 상주 종료] ${user.name} 육아 집중 서비스 해제`);
       }
       renderApp(userKey);
     }
