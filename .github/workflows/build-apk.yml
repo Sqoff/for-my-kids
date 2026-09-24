@@ -1,0 +1,85 @@
+name: Build and Release Android APK
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: package.json
+
+      - name: Install NPM Dependencies
+        run: npm ci || npm install
+
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build Debug APK with Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Prepare APK Output
+        run: |
+          mkdir -p build-output
+          cp android/app/build/outputs/apk/debug/app-debug.apk build-output/bbomakids-v1.0.0.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bbomakids-Android-APK
+          path: build-output/bbomakids-v1.0.0.apk
+          retention-days: 30
+
+      - name: Create GitHub Release & Publish APK
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: v1.0.0-build
+          name: "📱 뽀마키즈 (Bbomakids) v1.0.0 APK Release"
+          body: |
+            ## 👶 뽀마키즈(Bbomakids) Android APK 설치 파일
+            
+            부부 평화 육아 게이미피케이션 플랫폼 **뽀마키즈**의 최신 Android APK 빌드입니다.
+            
+            ### ✨ 주요 기능 및 업데이트
+            * 🎬 **튜토리얼 비디오 탑재**: 앱 실행 시 자동 가이드 및 상시 시청 기능
+            * ⏱️ **육아 집중 타이머**: 6대 프리셋 휠 다이얼 및 세부 시간 설정(예: 13:30~18:30)
+            * 🛡️ **방어권 & 페널티권 3단계 공방 시스템**: 방어 성공 시 공격자 페널티권 48시간 쿨타임 안전 복구
+            * 📊 **부부 기여도 캐릭터 비교 차트**: 일/주/월 단위 투입 시간 및 과업 비교
+            * 🎮 **게이미피케이션**: 뽀마 요정 육성 및 레벨업 시스템
+            
+            ### 📥 다운로드
+            아래 `bbomakids-v1.0.0.apk` 파일을 스마트폰에 다운로드하여 설치해 주세요.
+          files: |
+            build-output/bbomakids-v1.0.0.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

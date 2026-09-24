@@ -1,0 +1,8 @@
+{
+  "appId": "com.weparent.bbomakids",
+  "appName": "뽀마키즈",
+  "webDir": "prototype",
+  "server": {
+    "androidScheme": "https"
+  }
+}

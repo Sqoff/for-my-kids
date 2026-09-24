@@ -2,7 +2,9 @@
 
 ---
 
-## Phase 1: MVP Core & 부부 협력 시스템
+## Phase 1: MVP Core & 부부 협력 시스템 (웹 프로토타입 즉시 검증 기반)
+- [x] 웹 브라우저 기반 즉시 인터랙티브 프로토타입 구축 (`prototype/index.html`, `server.py`)
+- [x] 부부 2인 동시 뷰 (엄마/아빠) 상호작용 및 코어 루프 30초 검증 완료
 - [ ] Flutter 프로젝트 초기 세팅 & 아키텍처 구조화 (Riverpod + Clean Architecture)
 - [ ] Firebase Auth (소셜 로그인) & 6자리 초대 코드를 통한 1:1 부부 결속
 - [ ] 난이도 모드(이지/하드) 설정 화면 및 온보딩

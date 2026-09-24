@@ -88,3 +88,36 @@ flowchart TB
 | `startFocusMode` | `{"durationSec": Int, "blockedList": List<String>}` | `Boolean` | 포그라운드 서비스 및 플로팅 뱃지 시작 |
 | `stopFocusMode` | - | `Boolean` | 포그라운드 서비스 및 오버레이 해제 |
 | `updateBlockedList` | `{"blockedList": List<String>}` | `Boolean` | 차단 앱 목록 실시간 동기화 |
+
+---
+
+## 4. 개발 검증 및 테스트 환경 규격 (Testing & Verification Strategy)
+
+본 프로젝트는 불필요한 APK 수동 빌드/설치 오버헤드를 제거하고 이터레이션 속도를 극대화하기 위해 다계층 테스트 환경을 표준으로 규정한다.
+
+```mermaid
+flowchart LR
+    DevCode[개발 코드 / 상태 머신] --> WebTest["[Tier 1] 웹 브라우저 즉시 구동<br/>(Web Prototype / Flutter Web)"]
+    DevCode --> AVDTest["[Tier 2] PC 가상 에뮬레이터<br/>(Android Studio AVD)"]
+    DevCode --> DeviceTest["[Tier 3] 실기기 USB 디버깅<br/>(Hot Reload)"]
+
+    WebTest -->|초고속 즉시 검증| V1[2인 동시 상호작용 / 룰셋 / UI 애니메이션]
+    AVDTest -->|OS 레벨 검증| V2[SYSTEM_ALERT_WINDOW / 사용량 감지]
+    DeviceTest -->|최종 실기기 검증| V3[실제 디바이스 사용성 / 백그라운드 배터리]
+```
+
+### 4.1 Tier 1: 웹 브라우저 즉시 구동 (Primary Instant Verification) - 기본 표준
+- **실행 방식**: `prototype/index.html` 단독 실행 또는 `python prototype/server.py` / `flutter run -d chrome` 구동.
+- **주요 검증 영역**:
+  - **부부 2인 동시 상호작용**: PC 한 화면에서 엄마(지은) 👩 와 아빠(민수) 👨 화면을 나란히 띄워 실시간 푸시, 할 일 완료 칭찬, 페널티 청구/방어 배틀 검증.
+  - **게이미피케이션 상태 전이**: 이지 모드(30분 봐주기/유예) vs 하드 모드(즉시 페널티 자동 발급) 로직 실시간 검증.
+  - **가상 OS 오버레이 시뮬레이션**: 딴짓 앱 실행 감지 및 차단 오버레이, 드래그 가능한 플로팅 뱃지 UI 시뮬레이션.
+- **목적**: 설치 대기 시간 0초로 기획·UI·비즈니스 로직을 즉각 수정 및 검증.
+
+### 4.2 Tier 2: PC 가상 안드로이드 에뮬레이터 (Native OS Verification)
+- **실행 방식**: Android Studio AVD (Pixel / Galaxy 가상 기기) 실행 후 `flutter run`.
+- **주요 검증 영역**: Kotlin MethodChannel 연동, `UsageStatsManager` 실제 폴링 주기, `WindowManager` 플로팅 오버레이 네이티브 렌더링.
+
+### 4.3 Tier 3: 실기기 USB/무선 디버깅 (Device Hot Reload)
+- **실행 방식**: 개발자 모드 활성화 스마트폰 연결 후 `flutter run` 실행 (APK 수동 복사/설치 불필요, `Ctrl+S` 시 0.5초 핫리로드).
+

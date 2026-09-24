@@ -1,3 +1,19 @@
+# Node dependencies
+node_modules/
+package-lock.json.backup
+
+# Capacitor / Android Build Output
+build-output/
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+android/*.apk
+android/*.aab
+
 # Gradle files
 .gradle/
 build/
@@ -7,6 +23,8 @@ local.properties
 
 # Log/OS Files
 *.log
+.DS_Store
+Thumbs.db
 
 # Android Studio generated files and folders
 captures/
@@ -16,9 +34,10 @@ captures/
 *.apk
 output-metadata.json
 
-# IntelliJ
+# IntelliJ / VS Code
 *.iml
 .idea/
+.vscode/
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
