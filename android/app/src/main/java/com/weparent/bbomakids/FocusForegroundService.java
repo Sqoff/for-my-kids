@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Vibrator;
+import android.graphics.BitmapFactory;
 import androidx.core.app.NotificationCompat;
 
 public class FocusForegroundService extends Service {
@@ -20,7 +21,7 @@ public class FocusForegroundService extends Service {
     public static final String ACTION_START = "com.weparent.bbomakids.ACTION_START_FOCUS";
     public static final String ACTION_STOP = "com.weparent.bbomakids.ACTION_STOP_FOCUS";
 
-    public static final String CHANNEL_ID = "bboma_focus_foreground_channel";
+    public static final String CHANNEL_ID = "bboma_focus_foreground_v4";
     public static final String COMPLETE_CHANNEL_ID = "bboma_focus_complete_channel";
     public static final int NOTIFICATION_ID = 9001;
     public static final int COMPLETE_NOTIFICATION_ID = 9002;
@@ -168,14 +169,18 @@ public class FocusForegroundService extends Service {
 
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_bboma)
-                .setColor(0xFFFF5E8A) // Pink/Rose badge for high visibility
-                .setContentTitle("👶 뽀마키즈 | " + userName + "(" + userRole + ") 육아 집중 가동 중")
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
+                .setColor(0xFFFF1744) // Vivid Crimson Red Badge
+                .setColorized(true)
+                .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
+                .setContentTitle("🔴 [뽀마키즈] " + userName + "(" + userRole + ") 육아 집중 가동 중")
                 .setContentText("아이와 눈맞춤 집중 중 • 남은 시간: " + timeFormatted)
-                .setSubText("동작 중")
-                .setTicker("👶 뽀마키즈 육아 집중 모드 동작 중")
+                .setSubText("🔴 동작 중")
+                .setTicker("🔴 뽀마키즈 육아 집중 모드 동작 중")
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setBadgeIconType(NotificationCompat.BADGE_ICON_LARGE)
                 .setContentIntent(pendingIntent)
                 .build();
     }
@@ -208,14 +213,19 @@ public class FocusForegroundService extends Service {
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (manager == null) return;
 
-            // 1. Ongoing Foreground Channel
+            // 1. Ongoing Foreground Channel - HIGH Importance with Red Light
             NotificationChannel focusChannel = new NotificationChannel(
                     CHANNEL_ID,
                     "뽀마키즈 육아 집중 상주 알림",
-                    NotificationManager.IMPORTANCE_LOW
+                    NotificationManager.IMPORTANCE_HIGH
             );
             focusChannel.setDescription("육아 집중 모드 실행 중 상단 상태바에 상주하며 남은 시간을 표시합니다.");
             focusChannel.setShowBadge(true);
+            focusChannel.setSound(null, null);
+            focusChannel.enableVibration(false);
+            focusChannel.enableLights(true);
+            focusChannel.setLightColor(0xFFFF1744);
+            focusChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             manager.createNotificationChannel(focusChannel);
 
             // 2. Complete Alert Channel
