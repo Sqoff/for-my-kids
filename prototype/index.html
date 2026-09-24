@@ -4212,7 +4212,7 @@
       async init() {
         try {
           if (window.Capacitor && window.Capacitor.Plugins) {
-            const { StatusBar, LocalNotifications } = window.Capacitor.Plugins;
+            const { StatusBar, LocalNotifications, FocusService } = window.Capacitor.Plugins;
             if (StatusBar) {
               await StatusBar.setBackgroundColor({ color: '#090d16' }).catch(() => {});
               await StatusBar.setStyle({ style: 'DARK' }).catch(() => {});
@@ -4237,13 +4237,21 @@
         const mins = Math.floor(secondsLeft / 60);
         const secs = secondsLeft % 60;
         const timeStr = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        const title = `👶 [뽀마키즈] ${user.name}(${user.role}) 육아 집중 모드`;
-        const body = `스마트폰 딴짓 차단 및 아이와 눈맞춤 진행 중 • 남은 시간: ${timeStr}`;
+        const title = `👶 뽀마키즈 | ${user.name}(${user.role}) 육아 집중 모드`;
+        const body = `아이와 눈맞춤 집중 중 • 남은 시간: ${timeStr}`;
 
         try {
-          if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+          // 1. Android Native Foreground Service (Real Status Bar Ongoing Chip & Icon)
+          if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.FocusService) {
+            const { FocusService } = window.Capacitor.Plugins;
+            await FocusService.startFocusService({
+              secondsLeft: secondsLeft,
+              totalSeconds: totalSeconds,
+              userName: user.name,
+              userRole: user.role
+            }).catch(err => console.log('FocusService start error:', err));
+          } else if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
             const { LocalNotifications } = window.Capacitor.Plugins;
-            // Schedule/update ongoing notification in Android Status Bar
             await LocalNotifications.schedule({
               notifications: [
                 {
@@ -4276,6 +4284,11 @@
       async clearFocusNotification(userKey) {
         this._lastSec = null;
         try {
+          // 1. Stop Native Foreground Service
+          if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.FocusService) {
+            const { FocusService } = window.Capacitor.Plugins;
+            await FocusService.stopFocusService().catch(() => {});
+          }
           if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
             const { LocalNotifications } = window.Capacitor.Plugins;
             await LocalNotifications.cancel({

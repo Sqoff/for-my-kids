@@ -47,40 +47,47 @@ jobs:
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
 
+      - name: Extract App Version
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted App Version: v$VERSION"
+
       - name: Prepare APK Output
         run: |
           mkdir -p build-output
-          cp android/app/build/outputs/apk/debug/app-debug.apk build-output/bbomakids-v1.0.0.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk build-output/bbomakids-v${{ env.APP_VERSION }}.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Bbomakids-Android-APK
-          path: build-output/bbomakids-v1.0.0.apk
+          name: Bbomakids-Android-APK-v${{ env.APP_VERSION }}
+          path: build-output/bbomakids-v${{ env.APP_VERSION }}.apk
           retention-days: 30
 
       - name: Create GitHub Release & Publish APK
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         with:
-          tag_name: v1.0.0
-          name: "📱 뽀마키즈 (Bbomakids) 최신 Android APK Release"
+          tag_name: v${{ env.APP_VERSION }}
+          name: "📱 뽀마키즈 (Bbomakids) v${{ env.APP_VERSION }} APK Release"
           body: |
-            ## 👶 뽀마키즈(Bbomakids) 모바일 네이티브 앱 Android APK 설치 파일
+            ## 👶 뽀마키즈(Bbomakids) v${{ env.APP_VERSION }} Android APK 설치 파일
             
-            부부 평화 육아 게이미피케이션 플랫폼 **뽀마키즈**의 안드로이드 전용 최신 빌드입니다.
+            부부 평화 육아 게이미피케이션 플랫폼 **뽀마키즈**의 최신 안드로이드 APK 빌드입니다.
             
-            ### ✨ 주요 기능 및 업데이트
-            * 📱 **모바일 네이티브 앱 풀스크린 UI**: 100% 모바일 전체화면 레이아웃, 상단 네이티브 앱바(프로필/전환/튜토리얼/통계/알림/설정) 및 하단 엄지 친화적 바텀 내비게이션 바 탑재
-            * 🎬 **튜토리얼 비디오 탑재**: 앱 실행 시 자동 가이드 및 상시 시청 기능
+            ### ✨ 주요 기능 및 이번 버전 업데이트
+            * 🔔 **스마트폰 시스템 상태바 백그라운드 상주 서비스**: 앱을 닫거나 다른 앱을 켜도 안드로이드 OS 최상단 상태바에 `👶` 아이콘 및 "동작 중" Ongoing 알림 실시간 표시
+            * 📱 **모바일 네이티브 풀스크린 UI**: 100% 모바일 전체화면, 상단 네이티브 앱바 & 하단 바텀 내비게이션 바 탑재
             * ⏱️ **육아 집중 타이머**: 6대 프리셋 휠 다이얼 및 세부 시간 설정(예: 13:30~18:30)
             * 🛡️ **방어권 & 페널티권 3단계 공방 시스템**: 방어 성공 시 공격자 페널티권 48시간 쿨타임 안전 복구
             * 📊 **부부 기여도 캐릭터 비교 차트**: 일/주/월 단위 투입 시간 및 과업 비교
             * 🎮 **게이미피케이션**: 뽀마 요정 육성 및 레벨업 시스템
             
             ### 📥 다운로드
-            아래 `bbomakids-v1.0.0.apk` 파일을 스마트폰에 다운로드하여 설치해 주세요.
+            아래 `bbomakids-v${{ env.APP_VERSION }}.apk` 파일을 스마트폰에 다운로드하여 설치해 주세요.
           files: |
-            build-output/bbomakids-v1.0.0.apk
+            build-output/bbomakids-v${{ env.APP_VERSION }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
