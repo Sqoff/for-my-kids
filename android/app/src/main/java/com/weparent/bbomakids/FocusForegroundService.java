@@ -289,23 +289,23 @@ public class FocusForegroundService extends Service {
                     capsule.setOrientation(LinearLayout.HORIZONTAL);
                     capsule.setGravity(Gravity.CENTER_VERTICAL);
 
-                    int padH = dpToPx(8);
-                    int padV = dpToPx(3);
+                    int padH = dpToPx(7);
+                    int padV = dpToPx(2);
                     capsule.setPadding(padH, padV, padH, padV);
 
                     // Solid Red Capsule Background (Exact match to eee.jpg red badge)
                     GradientDrawable bg = new GradientDrawable();
                     bg.setShape(GradientDrawable.RECTANGLE);
                     bg.setColor(Color.parseColor("#E50914")); // Vivid Red
-                    bg.setCornerRadius(dpToPx(12));
+                    bg.setCornerRadius(dpToPx(10));
                     bg.setStroke(dpToPx(1), Color.parseColor("#FF5252"));
                     capsule.setBackground(bg);
 
-                    // Text: 🔴 뽀마 25:00
+                    // Text: 👶 뽀마 25:00
                     overlayTextView = new TextView(FocusForegroundService.this);
-                    overlayTextView.setText("🔴 뽀마 " + formatTime(secondsRemaining));
+                    overlayTextView.setText("👶 뽀마 " + formatTime(secondsRemaining));
                     overlayTextView.setTextColor(Color.WHITE);
-                    overlayTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10.5f);
+                    overlayTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10.0f);
                     overlayTextView.setTypeface(null, android.graphics.Typeface.BOLD);
                     capsule.addView(overlayTextView);
 
@@ -326,8 +326,8 @@ public class FocusForegroundService extends Service {
                     );
 
                     params.gravity = Gravity.TOP | Gravity.START;
-                    // Positioned at top-left status bar area next to the clock
-                    params.x = dpToPx(65);
+                    // Positioned at top-left status bar area right next to clock
+                    params.x = dpToPx(48);
                     params.y = dpToPx(3);
 
                     capsule.setOnTouchListener(new View.OnTouchListener() {
@@ -382,7 +382,7 @@ public class FocusForegroundService extends Service {
                 @Override
                 public void run() {
                     if (overlayTextView != null) {
-                        overlayTextView.setText("🔴 뽀마 " + timeText);
+                        overlayTextView.setText("👶 뽀마 " + timeText);
                     }
                 }
             });
