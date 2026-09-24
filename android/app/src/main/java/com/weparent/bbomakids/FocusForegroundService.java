@@ -9,30 +9,25 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.PixelFormat;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Vibrator;
-import android.provider.Settings;
-import android.util.TypedValue;
-import android.view.Gravity;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.media.app.NotificationCompat.MediaStyle;
 
 public class FocusForegroundService extends Service {
 
     public static final String ACTION_START = "com.weparent.bbomakids.ACTION_START_FOCUS";
     public static final String ACTION_STOP = "com.weparent.bbomakids.ACTION_STOP_FOCUS";
+    public static final String ACTION_PAUSE = "com.weparent.bbomakids.ACTION_PAUSE_FOCUS";
+    public static final String ACTION_RESUME = "com.weparent.bbomakids.ACTION_RESUME_FOCUS";
 
-    public static final String CHANNEL_ID = "bboma_focus_foreground_v4";
+    public static final String CHANNEL_ID = "bboma_focus_media_session_v1";
     public static final String COMPLETE_CHANNEL_ID = "bboma_focus_complete_channel";
     public static final int NOTIFICATION_ID = 9001;
     public static final int COMPLETE_NOTIFICATION_ID = 9002;
@@ -44,17 +39,80 @@ public class FocusForegroundService extends Service {
     private String userName = "지은";
     private String userRole = "엄마";
     private boolean isRunning = false;
+    private boolean isPaused = false;
 
-    // Floating Red Status Bar Overlay View (Matches eee.jpg reference)
-    private WindowManager windowManager;
-    private View overlayCapsuleView;
-    private TextView overlayTextView;
+    // Official Android MediaSession for system-level status bar / quick settings media player integration
+    private MediaSessionCompat mediaSession;
 
     @Override
     public void onCreate() {
         super.onCreate();
         createNotificationChannels();
+        initMediaSession();
         timerHandler = new Handler(Looper.getMainLooper());
+    }
+
+    private void initMediaSession() {
+        mediaSession = new MediaSessionCompat(this, "BbomaFocusMediaSession");
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+
+        mediaSession.setCallback(new MediaSessionCompat.Callback() {
+            @Override
+            public void onPause() {
+                pauseFocusTimer();
+            }
+
+            @Override
+            public void onPlay() {
+                resumeFocusTimer();
+            }
+
+            @Override
+            public void onStop() {
+                stopFocusTimer();
+                stopForeground(true);
+                stopSelf();
+            }
+        });
+
+        updatePlaybackState(PlaybackStateCompat.STATE_PLAYING);
+        mediaSession.setActive(true);
+    }
+
+    private void updatePlaybackState(int state) {
+        if (mediaSession == null) return;
+
+        long actions = PlaybackStateCompat.ACTION_PLAY
+                | PlaybackStateCompat.ACTION_PAUSE
+                | PlaybackStateCompat.ACTION_PLAY_PAUSE
+                | PlaybackStateCompat.ACTION_STOP;
+
+        long position = (totalSeconds - secondsRemaining) * 1000L;
+
+        PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder()
+                .setActions(actions)
+                .setState(state, position, state == PlaybackStateCompat.STATE_PLAYING ? 1.0f : 0.0f);
+
+        mediaSession.setPlaybackState(stateBuilder.build());
+    }
+
+    private void updateMediaMetadata() {
+        if (mediaSession == null) return;
+
+        MediaMetadataCompat.Builder metadataBuilder = new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "👶 육아 집중 모드 (" + formatTime(secondsRemaining) + ")")
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, userName + "(" + userRole + ") • 아이와 함께하는 시간")
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "뽀마키즈 부부 평화 육아")
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, totalSeconds * 1000L);
+
+        try {
+            metadataBuilder.putBitmap(
+                    MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
+                    BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher)
+            );
+        } catch (Exception ignored) {}
+
+        mediaSession.setMetadata(metadataBuilder.build());
     }
 
     @Override
@@ -71,6 +129,16 @@ public class FocusForegroundService extends Service {
             return START_NOT_STICKY;
         }
 
+        if (ACTION_PAUSE.equals(action)) {
+            pauseFocusTimer();
+            return START_STICKY;
+        }
+
+        if (ACTION_RESUME.equals(action)) {
+            resumeFocusTimer();
+            return START_STICKY;
+        }
+
         if (ACTION_START.equals(action)) {
             secondsRemaining = intent.getIntExtra("secondsLeft", 1500);
             totalSeconds = intent.getIntExtra("totalSeconds", 1500);
@@ -85,7 +153,11 @@ public class FocusForegroundService extends Service {
 
     private void startFocusTimer() {
         isRunning = true;
-        Notification notification = buildOngoingNotification(formatTime(secondsRemaining));
+        isPaused = false;
+        updatePlaybackState(PlaybackStateCompat.STATE_PLAYING);
+        updateMediaMetadata();
+
+        Notification notification = buildMediaNotification(formatTime(secondsRemaining));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (Build.VERSION.SDK_INT >= 34) {
@@ -97,9 +169,6 @@ public class FocusForegroundService extends Service {
             startForeground(NOTIFICATION_ID, notification);
         }
 
-        // Show prominent red capsule overlay directly over top status bar
-        showStatusBarOverlay();
-
         if (timerRunnable != null) {
             timerHandler.removeCallbacks(timerRunnable);
         }
@@ -107,18 +176,15 @@ public class FocusForegroundService extends Service {
         timerRunnable = new Runnable() {
             @Override
             public void run() {
-                if (!isRunning) return;
+                if (!isRunning || isPaused) return;
 
                 if (secondsRemaining > 0) {
                     secondsRemaining--;
                     String formatted = formatTime(secondsRemaining);
-                    // Update ongoing notification
+                    updateMediaMetadata();
                     updateNotification(formatted);
-                    // Update floating red status bar capsule
-                    updateStatusBarOverlay(formatted);
                     timerHandler.postDelayed(this, 1000);
                 } else {
-                    // Completed!
                     onFocusCompleted();
                 }
             }
@@ -127,12 +193,31 @@ public class FocusForegroundService extends Service {
         timerHandler.postDelayed(timerRunnable, 1000);
     }
 
+    private void pauseFocusTimer() {
+        isPaused = true;
+        updatePlaybackState(PlaybackStateCompat.STATE_PAUSED);
+        updateNotification(formatTime(secondsRemaining));
+    }
+
+    private void resumeFocusTimer() {
+        isPaused = false;
+        updatePlaybackState(PlaybackStateCompat.STATE_PLAYING);
+        updateNotification(formatTime(secondsRemaining));
+        if (timerRunnable != null) {
+            timerHandler.removeCallbacks(timerRunnable);
+            timerHandler.postDelayed(timerRunnable, 1000);
+        }
+    }
+
     private void stopFocusTimer() {
         isRunning = false;
+        isPaused = false;
         if (timerHandler != null && timerRunnable != null) {
             timerHandler.removeCallbacks(timerRunnable);
         }
-        removeStatusBarOverlay();
+        if (mediaSession != null) {
+            mediaSession.setActive(false);
+        }
     }
 
     @Override
@@ -146,6 +231,10 @@ public class FocusForegroundService extends Service {
     @Override
     public void onDestroy() {
         stopFocusTimer();
+        if (mediaSession != null) {
+            mediaSession.release();
+            mediaSession = null;
+        }
         stopForeground(true);
         super.onDestroy();
     }
@@ -154,7 +243,6 @@ public class FocusForegroundService extends Service {
         stopFocusTimer();
         stopForeground(true);
 
-        // Gentle Vibration on complete
         try {
             Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
             if (v != null && v.hasVibrator()) {
@@ -162,7 +250,6 @@ public class FocusForegroundService extends Service {
             }
         } catch (Exception ignored) {}
 
-        // Show Complete Notification
         int mins = Math.max(1, totalSeconds / 60);
         Notification completeNotif = new NotificationCompat.Builder(this, COMPLETE_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_bboma)
@@ -182,34 +269,68 @@ public class FocusForegroundService extends Service {
         stopSelf();
     }
 
-    private Notification buildOngoingNotification(String timeFormatted) {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this, 0, notificationIntent,
+    private Notification buildMediaNotification(String timeFormatted) {
+        PendingIntent contentPendingIntent = createContentIntent();
+
+        // Stop Action Intent
+        Intent stopIntent = new Intent(this, FocusForegroundService.class);
+        stopIntent.setAction(ACTION_STOP);
+        PendingIntent stopPendingIntent = PendingIntent.getService(
+                this, 1, stopIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0)
         );
+
+        // Pause / Resume Action Intent
+        Intent toggleIntent = new Intent(this, FocusForegroundService.class);
+        toggleIntent.setAction(isPaused ? ACTION_RESUME : ACTION_PAUSE);
+        PendingIntent togglePendingIntent = PendingIntent.getService(
+                this, 2, toggleIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0)
+        );
+
+        NotificationCompat.Action toggleAction = new NotificationCompat.Action.Builder(
+                isPaused ? android.R.drawable.ic_media_play : android.R.drawable.ic_media_pause,
+                isPaused ? "계속하기" : "일시정지",
+                togglePendingIntent
+        ).build();
+
+        NotificationCompat.Action stopAction = new NotificationCompat.Action.Builder(
+                android.R.drawable.ic_menu_close_clear_cancel,
+                "집중 종료",
+                stopPendingIntent
+        ).build();
+
+        // Official Android MediaStyle
+        MediaStyle mediaStyle = new MediaStyle();
+        if (mediaSession != null) {
+            mediaStyle.setMediaSession(mediaSession.getSessionToken());
+        }
+        mediaStyle.setShowActionsInCompactView(0, 1);
+        mediaStyle.setShowCancelButton(true);
+        mediaStyle.setCancelButtonIntent(stopPendingIntent);
 
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_bboma)
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
-                .setColor(0xFFFF1744) // Vivid Crimson Red Badge
+                .setColor(0xFFFF5252) // Theme Primary Coral Red
                 .setColorized(true)
-                .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
-                .setContentTitle("🔴 [뽀마키즈] " + userName + "(" + userRole + ") 육아 집중 가동 중")
-                .setContentText("아이와 눈맞춤 집중 중 • 남은 시간: " + timeFormatted)
-                .setSubText("🔴 동작 중")
-                .setTicker("🔴 뽀마키즈 육아 집중 모드 동작 중")
+                .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
+                .setContentTitle("👶 [뽀마키즈] 육아 집중 중 (" + timeFormatted + ")")
+                .setContentText(userName + "(" + userRole + ")님 • 아이와 소중한 눈맞춤 중")
+                .setSubText("남은 시간 " + timeFormatted)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setBadgeIconType(NotificationCompat.BADGE_ICON_LARGE)
-                .setContentIntent(pendingIntent)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .addAction(toggleAction)
+                .addAction(stopAction)
+                .setStyle(mediaStyle)
+                .setContentIntent(contentPendingIntent)
                 .build();
     }
 
     private void updateNotification(String timeFormatted) {
-        Notification notification = buildOngoingNotification(timeFormatted);
+        Notification notification = buildMediaNotification(timeFormatted);
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) {
             manager.notify(NOTIFICATION_ID, notification);
@@ -236,18 +357,16 @@ public class FocusForegroundService extends Service {
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (manager == null) return;
 
-            // 1. Ongoing Foreground Channel - HIGH Importance with Red Light
+            // 1. Media Session Foreground Channel
             NotificationChannel focusChannel = new NotificationChannel(
                     CHANNEL_ID,
-                    "뽀마키즈 육아 집중 상주 알림",
-                    NotificationManager.IMPORTANCE_HIGH
+                    "뽀마키즈 육아 집중 미디어 세션",
+                    NotificationManager.IMPORTANCE_LOW
             );
-            focusChannel.setDescription("육아 집중 모드 실행 중 상단 상태바에 상주하며 남은 시간을 표시합니다.");
+            focusChannel.setDescription("육아 집중 모드 실행 중 상태바 및 미디어 컨트롤러를 통해 실시간 진행 상황을 표시합니다.");
             focusChannel.setShowBadge(true);
             focusChannel.setSound(null, null);
             focusChannel.enableVibration(false);
-            focusChannel.enableLights(true);
-            focusChannel.setLightColor(0xFFFF1744);
             focusChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             manager.createNotificationChannel(focusChannel);
 
@@ -261,157 +380,6 @@ public class FocusForegroundService extends Service {
             completeChannel.enableVibration(true);
             manager.createNotificationChannel(completeChannel);
         }
-    }
-
-    /**
-     * Shows a prominent vivid red pill/capsule directly on top of the status bar next to the clock,
-     * matching the exact reference style from eee.jpg.
-     */
-    private void showStatusBarOverlay() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.canDrawOverlays(this)) {
-                return;
-            }
-        }
-
-        if (overlayCapsuleView != null) {
-            return;
-        }
-
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-                    if (windowManager == null) return;
-
-                    LinearLayout capsule = new LinearLayout(FocusForegroundService.this);
-                    capsule.setOrientation(LinearLayout.HORIZONTAL);
-                    capsule.setGravity(Gravity.CENTER_VERTICAL);
-
-                    int padH = dpToPx(7);
-                    int padV = dpToPx(2);
-                    capsule.setPadding(padH, padV, padH, padV);
-
-                    // Solid Red Capsule Background (Exact match to eee.jpg red badge)
-                    GradientDrawable bg = new GradientDrawable();
-                    bg.setShape(GradientDrawable.RECTANGLE);
-                    bg.setColor(Color.parseColor("#E50914")); // Vivid Red
-                    bg.setCornerRadius(dpToPx(10));
-                    bg.setStroke(dpToPx(1), Color.parseColor("#FF5252"));
-                    capsule.setBackground(bg);
-
-                    // Text: 👶 뽀마 25:00
-                    overlayTextView = new TextView(FocusForegroundService.this);
-                    overlayTextView.setText("👶 뽀마 " + formatTime(secondsRemaining));
-                    overlayTextView.setTextColor(Color.WHITE);
-                    overlayTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10.0f);
-                    overlayTextView.setTypeface(null, android.graphics.Typeface.BOLD);
-                    capsule.addView(overlayTextView);
-
-                    int layoutType = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                            ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-                            : WindowManager.LayoutParams.TYPE_PHONE;
-
-                    int flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                            | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                            | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
-
-                    final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                            WindowManager.LayoutParams.WRAP_CONTENT,
-                            WindowManager.LayoutParams.WRAP_CONTENT,
-                            layoutType,
-                            flags,
-                            PixelFormat.TRANSLUCENT
-                    );
-
-                    params.gravity = Gravity.TOP | Gravity.START;
-                    // Positioned at top-left status bar area right next to clock
-                    params.x = dpToPx(48);
-                    params.y = dpToPx(3);
-
-                    capsule.setOnTouchListener(new View.OnTouchListener() {
-                        private int initialX, initialY;
-                        private float initialTouchX, initialTouchY;
-                        private boolean isMoved = false;
-
-                        @Override
-                        public boolean onTouch(View v, MotionEvent event) {
-                            switch (event.getAction()) {
-                                case MotionEvent.ACTION_DOWN:
-                                    initialX = params.x;
-                                    initialY = params.y;
-                                    initialTouchX = event.getRawX();
-                                    initialTouchY = event.getRawY();
-                                    isMoved = false;
-                                    return true;
-                                case MotionEvent.ACTION_MOVE:
-                                    int dx = (int) (event.getRawX() - initialTouchX);
-                                    int dy = (int) (event.getRawY() - initialTouchY);
-                                    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-                                        isMoved = true;
-                                        params.x = initialX + dx;
-                                        params.y = initialY + dy;
-                                        windowManager.updateViewLayout(capsule, params);
-                                    }
-                                    return true;
-                                case MotionEvent.ACTION_UP:
-                                    if (!isMoved) {
-                                        Intent appIntent = new Intent(FocusForegroundService.this, MainActivity.class);
-                                        appIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                                        startActivity(appIntent);
-                                    }
-                                    return true;
-                            }
-                            return false;
-                        }
-                    });
-
-                    overlayCapsuleView = capsule;
-                    windowManager.addView(overlayCapsuleView, params);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    private void updateStatusBarOverlay(final String timeText) {
-        if (overlayTextView != null) {
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    if (overlayTextView != null) {
-                        overlayTextView.setText("👶 뽀마 " + timeText);
-                    }
-                }
-            });
-        }
-    }
-
-    private void removeStatusBarOverlay() {
-        if (windowManager != null && overlayCapsuleView != null) {
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        if (windowManager != null && overlayCapsuleView != null) {
-                            windowManager.removeView(overlayCapsuleView);
-                            overlayCapsuleView = null;
-                            overlayTextView = null;
-                        }
-                    } catch (Exception ignored) {}
-                }
-            });
-        }
-    }
-
-    private int dpToPx(int dp) {
-        return (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                dp,
-                getResources().getDisplayMetrics()
-        );
     }
 
     @Override
