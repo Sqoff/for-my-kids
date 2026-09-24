@@ -214,12 +214,13 @@
     /* --- 🌟 Interactive Onboarding Guide & Spotlight Styles --- */
     .guide-target-active {
       position: relative !important;
-      z-index: 60 !important;
+      z-index: 45 !important;
       outline: 3px solid #f59e0b !important;
       box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.45), 0 0 35px rgba(245, 158, 11, 0.75) !important;
       border-radius: 18px !important;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
       animation: guide-spotlight-pulse 2s infinite ease-in-out !important;
+      pointer-events: none !important; /* Prevents background click interference */
     }
     @keyframes guide-spotlight-pulse {
       0%, 100% {
@@ -640,13 +641,13 @@
     </div>
   </div>
 
-  <!-- 🌟 Interactive Onboarding Guide Modal & Spotlight Tour -->
-  <div id="onboardingGuideOverlay" class="hidden fixed inset-0 z-50 flex flex-col justify-end p-4 pb-8 transition-all duration-300">
+  <!-- 🌟 Interactive Hybrid Onboarding Guide Modal & Spotlight Tour -->
+  <div id="onboardingGuideOverlay" class="hidden fixed inset-0 z-60 flex flex-col justify-end p-4 pb-8 transition-all duration-300 pointer-events-auto">
     <!-- Dim Backdrop (Blocks accidental touches behind guide) -->
-    <div class="absolute inset-0 bg-black/75 backdrop-blur-[2px]" onclick="/* backdrop block */"></div>
+    <div id="guideBackdrop" class="absolute inset-0 bg-black/75 backdrop-blur-[2px] pointer-events-auto" onclick="/* backdrop block */"></div>
 
     <!-- Floating Interactive Guide Card -->
-    <div id="onboardingGuideCard" class="relative z-60 bg-slate-900/98 border-2 border-amber-500/80 rounded-3xl p-5 max-w-md w-full mx-auto guide-card-shadow text-slate-100 animate-dialog flex flex-col gap-3.5">
+    <div id="onboardingGuideCard" class="relative z-70 bg-slate-900/98 border-2 border-amber-500/80 rounded-3xl p-5 max-w-md w-full mx-auto guide-card-shadow text-slate-100 animate-dialog flex flex-col gap-3.5 pointer-events-auto">
       <!-- Dynamically filled by renderGuideStep() -->
     </div>
   </div>
@@ -6117,7 +6118,7 @@
       }
     }
 
-    // --- 🌟 Interactive Step-by-Step Onboarding Guide Engine ---
+    // --- 🌟 Interactive Step-by-Step Hybrid Onboarding Guide Engine ---
     const ONBOARDING = {
       isActive: false,
       currentStep: 0,
@@ -6136,90 +6137,99 @@
           subtitle: '뽀마키즈에 오신 것을 환영해요',
           icon: '🐣',
           highlightId: null,
-          tab: null,
-          desc: '수호 요정 <strong>뽀마</strong>와 함께하는 부부 공동 육아 RPG 앱입니다.<br/>평화롭고 행복한 육아 분담을 위한 핵심 기능을 짧은 가이드로 안내해 드릴게요!',
+          tab: 'focus',
+          openModal: null,
+          desc: '수호 요정 <strong>뽀마</strong>와 함께하는 부부 공동 육아 RPG 앱입니다.<br/>실제 기능 창들을 열어보며 핵심 기능을 빠르게 익혀볼까요?',
           buttonText: '시작하기 🚀'
         },
         {
           step: 1,
           title: '사용자 정보 입력 📝',
-          subtitle: '이름과 역할을 알려주세요',
+          subtitle: '1단계: 이름과 역할을 알려주세요',
           icon: '👤',
           highlightId: 'momProfileButton',
           tab: 'focus',
-          desc: '앱에서 사용할 사용자 이름과 성별, 파트너와의 관계를 알려주세요.',
+          openModal: null,
+          desc: '앱에서 사용할 사용자 이름과 성별, 파트너와의 관계를 설정합니다.',
           isForm: true,
           buttonText: '다음 (매칭 안내) ➔'
         },
         {
           step: 2,
           title: '상대방과 어플 연결하기 🔗',
-          subtitle: '실시간 공동 육아 매칭',
+          subtitle: '2단계: 실시간 공동 육아 매칭',
           icon: '🤝',
           highlightId: 'momProfileButton',
           tab: 'focus',
+          openModal: null,
           desc: '상대방과 어플을 연결하면 실시간으로 일과를 공유하고 서로 체크할 수 있습니다.<br/><span class="text-slate-400 text-xs">(매칭은 지금 바로 하거나, 나중에 언제든 설정할 수 있습니다.)</span>',
           isMatchingPrompt: true
         },
         {
           step: 3,
           title: '오늘 할 일을 지정해주세요 📋',
-          subtitle: '오늘의 육아/가사 일과 등록',
+          subtitle: '3단계: [실제 기능 창] 오늘 할 일 등록 모달',
           icon: '📅',
-          highlightId: 'momTodoHeaderBar',
+          highlightId: null,
           tab: 'todo',
-          desc: '오늘 수행할 아기 목욕, 분유 수유, 이유식, 청소 등 육아/가사 일과를 <strong>[+ 할 일 추가]</strong> 버튼이나 달력으로 지정하고 관리할 수 있습니다.',
-          buttonText: '다음 (할 일 체크 안내) ➔'
+          openModal: 'taskManageModal',
+          desc: '아기 목욕, 젖병 소독 등 빠른 추천 프리셋을 누르거나, 할 일 제목과 주기(매일 루틴/1회성), 수행 시간을 설정하는 <strong>실제 할 일 등록 창</strong>입니다.',
+          buttonText: '📋 할 일 등록창 확인 완료 ➔ 다음'
         },
         {
           step: 4,
           title: '내가 할 일과 상대방의 할 일을 체크할 수 있습니다 ✅',
-          subtitle: '실시간 일과 확인 및 체크',
+          subtitle: '4단계: [화면 조작] 실시간 일과 확인 및 체크',
           icon: '👥',
           highlightId: 'momTodoScopeSection',
           tab: 'todo',
-          desc: '<strong>[내 할 일]</strong>과 <strong>[상대방 할 일]</strong> 탭을 넘나들며 서로의 일과를 한눈에 확인하고, 완료된 항목은 터치하여 실시간으로 체크할 수 있습니다.',
+          openModal: null,
+          desc: '<strong>[내 할 일]</strong>과 <strong>[상대방 할 일]</strong> 탭을 넘나들며 부부가 서로의 일과를 확인하고, 완료된 항목은 터치하여 실시간으로 체크할 수 있습니다.',
           buttonText: '다음 (완료 알림 안내) ➔'
         },
         {
           step: 5,
           title: '완료 시 상대방에게 알림이 갑니다 🔔',
-          subtitle: '실시간 부부 알림 전송',
+          subtitle: '5단계: [실제 알림 센터] 실시간 부부 알림 수신 창',
           icon: '🎉',
-          highlightId: 'momHeaderActions',
+          highlightId: null,
           tab: 'todo',
-          desc: '내가 맡은 일을 체크 완료하면, 상대방의 스마트폰으로 <em>"지은님이 아기 목욕을 완료했습니다! 🎉"</em> 축하 알림이 즉시 전송됩니다.',
-          buttonText: '다음 (육아 집중 시간 안내) ➔'
+          openModal: 'notificationModal',
+          desc: '내가 맡은 일을 체크 완료하면, 상대방의 스마트폰으로 <em>"지은님이 아기 목욕을 완료했습니다! 🎉"</em> 축하 알림이 즉시 전송되는 <strong>실제 알림 센터 창</strong>입니다.',
+          buttonText: '🔔 알림 센터 확인 완료 ➔ 다음'
         },
         {
           step: 6,
           title: '육아 집중 시간을 사용할 수 있습니다 👶',
-          subtitle: '스마트폰 딴짓 방지 & 눈맞춤 집중',
+          subtitle: '6단계: [화면 조작] 딴짓 방지 & 눈맞춤 집중',
           icon: '⏳',
-          highlightId: 'momTab_focus',
+          highlightId: 'momFocusMainCard',
           tab: 'focus',
-          desc: '아이에게 온전히 눈을 맞추는 <strong>육아 집중 모드</strong>를 시작하면 스마트폰 상태바에 실시간으로 동작 중 표시가 상주합니다.<br/>지금 사용해보시겠습니까?',
+          openModal: null,
+          desc: '아이에게 온전히 눈을 맞추는 <strong>육아 집중 모드</strong>입니다. 앱을 닫아도 스마트폰 상단 상태바에 실시간 아이콘이 상주합니다.<br/>지금 사용해보시겠습니까?',
           isFocusPrompt: true
         },
         {
           step: 7,
           title: '집중할 시간을 설정해주세요 ⏱️',
-          subtitle: '원하는 시간만큼 유연하게 설정',
+          subtitle: '7단계: [화면 조작] 원하는 시간만큼 유연하게 설정',
           icon: '⚙️',
           highlightId: 'momFocusSettingsSection',
           tab: 'focus',
+          openModal: null,
           desc: '<strong>[⚡ 간편 분 단위]</strong>(15분, 25분, 50분 등) 또는 <strong>[⏰ 시간대 직접 지정]</strong>(13:30~18:30)으로 원하는 육아 집중 시간을 자유롭게 설정하세요.',
-          buttonText: '다음 (허용 앱 설정) ➔'
+          buttonText: '다음 (차단 앱 설정) ➔'
         },
         {
           step: 8,
           title: '미차단/허용할 어플을 지정해주세요 🛡️',
-          subtitle: '화이트리스트 & 딴짓 앱 차단',
+          subtitle: '8단계: [실제 기능 창] 차단 및 허용 앱 관리 모달',
           icon: '📱',
-          highlightId: 'momAppLauncherCard',
+          highlightId: null,
           tab: 'focus',
-          desc: '육아 집중 시간 동안 꼭 필요한 <strong>허용 앱</strong>(전화, 카메라, 카카오톡 등)과 차단할 <strong>딴짓 앱</strong>(유튜브, SNS 등)을 안전하게 지정할 수 있습니다.',
-          buttonText: '가이드 완료 ➔'
+          openModal: 'appFilterModal',
+          desc: '육아 집중 시간 동안 꼭 필요한 <strong>허용 앱</strong>(전화, 카메라, 카카오톡 등)과 차단할 <strong>딴짓 앱</strong>(유튜브, SNS 등)을 안전하게 지정하는 <strong>실제 차단 앱 관리 창</strong>입니다.',
+          buttonText: '🛡️ 차단 앱 설정 확인 완료 ➔ 가이드 완료'
         },
         {
           step: 9,
@@ -6228,6 +6238,7 @@
           icon: '🚀',
           highlightId: null,
           tab: 'focus',
+          openModal: null,
           desc: '이제 수호 요정 뽀마와 함께 평화롭고 행복한 공동 육아를 시작해보세요! 🍼✨',
           isFinal: true,
           buttonText: '🚀 뽀마키즈 시작하기'
@@ -6255,34 +6266,64 @@
       });
     }
 
+    function closeAllGuideModals() {
+      const taskModal = document.getElementById('taskManageModal');
+      const notifModal = document.getElementById('notificationModal');
+      const filterModal = document.getElementById('appFilterModal');
+      if (taskModal) taskModal.classList.add('hidden');
+      if (notifModal) notifModal.classList.add('hidden');
+      if (filterModal) filterModal.classList.add('hidden');
+    }
+
     function renderGuideStep() {
       cleanupGuideHighlights();
+      closeAllGuideModals();
 
       const step = ONBOARDING.steps[ONBOARDING.currentStep];
       if (!step) return;
+
+      const backdrop = document.getElementById('guideBackdrop');
 
       // 1. Switch tab if needed
       if (step.tab) {
         switchTab('mom', step.tab);
       }
 
-      // 2. Highlight target element after tab rendering
+      // 2. Open actual UI modal if this step is a modal step (Hybrid Mode)
+      if (step.openModal) {
+        if (backdrop) {
+          backdrop.className = 'absolute inset-0 bg-black/40 backdrop-blur-[1px] pointer-events-auto';
+        }
+        if (step.openModal === 'taskManageModal') {
+          openTaskManageModal(null, 'mom');
+        } else if (step.openModal === 'notificationModal') {
+          openNotificationModal('mom');
+        } else if (step.openModal === 'appFilterModal') {
+          openAppFilterModal();
+        }
+      } else {
+        if (backdrop) {
+          backdrop.className = 'absolute inset-0 bg-black/75 backdrop-blur-[2px] pointer-events-auto';
+        }
+      }
+
+      // 3. Highlight target element after tab rendering (Spotlight mode)
       setTimeout(() => {
-        if (step.highlightId) {
+        if (step.highlightId && !step.openModal) {
           const target = document.getElementById(step.highlightId);
           if (target) {
             target.classList.add('guide-target-active');
             target.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }
-      }, 50);
+      }, 60);
 
-      // 3. Trigger confetti on step 9
+      // 4. Trigger confetti on step 9
       if (step.isFinal && typeof confetti === 'function') {
         confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
       }
 
-      // 4. Render Guide Card Content
+      // 5. Render Guide Card Content
       const card = document.getElementById('onboardingGuideCard');
       if (!card) return;
 
@@ -6510,6 +6551,7 @@
 
     function finishOnboardingGuide() {
       cleanupGuideHighlights();
+      closeAllGuideModals();
       const overlay = document.getElementById('onboardingGuideOverlay');
       if (overlay) overlay.classList.add('hidden');
       ONBOARDING.isActive = false;
@@ -6522,6 +6564,7 @@
 
     function skipOnboardingGuide() {
       cleanupGuideHighlights();
+      closeAllGuideModals();
       const overlay = document.getElementById('onboardingGuideOverlay');
       if (overlay) overlay.classList.add('hidden');
       ONBOARDING.isActive = false;
