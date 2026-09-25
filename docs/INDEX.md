@@ -8,9 +8,9 @@
 현재 시스템의 구현 사양 및 동작 규칙을 정의한 단일 진실 공급원입니다.
 
 - **[couple-rulebook.md](file:///E:/%EA%B0%9C%EB%B0%9C/%EB%BD%80%EB%A7%88%ED%82%A4%EC%A6%88/docs/specs/couple-rulebook.md)**: 📖 **공식 부부 평화 육아 룰북 (사용자 가이드 & 상벌 협약 규격)**
-- **[core-system.md](file:///E:/%EA%B0%9C%EB%B0%9C/%EB%BD%80%EB%A7%88%ED%82%A4%EC%A6%88/docs/specs/core-system.md)**: 모드(이지/하드), 육아 집중 시간, 딴짓 앱 차단 및 플로팅 뱃지, 할 일 및 페널티/퀘스트 규칙
+- **[core-system.md](file:///E:/%EA%B0%9C%EB%B0%9C/%EB%BD%80%EB%A7%88%ED%82%A4%EC%A6%88/docs/specs/core-system.md)**: 모드(이지/하드), 육아 집중 시간, **안드로이드 미디어 알림 & 미디어 컨트롤러(Media Controls)**, 앱 차단, 할 일 및 페널티/퀘스트 규칙
 - **[flutter-native-plan.md](file:///E:/%EA%B0%9C%EB%B0%9C/%EB%BD%80%EB%A7%88%ED%82%A4%EC%A6%88/docs/specs/flutter-native-plan.md)**: 📱 **Flutter + Android Native MethodChannel & 서비스 연동 마스터 플랜**
-- **[architecture.md](file:///E:/%EA%B0%9C%EB%B0%9C/%EB%BD%80%EB%A7%88%ED%82%A4%EC%A6%88/docs/specs/architecture.md)**: 전체 시스템 아키텍처, OS 권한 및 오버레이, **웹 브라우저 기반 즉시 검증 환경(Tier 1 Web Prototype)**
+- **[architecture.md](file:///E:/%EA%B0%9C%EB%B0%9C/%EB%BD%80%EB%A7%88%ED%82%A4%EC%A6%88/docs/specs/architecture.md)**: 전체 시스템 아키텍처, OS 권한 및 **MediaSession/MediaStyle 네이티브 파이프라인**, **웹 브라우저 기반 즉시 검증 환경(Tier 1 Web Prototype)**
 - **[api-data.md](file:///E:/%EA%B0%9C%EB%B0%9C/%EB%BD%80%EB%A7%88%ED%82%A4%EC%A6%88/docs/specs/api-data.md)**: Cloud Firestore 데이터 모델, FCM 푸시 이벤트, 플랫폼 채널 인터페이스
 
 ---

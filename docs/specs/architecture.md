@@ -16,11 +16,11 @@ flowchart TB
         NativeBridge["Platform Channel (MethodChannel)"]
     end
 
-    subgraph AndroidNative["Android Native Layer (Kotlin)"]
-        ForegroundService["ParentingFocusService (Foreground Service)"]
+    subgraph AndroidNative["Android Native Layer (Java/Kotlin)"]
+        ForegroundService["FocusForegroundService (Foreground Service)"]
+        MediaSessionEngine["MediaSession Engine (MediaSessionCompat)"]
+        MediaControlsView["Media Controls (NotificationCompat.MediaStyle)"]
         UsageTracker["UsageStats Monitor (UsageStatsManager)"]
-        OverlayManager["Overlay View Manager (WindowManager)"]
-        FloatingBadgeView["Floating Badge View (SYSTEM_ALERT_WINDOW)"]
         BlockingView["Full Screen Blocking View"]
     end
 
@@ -37,10 +37,10 @@ flowchart TB
     CloudMessaging -. Push Notification .-> FlutterApp
 
     NativeBridge <--> ForegroundService
+    ForegroundService --> MediaSessionEngine
+    ForegroundService --> MediaControlsView
     ForegroundService --> UsageTracker
-    ForegroundService --> OverlayManager
-    OverlayManager --> FloatingBadgeView
-    OverlayManager --> BlockingView
+    ForegroundService --> BlockingView
 ```
 
 ---
@@ -50,29 +50,37 @@ flowchart TB
 ### 2.1 필수 권한 및 매니페스트 설정
 ```xml
 <!-- AndroidManifest.xml 필수 권한 -->
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<uses-permission android:name="android.permission.VIBRATE" />
+<uses-permission android:name="android.permission.WAKE_LOCK" />
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-<uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
-<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+<!-- SYSTEM_ALERT_WINDOW 권한은 시스템 상태바 충돌 방지를 위해 완전 폐기됨 -->
 ```
 
-### 2.2 포그라운드 서비스 및 앱 감지 파이프라인
-1. **서비스 시작**: 육아 집중 시간 시작 시 `ParentingFocusService.startService()` 호출.
-   - 알림 표시줄(Notification Bar)에 "👶 육아 집중 시간 진행 중" 상주 알림 노출.
-2. **앱 감지 루프 (`UsageStatsManager`)**:
+### 2.2 포그라운드 서비스 및 미디어 파이프라인
+1. **서비스 시작**: 육아 집중 시간 시작 시 `FocusForegroundService.startFocusTimer()` 호출.
+   - 알림 채널 중요도 `IMPORTANCE_HIGH`를 통해 헤즈업 배너(Heads-up)를 즉시 표출하여 세션 시작 안내.
+   - 상태바 알림 아이콘(`ic_stat_bboma`)이 Android SystemUI 표준 규칙에 따라 단독 슬롯에 상주.
+2. **앱 감지 및 차단 루프 (`UsageStatsManager`)**:
    - `UsageStatsManager.queryEvents()`를 활용하여 최상단 액티비티 전환 이벤트(`UsageEvents.Event.ACTIVITY_RESUMED`) 감지 (500ms 주기).
-3. **차단 및 오버레이 처리**:
-   - 실행된 패키지가 차단 목록(`blockedPackages`)에 속한 경우:
-     - `WindowManager.addView(blockingView, layoutParams)`로 화면 전체를 덮는 차단 뷰 표출.
-     - `Intent.ACTION_MAIN + CATEGORY_HOME`을 발행하여 홈 화면으로 전환 유도.
-   - 실행된 패키지가 허용 목록(`allowedPackages`)인 경우:
-     - 차단 뷰를 제거하고, 화면 한구석에 `FloatingBadgeView` 유지.
+   - 실행된 패키지가 차단 목록(`blockedPackages`)에 속한 경우 홈 화면 전환 유도 및 전체화면 차단 뷰 표출.
 
-### 2.3 플로팅 뱃지 오버레이 (`WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY`)
-- **터치 이벤트**: `OnTouchListener`로 드래그 시 `layoutParams.x`, `layoutParams.y`를 실시간 갱신하여 화면 가장자리에 자연스럽게 부착(Magnetic Snap).
-- **타이머 브로드캐스트**: 포그라운드 서비스의 1초 주기 틱(Tick)을 플로팅 뷰의 `TextView`에 바인딩.
+### 2.3 시스템 미디어 세션 & 미디어 컨트롤러 (`MediaSessionCompat` & `NotificationCompat.MediaStyle`)
+1. **MediaSessionCompat 초기화 및 생명주기 관리**:
+   - `MediaSessionCompat(context, "BbomaFocusMediaSession")` 인스턴스 생성.
+   - 재생 제어 콜백(`onPlay`, `onPause`, `onFastForward`, `onStop`, `onCustomAction`) 구현.
+   - 세션 활성화 플래그(`FLAG_HANDLES_MEDIA_BUTTONS | FLAG_HANDLES_TRANSPORT_CONTROLS`) 적용.
+2. **3버튼 대화형 미디어 컨트롤러 (Media Controls)**:
+   - `NotificationCompat.Action`:
+     - **Action 0**: `ACTION_PAUSE` / `ACTION_RESUME` (계속 / 일시정지)
+     - **Action 1**: `ACTION_EXTEND` (+5분 즉시 연장, `ic_media_ff`)
+     - **Action 2**: `ACTION_STOP` (집중 종료, `ic_menu_close_clear_cancel`)
+   - `MediaStyle.setShowActionsInCompactView(0, 1, 2)` 설정으로 알림 패널 축소 상태 및 잠금화면에서도 3대 액션 버튼 상시 노출.
+3. **타임라인 프로그레스 및 메타데이터 바인딩**:
+   - 매 초 타이머 틱(Tick)마다 `PlaybackStateCompat`의 상태(`STATE_PLAYING`/`STATE_PAUSED`), `position`, `speed`를 갱신.
+   - `MediaMetadataCompat`에 트랙명(`👶 육아 집중 모드 (MM:SS)`), 서브타이틀(사용자 이름 및 역할), 총 집중 시간(`duration`)을 지속 업데이트하여 One UI 미디어 카드 시크바와 100% 호환.
 
 ---
 
