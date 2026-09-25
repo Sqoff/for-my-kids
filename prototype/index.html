@@ -293,14 +293,6 @@
       </div>
 
       <!-- Quick Action Buttons -->
-      <button onclick="startOnboardingGuide(0)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 hover:brightness-110 text-slate-950 font-black flex items-center gap-1 shadow transition">
-        <span>🌟 온보딩 가이드</span>
-      </button>
-
-      <button onclick="openTutorialVideoModal(true)" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold flex items-center gap-1 shadow transition">
-        <span>🎬 튜토리얼</span>
-      </button>
-
       <button onclick="openParentingReportModal()" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center gap-1 shadow transition">
         <span>📊 부부 통계</span>
       </button>
@@ -636,59 +628,9 @@
     </div>
   </div>
 
-  <!-- 🎬 Fullscreen Mobile Tutorial / Prologue Video Modal (Auto-played on App Launch) -->
-  <div id="tutorialVideoModal" class="hidden fixed inset-0 z-50 bg-black flex flex-col justify-between select-none">
-    <!-- Top Bar with Close/Skip -->
-    <div class="w-full px-4 py-3.5 bg-gradient-to-b from-black/90 via-black/60 to-transparent flex items-center justify-between z-20 shrink-0">
-      <div class="flex items-center gap-2 text-white">
-        <span class="text-xl">🐣</span>
-        <div class="flex flex-col">
-          <span class="font-black text-xs text-amber-300">뽀마키즈 튜토리얼</span>
-          <span class="text-[10px] text-slate-400">부부 공동 육아 RPG 룰 소개</span>
-        </div>
-      </div>
-      <button onclick="skipTutorialVideo()" class="px-3.5 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold border border-slate-700 transition flex items-center gap-1">
-        <span>스킵 ✕</span>
-      </button>
-    </div>
-
-    <!-- Fullscreen Video Container -->
-    <div class="flex-1 w-full flex items-center justify-center relative bg-black overflow-hidden">
-      <video id="tutorialVideoPlayer" src="assets/videos/tutorial.mp4" controls playsinline preload="auto" class="w-full h-full object-contain max-h-[100dvh] bg-black">
-        동영상을 지원하지 않는 환경입니다.
-      </video>
-    </div>
-
-    <!-- Bottom Action Overlay with Prominent Skip Button -->
-    <div class="w-full p-4 pb-6 bg-gradient-to-t from-black/95 via-black/80 to-transparent flex flex-col gap-2.5 z-20 shrink-0">
-      <!-- Big Skip Button -->
-      <button onclick="skipTutorialVideo()" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-sm shadow-[0_0_25px_rgba(245,158,11,0.5)] flex items-center justify-center gap-2 transition active:scale-95">
-        <span>⏭️ 튜토리얼 건너뛰고 가이드 시작하기</span>
-      </button>
-      
-      <!-- Sub controls -->
-      <div class="flex items-center justify-between text-xs text-slate-400 px-1">
-        <label class="flex items-center gap-1.5 cursor-pointer hover:text-slate-200 transition select-none text-[11px]">
-          <input type="checkbox" id="tutorialDoNotShowTodayCheckbox" class="rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-0">
-          <span>오늘 하루 자동 팝업 끄기</span>
-        </label>
-        <button onclick="restartTutorialVideo()" class="text-amber-400 hover:text-amber-300 font-medium text-[11px] flex items-center gap-1">
-          <span>🔄 처음부터 재생</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 🌟 Interactive Hybrid Onboarding Guide Modal & Spotlight Tour -->
-  <div id="onboardingGuideOverlay" class="hidden fixed inset-0 flex flex-col justify-end p-4 pb-8 transition-all duration-300 pointer-events-auto select-none" style="z-index: 99999 !important;" onclick="event.stopPropagation();" ontouchstart="event.stopPropagation();">
-    <!-- Dim Backdrop (Blocks ALL touches and clicks behind guide) -->
-    <div id="guideBackdrop" class="absolute inset-0 bg-black/75 backdrop-blur-[2px] pointer-events-auto cursor-default" style="z-index: 1;" onclick="event.stopPropagation(); event.preventDefault();" ontouchstart="event.stopPropagation(); event.preventDefault();"></div>
-
-    <!-- Floating Interactive Guide Card -->
-    <div id="onboardingGuideCard" class="relative bg-slate-900/98 border-2 border-amber-500/80 rounded-3xl p-5 max-w-md w-full mx-auto guide-card-shadow text-slate-100 animate-dialog flex flex-col gap-3.5 pointer-events-auto select-auto" style="z-index: 2;" onclick="event.stopPropagation();">
-      <!-- Dynamically filled by renderGuideStep() -->
-    </div>
-  </div>
+  <!-- Tutorial & Onboarding Overlays (Deleted as requested) -->
+  <div id="tutorialVideoModal" class="hidden" style="display:none;"></div>
+  <div id="onboardingGuideOverlay" class="hidden" style="display:none;"></div>
 
   <!-- 👤 User Profile & Name Edit Modal -->
   <div id="userProfileModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -1819,12 +1761,6 @@
 
           <!-- Right Action Icons -->
           <div id="momHeaderActions" class="flex items-center gap-1">
-            <button id="momGuideTourButton" onclick="startOnboardingGuide(0)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="온보딩 가이드 투어">
-              <span class="text-xs">🌟</span>
-            </button>
-            <button onclick="openTutorialVideoModal(true)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="튜토리얼 영상">
-              <span class="text-xs">🎬</span>
-            </button>
             <button onclick="openParentingReportModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-slate-800 transition" title="부부 통계/비교">
               <span class="text-xs">📊</span>
             </button>
@@ -2017,12 +1953,6 @@
 
           <!-- Right Action Icons -->
           <div id="dadHeaderActions" class="flex items-center gap-1">
-            <button onclick="startOnboardingGuide(0)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="온보딩 가이드 투어">
-              <span class="text-xs">🌟</span>
-            </button>
-            <button onclick="openTutorialVideoModal(true)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="튜토리얼 영상">
-              <span class="text-xs">🎬</span>
-            </button>
             <button onclick="openParentingReportModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-slate-800 transition" title="부부 통계/비교">
               <span class="text-xs">📊</span>
             </button>
@@ -5070,23 +5000,23 @@
         </div>
 
         <!-- 🛍️ 쿠팡 전 상품 쇼핑 배너 (키즈노트 직결 검색 방식) -->
-        <div class="p-3.5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-2.5 shadow">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="text-xl">🛍️</span>
-              <div>
-                <span class="font-black text-white text-xs">생필품·장보기 쿠팡 직결 쇼핑</span>
-                <p class="text-[10px] text-slate-400">검색어 입력 후 바로 이동 시 2% 자동 적립!</p>
+        <div class="p-3.5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-2.5 shadow w-full overflow-hidden box-border">
+          <div class="flex items-center justify-between gap-1.5 w-full">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xl shrink-0">🛍️</span>
+              <div class="min-w-0">
+                <span class="font-black text-white text-xs block truncate">생필품·장보기 쿠팡 직결 쇼핑</span>
+                <p class="text-[10px] text-slate-400 truncate">검색어 입력 후 바로 이동 시 2% 자동 적립!</p>
               </div>
             </div>
-            <span class="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30 shrink-0 whitespace-nowrap">
               한도: ${monthlyEarned.toLocaleString()} / 3,500P
             </span>
           </div>
 
-          <div class="flex items-center gap-2">
-            <input type="text" id="bankCoupangQuickInput" placeholder="예: 3겹 롤화장지, 생수, 세제, 밀키트..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 text-xs focus:border-[#3182f6] outline-none" value="3겹 롤화장지" onkeydown="if(event.key === 'Enter') launchCoupangSearchDirect(this.value);" />
-            <button type="button" onclick="launchCoupangSearchDirect(document.getElementById('bankCoupangQuickInput').value)" class="px-3.5 py-2 rounded-xl bg-[#3182f6] hover:bg-blue-600 text-white font-black text-xs shadow transition active:scale-95 shrink-0">
+          <div class="flex items-center gap-2 w-full min-w-0">
+            <input type="text" id="bankCoupangQuickInput" placeholder="예: 3겹 롤화장지, 생수, 세제, 밀키트..." class="flex-1 min-w-0 w-0 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 text-xs focus:border-[#3182f6] outline-none font-medium" value="3겹 롤화장지" onkeydown="if(event.key === 'Enter') launchCoupangSearchDirect(this.value);" />
+            <button type="button" onclick="launchCoupangSearchDirect(document.getElementById('bankCoupangQuickInput').value)" class="px-3 py-2 rounded-xl bg-[#3182f6] hover:bg-blue-600 text-white font-black text-xs shadow transition active:scale-95 shrink-0 whitespace-nowrap">
               검색 ➔
             </button>
           </div>
@@ -7129,35 +7059,48 @@
       }
     }
 
-    // --- 🎰 육퇴 룰렛 동적 셔플 & SVG 렌더링 엔진 (토스 스타일 & 칸 구분선 & 비인접 200P) ---
+    // --- 🎰 육퇴 룰렛 동적 셔플 & SVG 렌더링 엔진 (10칸: 1000P 1칸, 500P 1칸, 200P 2칸, 10~20P 6칸, 비인접 200P) ---
     let currentRouletteSectors = [
       { id: 'p1000', points: 1000, label: '대박 1,000P!', shortLabel: '1000P', color: '#f59e0b', textColor: '#0f172a', icon: '⭐' },
-      { id: 'p20', points: 20, label: '20P', shortLabel: '20P', color: '#10b981', textColor: '#ffffff', icon: '🍀' },
+      { id: 'p20_a', points: 20, label: '20P', shortLabel: '20P', color: '#10b981', textColor: '#ffffff', icon: '🍀' },
       { id: 'p200_a', points: 200, label: '200P', shortLabel: '200P', color: '#3182f6', textColor: '#ffffff', icon: '💎' },
-      { id: 'p500', points: 500, label: '500P', shortLabel: '500P', color: '#8b5cf6', textColor: '#ffffff', icon: '🎉' },
-      { id: 'p10', points: 10, label: '10P', shortLabel: '10P', color: '#06b6d4', textColor: '#ffffff', icon: '✨' },
-      { id: 'p200_b', points: 200, label: '200P', shortLabel: '200P', color: '#f43f5e', textColor: '#ffffff', icon: '🎁' }
+      { id: 'p10_a', points: 10, label: '10P', shortLabel: '10P', color: '#06b6d4', textColor: '#ffffff', icon: '✨' },
+      { id: 'p500', points: 500, label: '500P!', shortLabel: '500P', color: '#8b5cf6', textColor: '#ffffff', icon: '🎉' },
+      { id: 'p20_b', points: 20, label: '20P', shortLabel: '20P', color: '#059669', textColor: '#ffffff', icon: '🌱' },
+      { id: 'p200_b', points: 200, label: '200P', shortLabel: '200P', color: '#f43f5e', textColor: '#ffffff', icon: '🎁' },
+      { id: 'p10_b', points: 10, label: '10P', shortLabel: '10P', color: '#0284c7', textColor: '#ffffff', icon: '⚡' },
+      { id: 'p20_c', points: 20, label: '20P', shortLabel: '20P', color: '#14b8a6', textColor: '#ffffff', icon: '🌿' },
+      { id: 'p10_c', points: 10, label: '10P', shortLabel: '10P', color: '#6366f1', textColor: '#ffffff', icon: '🌟' }
     ];
 
     function generateShuffledRouletteSectors() {
       const pool = [
         { id: 'p1000', points: 1000, label: '대박 1,000P!', shortLabel: '1000P', color: '#f59e0b', textColor: '#0f172a', icon: '⭐' },
-        { id: 'p500', points: 500, label: '500P', shortLabel: '500P', color: '#8b5cf6', textColor: '#ffffff', icon: '🎉' },
+        { id: 'p500', points: 500, label: '500P!', shortLabel: '500P', color: '#8b5cf6', textColor: '#ffffff', icon: '🎉' },
         { id: 'p200_a', points: 200, label: '200P', shortLabel: '200P', color: '#3182f6', textColor: '#ffffff', icon: '💎' },
         { id: 'p200_b', points: 200, label: '200P', shortLabel: '200P', color: '#f43f5e', textColor: '#ffffff', icon: '🎁' },
-        { id: 'p20', points: 20, label: '20P', shortLabel: '20P', color: '#10b981', textColor: '#ffffff', icon: '🍀' },
-        { id: 'p10', points: 10, label: '10P', shortLabel: '10P', color: '#06b6d4', textColor: '#ffffff', icon: '✨' }
+        { id: 'p20_a', points: 20, label: '20P', shortLabel: '20P', color: '#10b981', textColor: '#ffffff', icon: '🍀' },
+        { id: 'p10_a', points: 10, label: '10P', shortLabel: '10P', color: '#06b6d4', textColor: '#ffffff', icon: '✨' },
+        { id: 'p20_b', points: 20, label: '20P', shortLabel: '20P', color: '#059669', textColor: '#ffffff', icon: '🌱' },
+        { id: 'p10_b', points: 10, label: '10P', shortLabel: '10P', color: '#0284c7', textColor: '#ffffff', icon: '⚡' },
+        { id: 'p20_c', points: 20, label: '20P', shortLabel: '20P', color: '#14b8a6', textColor: '#ffffff', icon: '🌿' },
+        { id: 'p10_c', points: 10, label: '10P', shortLabel: '10P', color: '#6366f1', textColor: '#ffffff', icon: '🌟' }
       ];
 
-      // 동일한 포인트(200P 2칸)가 절대 몰려있지 않도록 교차 분리 검증 셔플
-      for (let attempt = 0; attempt < 50; attempt++) {
+      // 동일한 포인트(200P 2칸)가 절대 몰려있지 않도록 원형 10칸 비인접 분리 검증 셔플
+      for (let attempt = 0; attempt < 80; attempt++) {
         const shuffled = [...pool].sort(() => Math.random() - 0.5);
         const idx1 = shuffled.findIndex(s => s.id === 'p200_a');
         const idx2 = shuffled.findIndex(s => s.id === 'p200_b');
         const dist = Math.abs(idx1 - idx2);
-        // 원형 6칸에서 인접하는 경우는 dist === 1 또는 dist === 5 (끝과 끝)
-        if (dist > 1 && dist < 5) {
-          return shuffled;
+        // 원형 10칸에서 인접하는 경우는 dist === 1 또는 dist === 9 (끝과 끝)
+        if (dist > 1 && dist < 9) {
+          const idxBig1 = shuffled.findIndex(s => s.id === 'p1000');
+          const idxBig2 = shuffled.findIndex(s => s.id === 'p500');
+          const distBig = Math.abs(idxBig1 - idxBig2);
+          if (distBig > 1 && distBig < 9) {
+            return shuffled;
+          }
         }
       }
       return pool;
@@ -7168,6 +7111,8 @@
       if (!wheelEl) return;
 
       const r = 98;
+      const count = sectors.length;
+      const sectorAngle = 360 / count; // 10칸일 때 36도
       const toRad = deg => (deg * Math.PI) / 180;
       const getXY = deg => {
         const rad = toRad(deg);
@@ -7179,18 +7124,18 @@
 
       let pathsHtml = '';
       sectors.forEach((sec, i) => {
-        const a1 = i * 60;
-        const a2 = (i + 1) * 60;
+        const a1 = i * sectorAngle;
+        const a2 = (i + 1) * sectorAngle;
         const p1 = getXY(a1);
         const p2 = getXY(a2);
-        const midAngle = i * 60 + 30;
+        const midAngle = i * sectorAngle + (sectorAngle / 2);
 
-        // 선명하고 확실한 칸 구분선 (stroke="#0f172a" stroke-width="3.5")
+        // 선명하고 확실한 칸 구분선 (stroke="#0f172a" stroke-width="2.5")
         pathsHtml += `
-          <path d="M 100 100 L ${p1.x} ${p1.y} A ${r} ${r} 0 0 1 ${p2.x} ${p2.y} Z" fill="${sec.color}" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M 100 100 L ${p1.x} ${p1.y} A ${r} ${r} 0 0 1 ${p2.x} ${p2.y} Z" fill="${sec.color}" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
           <g transform="rotate(${midAngle}, 100, 100)">
-            <text x="100" y="32" font-size="11" font-weight="900" fill="${sec.textColor}" text-anchor="middle" letter-spacing="-0.5">${sec.shortLabel}</text>
-            <text x="100" y="47" font-size="10" text-anchor="middle">${sec.icon}</text>
+            <text x="100" y="28" font-size="9" font-weight="900" fill="${sec.textColor}" text-anchor="middle" letter-spacing="-0.5">${sec.shortLabel}</text>
+            <text x="100" y="41" font-size="8" text-anchor="middle">${sec.icon}</text>
           </g>
         `;
       });
@@ -7201,9 +7146,9 @@
           <!-- 테두리 링 -->
           <circle cx="100" cy="100" r="${r}" fill="none" stroke="#0f172a" stroke-width="3"/>
           <!-- 토스풍 중앙 메탈릭 핀 -->
-          <circle cx="100" cy="100" r="18" fill="#0f172a" stroke="#ffffff" stroke-width="3" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.5))"/>
+          <circle cx="100" cy="100" r="17" fill="#0f172a" stroke="#ffffff" stroke-width="2.5" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.5))"/>
           <circle cx="100" cy="100" r="11" fill="#3182f6"/>
-          <text x="100" y="103.5" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">GO</text>
+          <text x="100" y="103.5" font-size="8" font-weight="900" fill="#ffffff" text-anchor="middle">GO</text>
         </svg>
       `;
     }
@@ -7263,12 +7208,13 @@
         spinBtn.innerText = '룰렛 회전 중... 🎡';
       }
 
-      // 6칸 중 정확한 확률로 슬롯 선택 (1000P 1칸, 500P 1칸, 200P 2칸, 20P 1칸, 10P 1칸)
+      // 10칸 중 슬롯 선택 (1000P 1칸, 500P 1칸, 200P 2칸, 20P 3칸, 10P 3칸)
       const chosenIdx = Math.floor(Math.random() * currentRouletteSectors.length);
       const chosen = currentRouletteSectors[chosenIdx];
 
       // 선택된 섹터(chosenIdx)의 중심각 theta를 상단 12시 바늘(0도)에 정확히 맞추기 위한 회전각
-      const theta = chosenIdx * 60 + 30;
+      const sectorAngle = 360 / currentRouletteSectors.length;
+      const theta = chosenIdx * sectorAngle + (sectorAngle / 2);
       const stopDeg = (360 - theta) % 360;
 
       // 최소 5바퀴(1800도) 이상 회전 후 해당 각도에 멈춤
@@ -8126,505 +8072,25 @@
       logs.scrollTop = logs.scrollHeight;
     }
 
-    // --- 🎬 Tutorial / Prologue Video Modal Engine ---
-    function openTutorialVideoModal(autoplay = true) {
-      const modal = document.getElementById('tutorialVideoModal');
-      const player = document.getElementById('tutorialVideoPlayer');
-      if (modal) modal.classList.remove('hidden');
-      if (player) {
-        player.onended = () => {
-          skipTutorialVideo();
-        };
-        if (autoplay) {
-          player.currentTime = 0;
-          const playPromise = player.play();
-          if (playPromise !== undefined) {
-            playPromise.catch(err => {
-              console.log('Autoplay restriction prevented direct play, user can click play:', err);
-            });
-          }
-        }
-      }
-    }
+    // --- 🎬 Tutorial Video Stubs (Tutorial deleted as requested) ---
+    function openTutorialVideoModal() {}
+    function closeTutorialVideoModal() {}
+    function skipTutorialVideo() {}
+    function restartTutorialVideo() {}
 
-    function closeTutorialVideoModal() {
-      const modal = document.getElementById('tutorialVideoModal');
-      const player = document.getElementById('tutorialVideoPlayer');
-      const checkbox = document.getElementById('tutorialDoNotShowTodayCheckbox');
+    // --- 🌟 Onboarding & Tutorial Stubs (Fully removed as requested) ---
+    const ONBOARDING = { isActive: false, steps: [] };
+    function startOnboardingGuide() {}
+    function renderGuideStep() {}
+    function nextGuideStep() {}
+    function prevGuideStep() {}
+    function finishOnboardingGuide() {}
+    function skipOnboardingGuide() {}
+    function closeAllGuideModals() {}
 
-      if (player) {
-        player.pause();
-      }
-      if (checkbox && checkbox.checked) {
-        try {
-          localStorage.setItem('weparent_tutorial_skip_date', new Date().toDateString());
-        } catch(e) {}
-      }
-      if (modal) modal.classList.add('hidden');
-    }
-
-    function skipTutorialVideo() {
-      closeTutorialVideoModal();
-    }
-
-    function restartTutorialVideo() {
-      const player = document.getElementById('tutorialVideoPlayer');
-      if (player) {
-        player.currentTime = 0;
-        player.play();
-      }
-    }
-
-    // --- 🌟 Interactive Step-by-Step Showcase Onboarding Guide Engine ---
-    const ONBOARDING = {
-      isActive: false,
-      currentStep: 0,
-      
-      steps: [
-        {
-          step: 0,
-          title: '뽀마키즈 둘러보기 👶✨',
-          icon: '🐣',
-          highlightId: null,
-          tab: 'focus',
-          openModal: null,
-          desc: '수호 요정 <strong>뽀마</strong>와 함께하는 부부 공동 육아 RPG 앱입니다.<br/>앱의 핵심 기능과 사용 방법을 편안하게 안내해 드릴게요!',
-          customCard: `
-            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center gap-3">
-              <span class="text-3xl">🧚</span>
-              <div class="flex flex-col text-xs">
-                <span class="font-bold text-amber-300">부부 공동 육아 RPG</span>
-                <span class="text-slate-400 text-[11px]">함께 일과를 나누고 육아 스트레스를 게임처럼 즐겁게 해결해요.</span>
-              </div>
-            </div>
-          `,
-          buttonText: '둘러보기 시작 ➔'
-        },
-        {
-          step: 1,
-          title: '1. 사용자 프로필 & 이름 설정 👤',
-          icon: '👤',
-          highlightId: 'momProfileButton',
-          tab: 'focus',
-          openModal: null,
-          desc: '상단 <strong>이름(지은)</strong> 또는 <strong>설정(⚙️)</strong>을 눌러 부부의 <strong>이름, 성별, 역할</strong>(엄마, 아빠, 파트너 등)을 언제든지 변경할 수 있습니다.',
-          customCard: `
-            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center gap-3">
-              <div class="w-11 h-11 rounded-2xl bg-rose-500/20 border border-rose-400/50 flex items-center justify-center text-2xl">👩</div>
-              <div class="flex flex-col gap-0.5 flex-1 text-xs">
-                <div class="flex items-center gap-1.5">
-                  <span class="font-black text-white">지은</span>
-                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">엄마 (나)</span>
-                </div>
-                <span class="text-[10px] text-slate-400">💡 상단 이름(지은)을 누르면 즉시 이름과 역할을 수정할 수 있습니다.</span>
-              </div>
-            </div>
-          `,
-          buttonText: '다음 (부부 매칭 안내) ➔'
-        },
-        {
-          step: 2,
-          title: '2. 부부 실시간 1:1 매칭 🔗',
-          icon: '🤝',
-          highlightId: 'momProfileButton',
-          tab: 'focus',
-          openModal: null,
-          desc: '배우자의 스마트폰과 <strong>초대 코드</strong>로 연결하면, 실시간으로 서로의 일과를 공유하고 함께 퀘스트를 수행할 수 있습니다.',
-          customCard: `
-            <div class="p-3 bg-gradient-to-tr from-amber-950/40 to-slate-900 border border-amber-500/30 rounded-2xl flex flex-col gap-1.5">
-              <div class="flex items-center justify-between text-xs">
-                <span class="text-slate-300 font-medium">초대 코드 예시:</span>
-                <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-mono font-black text-xs border border-amber-500/40">BBOMA-7749</span>
-              </div>
-              <p class="text-[10px] text-slate-400">💡 앱 시작 후 프로필 메뉴에서 상대방 스마트폰과 언제든 1초 만에 연결할 수 있습니다.</p>
-            </div>
-          `,
-          buttonText: '다음 (할 일 등록 안내) ➔'
-        },
-        {
-          step: 3,
-          title: '3. 오늘 할 일 등록 📋',
-          icon: '📅',
-          highlightId: null,
-          tab: 'todo',
-          openModal: 'taskManageModal',
-          desc: '아기 목욕, 젖병 소독 등 <strong>빠른 추천 프리셋</strong>을 누르거나, 할 일 제목과 주기(매일 루틴/1회성), 수행 시간을 지정하여 등록할 수 있는 <strong>할 일 등록 창</strong>입니다.',
-          customCard: `
-            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 text-[11px] text-slate-300 flex items-center gap-2">
-              <span class="text-emerald-400 text-lg">💡</span>
-              <div class="flex flex-col">
-                <span class="font-bold text-white">할 일 등록 및 시간 설정</span>
-                <span class="text-[10px] text-slate-400">부부의 하루 루틴을 계획하고 시간대별로 배분할 수 있습니다.</span>
-              </div>
-            </div>
-          `,
-          buttonText: '다음 (일과 체크 안내) ➔'
-        },
-        {
-          step: 4,
-          title: '4. 부부 일과 공유 및 체크 ✅',
-          icon: '👥',
-          highlightId: 'momTodoScopeSection',
-          tab: 'todo',
-          openModal: null,
-          desc: '<strong>[내 할 일]</strong>과 <strong>[상대방 할 일]</strong>을 터치하여 서로의 일과를 확인하고, 완료된 항목은 터치하여 실시간으로 체크할 수 있습니다.',
-          customCard: `
-            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
-              <div class="flex items-center gap-2">
-                <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">✓</span>
-                <span class="text-white font-medium">아기 목욕 & 마사지 (완료)</span>
-              </div>
-              <span class="text-[10px] text-amber-300 font-bold">+100 EXP</span>
-            </div>
-          `,
-          buttonText: '다음 (완료 알림 안내) ➔'
-        },
-        {
-          step: 5,
-          title: '5. 실시간 부부 알림 🔔',
-          icon: '🎉',
-          highlightId: null,
-          tab: 'todo',
-          openModal: 'notificationModal',
-          desc: '내가 할 일을 완료하면 상대방의 스마트폰으로 <em>"지은님이 아기 목욕을 완료했습니다! 🎉"</em> 축하 알림이 즉시 전송되는 <strong>실제 알림 센터 창</strong>입니다.',
-          customCard: `
-            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center gap-2.5 text-xs">
-              <span class="text-xl">🔔</span>
-              <div class="flex flex-col">
-                <span class="text-white font-bold">지은님이 '아기 목욕'을 완료했습니다!</span>
-                <span class="text-[10px] text-slate-400">상대방 스마트폰에 푸시 알림과 축하 메시지가 도착합니다.</span>
-              </div>
-            </div>
-          `,
-          buttonText: '다음 (육아 집중 모드) ➔'
-        },
-        {
-          step: 6,
-          title: '6. 육아 집중 모드 👶',
-          icon: '⏳',
-          highlightId: 'momFocusMainCard',
-          tab: 'focus',
-          openModal: null,
-          desc: '아이에게 온전히 눈을 맞추는 <strong>육아 집중 모드</strong>입니다. 앱을 나가도 스마트폰 상단 상태바에 <strong>미디어 컨트롤러 알림</strong>으로 집중 진행 시간이 표시됩니다.',
-          customCard: `
-            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center gap-2.5 text-xs">
-              <span class="text-2xl">🎵</span>
-              <div class="flex flex-col">
-                <span class="text-amber-300 font-bold">상태바 미디어 컨트롤러 탑재</span>
-                <span class="text-[10px] text-slate-400">일시정지(⏸), +5분 연장(⏩), 종료(✕) 컨트롤 지원</span>
-              </div>
-            </div>
-          `,
-          buttonText: '다음 (시간 설정 안내) ➔'
-        },
-        {
-          step: 7,
-          title: '7. 집중 시간 자유 설정 ⏱️',
-          icon: '⚙️',
-          highlightId: 'momFocusSettingsSection',
-          tab: 'focus',
-          openModal: null,
-          desc: '<strong>[⚡ 간편 분 단위]</strong>(15분, 25분, 50분 등) 또는 <strong>[⏰ 시간대 직접 지정]</strong>(13:30~18:30)으로 원하는 육아 집중 시간을 유연하게 설정할 수 있습니다.',
-          customCard: `
-            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center justify-around text-xs">
-              <span class="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 font-bold">⚡ 15분</span>
-              <span class="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 font-bold">⚡ 30분</span>
-              <span class="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 font-bold">⚡ 60분</span>
-              <span class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold">⏰ 직접지정</span>
-            </div>
-          `,
-          buttonText: '다음 (차단 어플 설정) ➔'
-        },
-        {
-          step: 8,
-          title: '8. 어플 차단 및 허용 관리 🛡️',
-          icon: '📱',
-          highlightId: null,
-          tab: 'focus',
-          openModal: 'appFilterModal',
-          desc: '육아 집중 시간 동안 꼭 필요한 <strong>허용 앱</strong>(전화, 카메라, 메신저 등)과 차단할 <strong>딴짓 앱</strong>(유튜브, SNS, 게임 등)을 지정하는 <strong>차단 앱 관리 창</strong>입니다.',
-          customCard: `
-            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
-              <span class="text-emerald-400 font-bold">🛡️ 허용 앱: 전화, 카메라, 메신저</span>
-              <span class="text-rose-400 font-bold">🚫 차단 앱: SNS, 게임</span>
-            </div>
-          `,
-          buttonText: '다음 (저금통 & 쿠팡 적립) ➔'
-        },
-        {
-          step: 9,
-          title: '9. 부부 기프티콘 저금통 & 쿠팡 2% 적립 🎁',
-          icon: '🛒',
-          highlightId: null,
-          tab: 'quest',
-          openModal: null,
-          desc: '부부 퀘스트 달성과 <strong>쿠팡 제휴 쇼핑</strong>(육아용품, 생필품, 반찬 등)으로 <strong>결제 금액의 2%</strong>가 공동 적립되어 <strong>진짜 기프티콘(스타벅스, 치킨, 마트)</strong>으로 바꿀 수 있습니다! <span class="text-amber-300 font-bold">(월 최대 3,500P 적립 한도)</span>',
-          customCard: `
-            <div class="bg-slate-950/80 p-3 rounded-2xl border border-amber-500/30 flex flex-col gap-2 text-xs">
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-amber-300">부부 공동 기프티콘 저금통</span>
-                <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold text-[10px]">쿠팡 전 품목 2% 적립</span>
-              </div>
-              <div class="flex items-center gap-2 text-[11px] text-slate-300">
-                <span>🛒 생필품/반찬 쇼핑</span>
-                <span>➔</span>
-                <span class="font-black text-amber-300">포인트 적립 (월 최대 3,500P)</span>
-                <span>➔</span>
-                <span>☕ 기프티콘 교환</span>
-              </div>
-            </div>
-          `,
-          buttonText: '다음 (광고 시청 & 룰렛) ➔'
-        },
-        {
-          step: 10,
-          title: '10. 보상형 광고 시청 & 육퇴 룰렛 🎰',
-          icon: '🎡',
-          highlightId: null,
-          tab: 'quest',
-          openModal: null,
-          desc: '오늘 하루도 육아에 헌신한 엄빠를 위한 선물! <strong>15초 광고 시청</strong> 후 <strong>최대 1,000P</strong>를 받는 <strong>육퇴 룰렛</strong>(하루 3회, 매일 21:00 리셋)과 <strong>퀘스트 보너스 2배</strong> 혜택을 누려보세요!',
-          customCard: `
-            <div class="bg-slate-950/80 p-3 rounded-2xl border border-purple-500/30 flex flex-col gap-2 text-xs">
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-purple-300">🎰 육퇴 보너스 룰렛 & 2배 부스터</span>
-                <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-[10px]">1일 3회 (21:00 리셋)</span>
-              </div>
-              <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
-                <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
-                  <div class="font-bold text-amber-300">🎡 육퇴 룰렛</div>
-                  <div class="text-slate-400 mt-0.5">최대 1,000P 행운 획득</div>
-                </div>
-                <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
-                  <div class="font-bold text-pink-300">⚡ 2배 부스터</div>
-                  <div class="text-slate-400 mt-0.5">퀘스트 완주 시 2배 지급</div>
-                </div>
-              </div>
-            </div>
-          `,
-          buttonText: '다음 (가이드 완료) ➔'
-        },
-        {
-          step: 11,
-          title: '가이드를 모두 둘러보았습니다! 🎉',
-          icon: '🚀',
-          highlightId: null,
-          tab: 'focus',
-          openModal: null,
-          desc: '이제 수호 요정 뽀마와 함께 평화롭고 행복한 부부 공동 육아를 시작해보세요! 🍼✨<br/><br/><span class="text-amber-400 font-bold">💡 언제든 상단 [🌟 온보딩 가이드] 버튼을 누르면 다시 확인할 수 있습니다.</span>',
-          customCard: `
-            <div class="p-3 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 border border-amber-500/30 rounded-2xl text-center">
-              <span class="text-sm font-black text-amber-300">🎉 뽀마키즈 준비 완료!</span>
-            </div>
-          `,
-          isFinal: true,
-          buttonText: '🚀 뽀마키즈 시작하기'
-        }
-      ]
-    };
-
-    function startOnboardingGuide(startStep = 0) {
-      console.log('🌟 [ONBOARDING] startOnboardingGuide invoked, startStep:', startStep);
-      ONBOARDING.isActive = true;
-      ONBOARDING.currentStep = startStep;
-
-      // Ensure Mom view is focused for the tour
-      setViewMode('mom');
-
-      const overlay = document.getElementById('onboardingGuideOverlay');
-      if (overlay) {
-        overlay.classList.remove('hidden');
-        overlay.style.display = 'flex';
-      }
-
-      renderGuideStep();
-    }
-
-    function cleanupGuideHighlights() {
-      document.querySelectorAll('.guide-target-active').forEach(el => {
-        el.classList.remove('guide-target-active');
-      });
-    }
-
-    function closeAllGuideModals() {
-      const taskModal = document.getElementById('taskManageModal');
-      const notifModal = document.getElementById('notificationModal');
-      const filterModal = document.getElementById('appFilterModal');
-      [taskModal, notifModal, filterModal].forEach(modal => {
-        if (modal) {
-          modal.classList.add('hidden');
-          modal.classList.remove('guide-modal-locked');
-        }
-      });
-    }
-
-    function renderGuideStep() {
-      cleanupGuideHighlights();
-      closeAllGuideModals();
-
-      const step = ONBOARDING.steps[ONBOARDING.currentStep];
-      if (!step) return;
-
-      const backdrop = document.getElementById('guideBackdrop');
-
-      // 1. Switch tab if needed
-      if (step.tab) {
-        switchTab('mom', step.tab);
-      }
-
-      // 2. Open actual UI modal if this step is a modal step (Hybrid Mode)
-      if (step.openModal) {
-        if (backdrop) {
-          backdrop.className = 'absolute inset-0 bg-black/40 backdrop-blur-[1px] pointer-events-auto cursor-default';
-        }
-        if (step.openModal === 'taskManageModal') {
-          openTaskManageModal(null, 'mom');
-        } else if (step.openModal === 'notificationModal') {
-          openNotificationModal('mom');
-        } else if (step.openModal === 'appFilterModal') {
-          openAppFilterModal();
-        }
-        // Lock modal from user touches/inputs during guide
-        const modalEl = document.getElementById(step.openModal);
-        if (modalEl) {
-          modalEl.classList.add('guide-modal-locked');
-        }
-      } else {
-        if (backdrop) {
-          backdrop.className = 'absolute inset-0 bg-black/75 backdrop-blur-[2px] pointer-events-auto cursor-default';
-        }
-      }
-
-      // 3. Highlight target element after tab rendering (Spotlight mode)
-      setTimeout(() => {
-        if (step.highlightId && !step.openModal) {
-          const target = document.getElementById(step.highlightId);
-          if (target) {
-            target.classList.add('guide-target-active');
-            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }
-      }, 60);
-
-      // 4. Trigger confetti on step 9
-      if (step.isFinal && typeof confetti === 'function') {
-        confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
-      }
-
-      // 5. Render Guide Card Content
-      const card = document.getElementById('onboardingGuideCard');
-      if (!card) return;
-
-      card.innerHTML = `
-        <!-- Top Step Header -->
-        <div class="flex items-center justify-between pb-1 border-b border-slate-800">
-          <div class="flex items-center gap-1.5">
-            <span class="text-base">${step.icon}</span>
-            <span class="text-[11px] font-black text-amber-300">뽀마 온보딩 가이드 (${step.step + 1} / ${ONBOARDING.steps.length})</span>
-          </div>
-          <button type="button" onclick="skipOnboardingGuide()" class="text-slate-400 hover:text-white text-xs px-2 py-0.5 rounded-lg hover:bg-slate-800 transition">
-            건너뛰기 ✕
-          </button>
-        </div>
-
-        <!-- Progress Bar -->
-        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 transition-all duration-300" style="width: ${((step.step + 1) / ONBOARDING.steps.length) * 100}%"></div>
-        </div>
-
-        <!-- Step Title & Description -->
-        <div class="flex flex-col gap-1 text-left">
-          <h3 class="text-base font-black text-white flex items-center gap-1.5">
-            <span>${step.title}</span>
-          </h3>
-          <p class="text-xs text-slate-300 leading-relaxed">${step.desc}</p>
-        </div>
-
-        <!-- Visual Showcase Card -->
-        ${step.customCard || ''}
-
-        <!-- Bottom Action Buttons -->
-        <div class="flex items-center gap-2 pt-1">
-          ${step.step > 0 && !step.isFinal ? `
-            <button type="button" onclick="prevGuideStep()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs transition">
-              ◀ 이전
-            </button>
-          ` : ''}
-          <button type="button" onclick="${step.isFinal ? 'finishOnboardingGuide()' : 'nextGuideStep()'}" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-xs shadow-lg transition flex items-center justify-center gap-1.5 active:scale-95">
-            <span>${step.buttonText || '다음 ➔'}</span>
-          </button>
-        </div>
-      `;
-    }
-
-    function nextGuideStep() {
-      if (ONBOARDING.currentStep < ONBOARDING.steps.length - 1) {
-        ONBOARDING.currentStep++;
-        renderGuideStep();
-      } else {
-        finishOnboardingGuide();
-      }
-    }
-
-    function prevGuideStep() {
-      if (ONBOARDING.currentStep > 0) {
-        ONBOARDING.currentStep--;
-        renderGuideStep();
-      }
-    }
-
-    function finishOnboardingGuide() {
-      cleanupGuideHighlights();
-      closeAllGuideModals();
-      const overlay = document.getElementById('onboardingGuideOverlay');
-      if (overlay) {
-        overlay.classList.add('hidden');
-        overlay.style.display = 'none';
-      }
-      ONBOARDING.isActive = false;
-      try {
-        localStorage.setItem('bbomakids_onboarding_completed', 'true');
-      } catch(e) {}
-      showToast('🎉 뽀마키즈 가이드가 완료되었습니다. 시작을 환영합니다!');
-      logEvent('온보딩 가이드 완료');
-    }
-
-    function skipOnboardingGuide() {
-      cleanupGuideHighlights();
-      closeAllGuideModals();
-      const overlay = document.getElementById('onboardingGuideOverlay');
-      if (overlay) {
-        overlay.classList.add('hidden');
-        overlay.style.display = 'none';
-      }
-      ONBOARDING.isActive = false;
-      try {
-        localStorage.setItem('bbomakids_onboarding_completed', 'true');
-      } catch(e) {}
-      showToast('💡 [상단 🌟 온보딩 가이드]를 눌러 언제든 다시 볼 수 있습니다.');
-    }
-
-    // Initialize App & Auto-launch Guide Tour
-    function initOnboardingLaunch() {
+    // Initialize App Launch Directly Without Any Tutorial
+    function initAppLaunch() {
       initApp();
-
-      let onboardingDone = false;
-      try {
-        const val = localStorage.getItem('bbomakids_onboarding_completed');
-        console.log('🌟 [ONBOARDING] Check localStorage bbomakids_onboarding_completed:', val);
-        onboardingDone = (val === 'true');
-      } catch(e) {
-        console.error('🌟 [ONBOARDING] LocalStorage error:', e);
-      }
-
-      if (!onboardingDone) {
-        console.log('🌟 [ONBOARDING] Fresh launch! Auto-starting guide in 500ms...');
-        setTimeout(() => {
-          startOnboardingGuide(0);
-        }, 500);
-      } else {
-        console.log('🌟 [ONBOARDING] Guide already completed previously.');
-      }
 
       setInterval(() => {
         const now = new Date();
@@ -8641,9 +8107,9 @@
     }
 
     if (document.readyState === 'loading') {
-      window.addEventListener('DOMContentLoaded', initOnboardingLaunch);
+      window.addEventListener('DOMContentLoaded', initAppLaunch);
     } else {
-      initOnboardingLaunch();
+      initAppLaunch();
     }
   </script>
 </body>
