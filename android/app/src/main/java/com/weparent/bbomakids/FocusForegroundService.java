@@ -26,9 +26,10 @@ public class FocusForegroundService extends Service {
     public static final String ACTION_STOP = "com.weparent.bbomakids.ACTION_STOP_FOCUS";
     public static final String ACTION_PAUSE = "com.weparent.bbomakids.ACTION_PAUSE_FOCUS";
     public static final String ACTION_RESUME = "com.weparent.bbomakids.ACTION_RESUME_FOCUS";
+    public static final String ACTION_EXTEND = "com.weparent.bbomakids.ACTION_EXTEND_FOCUS";
 
-    public static final String CHANNEL_ID = "bboma_focus_media_session_v1";
-    public static final String COMPLETE_CHANNEL_ID = "bboma_focus_complete_channel";
+    public static final String CHANNEL_ID = "bboma_focus_media_session_v2";
+    public static final String COMPLETE_CHANNEL_ID = "bboma_focus_complete_channel_v2";
     public static final int NOTIFICATION_ID = 9001;
     public static final int COMPLETE_NOTIFICATION_ID = 9002;
 
@@ -68,6 +69,18 @@ public class FocusForegroundService extends Service {
             }
 
             @Override
+            public void onFastForward() {
+                extendFocusTimer(300); // +5 minutes
+            }
+
+            @Override
+            public void onCustomAction(String action, android.os.Bundle extras) {
+                if ("ACTION_EXTEND".equals(action)) {
+                    extendFocusTimer(300);
+                }
+            }
+
+            @Override
             public void onStop() {
                 stopFocusTimer();
                 stopForeground(true);
@@ -85,13 +98,16 @@ public class FocusForegroundService extends Service {
         long actions = PlaybackStateCompat.ACTION_PLAY
                 | PlaybackStateCompat.ACTION_PAUSE
                 | PlaybackStateCompat.ACTION_PLAY_PAUSE
+                | PlaybackStateCompat.ACTION_FAST_FORWARD
                 | PlaybackStateCompat.ACTION_STOP;
 
         long position = (totalSeconds - secondsRemaining) * 1000L;
+        float speed = (state == PlaybackStateCompat.STATE_PLAYING) ? 1.0f : 0.0f;
 
         PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder()
                 .setActions(actions)
-                .setState(state, position, state == PlaybackStateCompat.STATE_PLAYING ? 1.0f : 0.0f);
+                .setState(state, position, speed)
+                .addCustomAction("ACTION_EXTEND", "+5분 연장", android.R.drawable.ic_media_ff);
 
         mediaSession.setPlaybackState(stateBuilder.build());
     }
@@ -101,8 +117,9 @@ public class FocusForegroundService extends Service {
 
         MediaMetadataCompat.Builder metadataBuilder = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "👶 육아 집중 모드 (" + formatTime(secondsRemaining) + ")")
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, userName + "(" + userRole + ") • 아이와 함께하는 시간")
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "뽀마키즈 부부 평화 육아")
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, userName + "(" + userRole + ") 님 • 아이와 눈맞춤 집중 중 💕")
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "뽀마키즈 - 부부 평화 육아")
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, "남은 시간: " + formatTime(secondsRemaining) + " / " + (totalSeconds / 60) + "분")
                 .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, totalSeconds * 1000L);
 
         try {
@@ -136,6 +153,11 @@ public class FocusForegroundService extends Service {
 
         if (ACTION_RESUME.equals(action)) {
             resumeFocusTimer();
+            return START_STICKY;
+        }
+
+        if (ACTION_EXTEND.equals(action)) {
+            extendFocusTimer(300);
             return START_STICKY;
         }
 
@@ -209,6 +231,14 @@ public class FocusForegroundService extends Service {
         }
     }
 
+    private void extendFocusTimer(int additionalSeconds) {
+        secondsRemaining += additionalSeconds;
+        totalSeconds += additionalSeconds;
+        updateMediaMetadata();
+        updatePlaybackState(isPaused ? PlaybackStateCompat.STATE_PAUSED : PlaybackStateCompat.STATE_PLAYING);
+        updateNotification(formatTime(secondsRemaining));
+    }
+
     private void stopFocusTimer() {
         isRunning = false;
         isPaused = false;
@@ -272,15 +302,7 @@ public class FocusForegroundService extends Service {
     private Notification buildMediaNotification(String timeFormatted) {
         PendingIntent contentPendingIntent = createContentIntent();
 
-        // Stop Action Intent
-        Intent stopIntent = new Intent(this, FocusForegroundService.class);
-        stopIntent.setAction(ACTION_STOP);
-        PendingIntent stopPendingIntent = PendingIntent.getService(
-                this, 1, stopIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0)
-        );
-
-        // Pause / Resume Action Intent
+        // 1. Pause / Resume Action Intent
         Intent toggleIntent = new Intent(this, FocusForegroundService.class);
         toggleIntent.setAction(isPaused ? ACTION_RESUME : ACTION_PAUSE);
         PendingIntent togglePendingIntent = PendingIntent.getService(
@@ -290,22 +312,44 @@ public class FocusForegroundService extends Service {
 
         NotificationCompat.Action toggleAction = new NotificationCompat.Action.Builder(
                 isPaused ? android.R.drawable.ic_media_play : android.R.drawable.ic_media_pause,
-                isPaused ? "계속하기" : "일시정지",
+                isPaused ? "계속" : "일시정지",
                 togglePendingIntent
         ).build();
 
+        // 2. Extend Action Intent (+5 minutes)
+        Intent extendIntent = new Intent(this, FocusForegroundService.class);
+        extendIntent.setAction(ACTION_EXTEND);
+        PendingIntent extendPendingIntent = PendingIntent.getService(
+                this, 3, extendIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0)
+        );
+
+        NotificationCompat.Action extendAction = new NotificationCompat.Action.Builder(
+                android.R.drawable.ic_media_ff,
+                "+5분",
+                extendPendingIntent
+        ).build();
+
+        // 3. Stop Action Intent
+        Intent stopIntent = new Intent(this, FocusForegroundService.class);
+        stopIntent.setAction(ACTION_STOP);
+        PendingIntent stopPendingIntent = PendingIntent.getService(
+                this, 1, stopIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0)
+        );
+
         NotificationCompat.Action stopAction = new NotificationCompat.Action.Builder(
                 android.R.drawable.ic_menu_close_clear_cancel,
-                "집중 종료",
+                "종료",
                 stopPendingIntent
         ).build();
 
-        // Official Android MediaStyle
+        // Official Android MediaStyle with all 3 actions visible in compact media player
         MediaStyle mediaStyle = new MediaStyle();
         if (mediaSession != null) {
             mediaStyle.setMediaSession(mediaSession.getSessionToken());
         }
-        mediaStyle.setShowActionsInCompactView(0, 1);
+        mediaStyle.setShowActionsInCompactView(0, 1, 2);
         mediaStyle.setShowCancelButton(true);
         mediaStyle.setCancelButtonIntent(stopPendingIntent);
 
@@ -315,14 +359,15 @@ public class FocusForegroundService extends Service {
                 .setColor(0xFFFF5252) // Theme Primary Coral Red
                 .setColorized(true)
                 .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
-                .setContentTitle("👶 [뽀마키즈] 육아 집중 중 (" + timeFormatted + ")")
-                .setContentText(userName + "(" + userRole + ")님 • 아이와 소중한 눈맞춤 중")
+                .setContentTitle("👶 [뽀마키즈] " + userName + "(" + userRole + ") 육아 집중 (" + timeFormatted + ")")
+                .setContentText("아이와 소중한 눈맞춤 집중 중 💕 • 미디어 컨트롤러에서 제어")
                 .setSubText("남은 시간 " + timeFormatted)
-                .setOngoing(true)
+                .setOngoing(!isPaused)
                 .setOnlyAlertOnce(true)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .addAction(toggleAction)
+                .addAction(extendAction)
                 .addAction(stopAction)
                 .setStyle(mediaStyle)
                 .setContentIntent(contentPendingIntent)
@@ -357,13 +402,13 @@ public class FocusForegroundService extends Service {
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (manager == null) return;
 
-            // 1. Media Session Foreground Channel
+            // 1. Media Session Foreground Channel - HIGH Priority for heads up & status bar priority
             NotificationChannel focusChannel = new NotificationChannel(
                     CHANNEL_ID,
                     "뽀마키즈 육아 집중 미디어 세션",
-                    NotificationManager.IMPORTANCE_LOW
+                    NotificationManager.IMPORTANCE_HIGH
             );
-            focusChannel.setDescription("육아 집중 모드 실행 중 상태바 및 미디어 컨트롤러를 통해 실시간 진행 상황을 표시합니다.");
+            focusChannel.setDescription("육아 집중 모드 실행 중 상단 미디어 컨트롤러를 통해 실시간 진행 상황을 표시합니다.");
             focusChannel.setShowBadge(true);
             focusChannel.setSound(null, null);
             focusChannel.enableVibration(false);

@@ -1,6 +1,6 @@
 {
   "name": "bbomakids",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "뽀마키즈(Bbomakids) - 부부 평화 육아 게이미피케이션 플랫폼",
   "main": "prototype/index.html",
   "scripts": {
