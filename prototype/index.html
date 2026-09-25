@@ -235,6 +235,15 @@
     .guide-card-shadow {
       box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.85), 0 0 35px rgba(245, 158, 11, 0.3);
     }
+    .guide-modal-locked {
+      pointer-events: none !important;
+      user-select: none !important;
+      touch-action: none !important;
+    }
+    .guide-modal-locked * {
+      pointer-events: none !important;
+      user-select: none !important;
+    }
   </style>
 
 
@@ -307,23 +316,52 @@
   </header>
 
 
-  <!-- ⚙️ Rule Settings Modal (Eye-Catching & Intuitive UI) -->
+  <!-- ⚙️ Rule Settings Modal (User Profile & Angel Defense Goal) -->
   <div id="ruleSettingsModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-6 max-w-lg w-full shadow-2xl relative animate-shield text-slate-100">
+    <div class="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-5 md:p-6 max-w-lg w-full shadow-2xl relative animate-shield text-slate-100 flex flex-col gap-3.5">
       <button onclick="closeRuleSettingsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
       
       <!-- Modal Header -->
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 flex items-center justify-center text-2xl shadow-lg">
-          👼
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-600 flex items-center justify-center text-2xl shadow-lg">
+          ⚙️
         </div>
         <div>
-          <h2 class="text-lg font-black text-white flex items-center gap-2">
-            <span>천사 배우자 방어권 목표 설정</span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">부부 합의 룰</span>
+          <h2 class="text-base font-black text-white flex items-center gap-2">
+            <span>부부 육아 설정 & 규칙</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">부부 설정</span>
           </h2>
-          <p class="text-xs text-slate-400">상대방 가사를 몇 번 도와주면 <strong class="text-amber-300">🛡️ 페널티 면제권</strong>을 획득할까요?</p>
+          <p class="text-xs text-slate-400">내 프로필 정보 및 부부 상호작용 규칙을 관리합니다.</p>
         </div>
+      </div>
+
+      <!-- 👤 User Profile & Name Settings Box in Settings Modal -->
+      <div class="p-3 bg-slate-950/80 border border-amber-500/40 rounded-2xl flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl shrink-0" id="ruleSettingsProfileAvatar">
+            👩
+          </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold text-white" id="ruleSettingsProfileName">지은 (엄마)</span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">내 프로필</span>
+            </div>
+            <span class="text-[10px] text-slate-400">사용자 이름(닉네임) 및 가족 내 역할 변경</span>
+          </div>
+        </div>
+        <button type="button" onclick="closeRuleSettingsModal(); openUserProfileModal(STATE.viewMode === 'dad' ? 'dad' : 'mom');" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-xs shadow transition flex items-center gap-1 shrink-0 active:scale-95">
+          <span>✏️ 이름 변경</span>
+        </button>
+      </div>
+
+      <!-- Sub Header: Angel Defense Goal -->
+      <div class="border-t border-slate-800 pt-2">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-base">👼</span>
+          <h3 class="text-xs font-black text-slate-200">천사 배우자 방어권 목표 설정</h3>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30 font-bold">부부 합의 룰</span>
+        </div>
+        <p class="text-[11px] text-slate-400">상대방 가사를 몇 번 도와주면 <strong class="text-amber-300">🛡️ 페널티 면제권</strong>을 획득할까요?</p>
       </div>
 
       <!-- 3 Preset Cards -->
@@ -642,13 +680,112 @@
   </div>
 
   <!-- 🌟 Interactive Hybrid Onboarding Guide Modal & Spotlight Tour -->
-  <div id="onboardingGuideOverlay" class="hidden fixed inset-0 z-60 flex flex-col justify-end p-4 pb-8 transition-all duration-300 pointer-events-auto">
-    <!-- Dim Backdrop (Blocks accidental touches behind guide) -->
-    <div id="guideBackdrop" class="absolute inset-0 bg-black/75 backdrop-blur-[2px] pointer-events-auto" onclick="/* backdrop block */"></div>
+  <div id="onboardingGuideOverlay" class="hidden fixed inset-0 flex flex-col justify-end p-4 pb-8 transition-all duration-300 pointer-events-auto select-none" style="z-index: 99999 !important;" onclick="event.stopPropagation();" ontouchstart="event.stopPropagation();">
+    <!-- Dim Backdrop (Blocks ALL touches and clicks behind guide) -->
+    <div id="guideBackdrop" class="absolute inset-0 bg-black/75 backdrop-blur-[2px] pointer-events-auto cursor-default" style="z-index: 1;" onclick="event.stopPropagation(); event.preventDefault();" ontouchstart="event.stopPropagation(); event.preventDefault();"></div>
 
     <!-- Floating Interactive Guide Card -->
-    <div id="onboardingGuideCard" class="relative z-70 bg-slate-900/98 border-2 border-amber-500/80 rounded-3xl p-5 max-w-md w-full mx-auto guide-card-shadow text-slate-100 animate-dialog flex flex-col gap-3.5 pointer-events-auto">
+    <div id="onboardingGuideCard" class="relative bg-slate-900/98 border-2 border-amber-500/80 rounded-3xl p-5 max-w-md w-full mx-auto guide-card-shadow text-slate-100 animate-dialog flex flex-col gap-3.5 pointer-events-auto select-auto" style="z-index: 2;" onclick="event.stopPropagation();">
       <!-- Dynamically filled by renderGuideStep() -->
+    </div>
+  </div>
+
+  <!-- 👤 User Profile & Name Edit Modal -->
+  <div id="userProfileModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-slate-900 border-2 border-amber-500/70 rounded-3xl p-5 md:p-6 max-w-md w-full shadow-2xl relative text-slate-100 animate-dialog flex flex-col gap-4">
+      <!-- Close Button -->
+      <button onclick="closeUserProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg p-1 rounded-lg hover:bg-slate-800 transition">✕</button>
+
+      <!-- Modal Header -->
+      <div class="flex items-center gap-3 pb-2 border-b border-slate-800 pr-9">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-2xl shadow-lg shrink-0">
+          <span id="profileModalAvatarIcon">👤</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h2 class="text-base font-black text-white">사용자 프로필 & 이름 변경</h2>
+            <span id="profileModalUserBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
+              엄마 모드
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">앱에서 표시될 나의 이름과 역할을 변경합니다.</p>
+        </div>
+      </div>
+
+      <!-- Profile Form -->
+      <div class="flex flex-col gap-3.5">
+        <!-- Name Input -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-slate-300 flex items-center gap-1">
+            <span>✏️ 사용자 이름 (닉네임)</span>
+            <span class="text-rose-400 text-xs">*</span>
+          </label>
+          <div class="relative">
+            <input type="text" id="profileInputName" placeholder="이름을 입력하세요 (예: 지은, 민수)" maxlength="12" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-amber-300 font-bold focus:border-amber-400 focus:outline-none placeholder-slate-600 transition" />
+            <button type="button" onclick="document.getElementById('profileInputName').value = ''" class="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 text-xs">✕</button>
+          </div>
+        </div>
+
+        <!-- Gender & Avatar Toggle -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-slate-300">성별 및 아바타</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="profileBtnGenderFemale" onclick="selectProfileGender('female')" class="py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-rose-500/20 border-rose-400 text-rose-300">
+              <span class="text-base">👩</span>
+              <span>여성</span>
+            </button>
+            <button type="button" id="profileBtnGenderMale" onclick="selectProfileGender('male')" class="py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-950 border-slate-700 text-slate-400">
+              <span class="text-base">👨</span>
+              <span>남성</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Role in Family -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-slate-300">가족 내 역할</label>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" onclick="selectProfileRole('엄마')" id="roleBtn_mom" class="py-2 rounded-xl border text-xs font-bold transition bg-amber-500/20 border-amber-400 text-amber-300">
+              엄마
+            </button>
+            <button type="button" onclick="selectProfileRole('아빠')" id="roleBtn_dad" class="py-2 rounded-xl border text-xs font-bold transition bg-slate-950 border-slate-700 text-slate-400">
+              아빠
+            </button>
+            <button type="button" onclick="selectProfileRole('파트너')" id="roleBtn_partner" class="py-2 rounded-xl border text-xs font-bold transition bg-slate-950 border-slate-700 text-slate-400">
+              파트너
+            </button>
+            <button type="button" onclick="selectProfileRole('기타')" id="roleBtn_other" class="py-2 rounded-xl border text-xs font-bold transition bg-slate-950 border-slate-700 text-slate-400">
+              직접입력
+            </button>
+          </div>
+          <input type="text" id="profileInputCustomRole" placeholder="직접 입력 (예: 이모, 조부모, 보호자)" class="hidden w-full mt-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-amber-300 font-bold focus:border-amber-400 focus:outline-none" />
+        </div>
+
+        <!-- Couple Pairing Info Box -->
+        <div class="p-3 bg-slate-950/80 border border-slate-800 rounded-2xl flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🔗</span>
+            <div class="flex flex-col">
+              <span class="text-slate-300 font-bold">나의 부부 매칭 코드</span>
+              <span class="text-[10px] text-slate-400">상대방에게 전달하여 1:1 연결</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold text-xs border border-amber-500/30">BBOMA-7749</span>
+            <button type="button" onclick="showToast('📋 초대 코드가 복사되었습니다!')" class="p-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold border border-slate-700">복사</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Action Buttons -->
+      <div class="flex flex-col gap-2 pt-2">
+        <button type="button" onclick="saveUserProfile()" class="w-full py-3 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black rounded-2xl text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-1.5 active:scale-95">
+          <span>💾 프로필 및 이름 저장하기</span>
+        </button>
+        <button type="button" id="profileSwitchViewBtn" onclick="toggleOppositeViewFromProfile()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-xl text-[11px] font-medium border border-slate-700/80 transition flex items-center justify-center gap-1">
+          <span id="profileSwitchViewBtnText">🔄 배우자(민수) 화면으로 전환하기 (테스트 모드)</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -743,16 +880,20 @@
       <div>
         <label class="block text-[11px] font-bold text-slate-300 mb-1.5 flex items-center justify-between">
           <span>⚡ 빠른 추천 프리셋 (클릭 시 자동 입력)</span>
+          <span class="text-[9px] text-amber-400">🛒 표시: 쿠팡 2% 적립 연계</span>
         </label>
-        <div class="grid grid-cols-3 gap-1.5">
+        <div class="grid grid-cols-4 gap-1.5">
           <button type="button" onclick="selectTaskPreset('아기 목욕시키기 & 보습제 바르기', '20:00')" class="p-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-[10px] text-slate-300 flex items-center gap-1 transition">
             <span>🛁</span> <span class="truncate">아기 목욕</span>
           </button>
           <button type="button" onclick="selectTaskPreset('저녁 설거지 & 젖병 열탕 소독', '21:00')" class="p-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-[10px] text-slate-300 flex items-center gap-1 transition">
-            <span>🍼</span> <span class="truncate">젖병 열탕소독</span>
+            <span>🍼</span> <span class="truncate">젖병 열탕</span>
           </button>
-          <button type="button" onclick="selectTaskPreset('거실 장난감 정리 & 교구 소독', '21:30')" class="p-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-[10px] text-slate-300 flex items-center gap-1 transition">
-            <span>🧸</span> <span class="truncate">장난감 정리</span>
+          <button type="button" onclick="selectTaskPreset('밑반찬 & 저녁 식자재 장보기 (쿠팡 2% 적립)', '17:30')" class="p-1.5 bg-rose-950/40 hover:bg-rose-900/50 border border-rose-500/40 rounded-xl text-[10px] text-rose-200 flex items-center gap-1 transition font-bold">
+            <span>🥗</span> <span class="truncate">반찬/장보기 🛒</span>
+          </button>
+          <button type="button" onclick="selectTaskPreset('화장지 & 생필품/세제 주문하기 (쿠팡 2% 적립)', '18:00')" class="p-1.5 bg-rose-950/40 hover:bg-rose-900/50 border border-rose-500/40 rounded-xl text-[10px] text-rose-200 flex items-center gap-1 transition font-bold">
+            <span>🧻</span> <span class="truncate">휴지/생필품 🛒</span>
           </button>
           <button type="button" onclick="selectTaskPreset('아기 옷 빨래 & 건조기 돌리기', '19:30')" class="p-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-[10px] text-slate-300 flex items-center gap-1 transition">
             <span>🧺</span> <span class="truncate">아기 빨래</span>
@@ -760,16 +901,30 @@
           <button type="button" onclick="selectTaskPreset('내일 이유식 & 간식 준비하기', '22:00')" class="p-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-[10px] text-slate-300 flex items-center gap-1 transition">
             <span>🍲</span> <span class="truncate">이유식 준비</span>
           </button>
+          <button type="button" onclick="selectTaskPreset('거실 장난감 정리 & 교구 소독', '21:30')" class="p-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-[10px] text-slate-300 flex items-center gap-1 transition">
+            <span>🧸</span> <span class="truncate">장난감 정리</span>
+          </button>
           <button type="button" onclick="selectTaskPreset('기저귀 쓰레기 배출 & 분리수거', '22:30')" class="p-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-[10px] text-slate-300 flex items-center gap-1 transition">
-            <span>🗑️</span> <span class="truncate">기저귀/분리수거</span>
+            <span>🗑️</span> <span class="truncate">기저귀/분리</span>
           </button>
         </div>
       </div>
 
-      <!-- Task Title Input -->
+      <!-- Task Title Input & Live Shopping Badge -->
       <div>
         <label class="block text-[11px] font-bold text-slate-300 mb-1">할 일 제목</label>
-        <input type="text" id="taskInput_title" placeholder="예: 아기 밤잠 재우기 & 동화책 읽어주기" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 text-xs focus:border-emerald-400 outline-none" />
+        <input type="text" id="taskInput_title" oninput="checkTaskTitleShoppingKeyword(this.value)" placeholder="예: 3겹 롤화장지 주문, 저녁 밑반찬 장보기 등" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 text-xs focus:border-emerald-400 outline-none" />
+        
+        <!-- Live Shopping Link Badge -->
+        <div id="taskShoppingBadge" class="hidden mt-1.5 p-2 rounded-xl bg-rose-950/60 border border-rose-500/40 flex items-center justify-between text-[10px]">
+          <div class="flex items-center gap-1.5 text-rose-300 font-bold">
+            <span>🛒</span>
+            <span>쿠팡 제휴 쇼핑 연계 과업 (2% 적립 / 월 최대 3,500P 한도)</span>
+          </div>
+          <button type="button" onclick="openCoupangGeneralShopModal(document.getElementById('taskInput_title')?.value || '')" class="px-2 py-0.5 rounded-lg bg-gradient-to-r from-rose-600 to-amber-600 hover:brightness-110 text-white font-black text-[9px] transition">
+            쿠팡 직결 쇼핑 ➔
+          </button>
+        </div>
       </div>
 
       <!-- Task Type: 🔄 Routine vs 📌 One-time -->
@@ -1158,6 +1313,445 @@
     </div>
   </div>
 
+  <!-- 🎁 부부 전용 기프티콘 샵 모달 (Gifticon Shop Modal) -->
+  <div id="gifticonShopModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 md:p-4">
+    <div class="bg-slate-900 border-2 border-pink-500/50 rounded-3xl p-4 md:p-6 max-w-lg w-full max-h-[92vh] flex flex-col shadow-2xl relative text-slate-100 animate-dialog">
+      <!-- Close Button -->
+      <button onclick="closeGifticonShopModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg p-1 rounded-lg hover:bg-slate-800 transition">✕</button>
+
+      <!-- Modal Header -->
+      <div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-800">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-500 flex items-center justify-center text-2xl shadow-lg shrink-0 animate-bounce">
+          🎁
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-black text-white">부부 전용 기프티콘 샵</h2>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-gradient-to-r from-pink-500/20 to-amber-500/20 text-pink-300 font-bold border border-pink-500/30">
+              실물 기프티콘 교환
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 truncate">협력 퀘스트와 쿠팡 쇼핑으로 모은 포인트를 실물 선물로 교환하세요!</p>
+        </div>
+      </div>
+
+      <!-- Piggy Bank & Quick Earners Banner Card -->
+      <div class="bg-gradient-to-br from-amber-950/40 via-purple-950/30 to-slate-950 border border-amber-500/30 rounded-2xl p-3 shadow-md mb-3 flex flex-col gap-2 shrink-0">
+        <div class="flex items-baseline justify-between">
+          <div>
+            <span class="text-[10px] text-slate-400 font-medium">우리 부부 공동 저금통</span>
+            <div class="text-xl font-black text-amber-300 font-mono flex items-center gap-1.5">
+              <span>💖</span>
+              <span class="couple-points-val">3,450P</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] text-slate-400">목표: 스타벅스 (4,500P)</span>
+            <div id="shopTargetRemaining" class="text-xs font-bold text-pink-400 font-mono">1,050P 남음 (76%)</div>
+          </div>
+        </div>
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
+          <div id="shopTargetProgressBar" class="h-full bg-gradient-to-r from-pink-500 via-amber-400 to-emerald-400 transition-all duration-500" style="width: 76%"></div>
+        </div>
+        <!-- Quick Earn Shortcuts -->
+        <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80">
+          <button onclick="openCoupangPartnersModal()" class="p-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/70 border border-rose-500/40 text-rose-200 text-[10px] font-bold flex items-center justify-center gap-1 transition active:scale-95">
+            <span>🛒</span>
+            <span>쿠팡 제휴 2% 적립</span>
+          </button>
+          <button onclick="openRouletteModal()" class="p-2 rounded-xl bg-amber-950/60 hover:bg-amber-900/70 border border-amber-500/40 text-amber-200 text-[10px] font-bold flex items-center justify-center gap-1 transition active:scale-95">
+            <span>🎰</span>
+            <span>육퇴 룰렛 (최대 1,000P)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Shop Navigation Tabs (Toss Brandcon Style) -->
+      <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-2xl border border-slate-800 text-xs mb-3 shrink-0">
+        <button id="shopTabBtn_catalog" onclick="switchGifticonShopTab('catalog')" class="flex-1 py-2 rounded-xl transition flex items-center justify-center gap-1 bg-[#3182f6] text-white shadow font-black">
+          <span>구매하기</span>
+        </button>
+        <button id="shopTabBtn_myCoupons" onclick="switchGifticonShopTab('myCoupons')" class="flex-1 py-2 rounded-xl transition flex items-center justify-center gap-1 text-slate-400 hover:text-slate-200 font-bold">
+          <span>내 브랜드콘</span>
+          <span id="shopMyCouponsCountBadge" class="px-1.5 py-0.2 text-[9px] rounded-full bg-slate-800 text-slate-300 font-mono font-bold">1</span>
+        </button>
+        <button id="shopTabBtn_history" onclick="switchGifticonShopTab('history')" class="flex-1 py-2 rounded-xl transition flex items-center justify-center gap-1 text-slate-400 hover:text-slate-200 font-bold">
+          <span>적립 내역</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: Catalog Body -->
+      <div id="shopCatalogView" class="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 text-xs">
+        <!-- Rendered by renderGifticonShop() -->
+      </div>
+
+      <!-- Tab 2: Purchased Gifticons Body -->
+      <div id="shopMyCouponsView" class="hidden flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 text-xs">
+        <!-- Rendered by renderGifticonShop() -->
+      </div>
+
+      <!-- Tab 3: History Body -->
+      <div id="shopHistoryView" class="hidden flex-1 overflow-y-auto pr-1 flex flex-col gap-2 text-xs">
+        <!-- Rendered by renderGifticonShop() -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between pt-3 border-t border-slate-800 mt-2 text-xs">
+        <span class="text-[10px] text-slate-400">
+          💡 교환 즉시 <strong>모바일 바코드</strong>가 발급되며, 배우자에게 선물할 수 있습니다.
+        </span>
+        <button onclick="closeGifticonShopModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-xs transition">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🛒 키즈노트식 쿠팡 파트너스 제휴 쇼핑 적립 모달 (Coupang Partners Modal) -->
+  <div id="coupangPartnersModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 md:p-4" style="z-index: 5500;">
+    <div class="bg-slate-900 border-2 border-rose-500/50 rounded-3xl p-4 md:p-6 max-w-lg w-full max-h-[92vh] flex flex-col shadow-2xl relative text-slate-100 animate-dialog">
+      <!-- Close Button -->
+      <button onclick="closeCoupangPartnersModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg p-1 rounded-lg hover:bg-slate-800 transition">✕</button>
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-2.5 pb-2.5 border-b border-slate-800">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-600 to-amber-500 flex items-center justify-center text-2xl shadow-lg shrink-0">
+          🛒
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-black text-white">쿠팡 제휴 쇼핑 하트 적립</h2>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">
+              구매액 2% 적립
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 truncate">키즈노트 앱처럼 육아·생필품·반찬 구매 시 부부 포인트 적립!</p>
+        </div>
+      </div>
+
+      <!-- Monthly 3,500P Cap Gauge Card -->
+      <div class="bg-gradient-to-r from-rose-950/60 via-purple-950/40 to-slate-950 border border-rose-500/30 rounded-2xl p-3 shrink-0 flex flex-col gap-1.5 shadow mb-2">
+        <div class="flex items-center justify-between text-xs">
+          <div class="flex items-center gap-1.5 font-bold text-rose-300">
+            <span>📊</span>
+            <span>이번 달 제휴 쇼핑 적립 현황</span>
+          </div>
+          <div class="text-right font-mono font-black text-amber-300">
+            <span id="coupangEarnedText">0P</span> / <span class="text-slate-400">3,500P</span>
+          </div>
+        </div>
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+          <div id="coupangMonthlyProgressBar" class="h-full bg-gradient-to-r from-rose-500 via-pink-400 to-amber-400 transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <div class="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
+          <span>남은 적립 한도: <strong id="coupangRemainingCapText" class="text-emerald-400 font-bold">3,500P</strong></span>
+          <span class="text-slate-500">※ 월 최대 3,500P까지 적립 인정 (매월 1일 리셋)</span>
+        </div>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-2xl border border-slate-800 text-[11px] mb-2 shrink-0 overflow-x-auto">
+        <button id="cpCatBtn_all" onclick="filterCoupangCategory('all')" class="flex-1 py-1 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow font-black shrink-0">
+          전체 보기
+        </button>
+        <button id="cpCatBtn_baby" onclick="filterCoupangCategory('baby')" class="flex-1 py-1 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 text-slate-400 hover:text-slate-200 shrink-0">
+          🍼 육아용품
+        </button>
+        <button id="cpCatBtn_life" onclick="filterCoupangCategory('life')" class="flex-1 py-1 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 text-slate-400 hover:text-slate-200 shrink-0">
+          🧻 생활·생필품
+        </button>
+        <button id="cpCatBtn_food" onclick="filterCoupangCategory('food')" class="flex-1 py-1 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 text-slate-400 hover:text-slate-200 shrink-0">
+          🥗 반찬·장보기
+        </button>
+      </div>
+
+      <!-- Items List Container -->
+      <div class="flex-1 overflow-y-auto pr-1 flex flex-col gap-2 text-xs" id="coupangItemsContainer">
+        <!-- Rendered by renderCoupangItems() -->
+      </div>
+
+      <!-- 🔍 다른 물건도 쇼핑하기 (육아용품 외 모든 상품 연계) 배너 -->
+      <div class="mt-2.5 p-3 rounded-2xl bg-gradient-to-r from-purple-950/70 via-slate-900 to-indigo-950/70 border border-purple-500/40 flex flex-col gap-2 shrink-0 shadow-lg">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🛍️</span>
+            <div>
+              <span class="font-black text-purple-300 text-xs">육아용품 외 다른 물건도 쇼핑하기</span>
+              <p class="text-[10px] text-slate-400">휴지, 쌀, 커피, 밀키트 등 쿠팡의 모든 물건 2% 적립!</p>
+            </div>
+          </div>
+          <span class="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">
+            2% 공동적립
+          </span>
+        </div>
+        <button type="button" onclick="openCoupangGeneralShopModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-rose-600 hover:from-purple-500 hover:to-rose-500 text-white font-black text-xs shadow transition active:scale-95 flex items-center justify-center gap-1.5">
+          <span>🔍 쿠팡에서 생필품·장보기 쇼핑하고 2% 적립받기 ➔</span>
+        </button>
+      </div>
+
+      <!-- Notice & Footer -->
+      <div class="pt-2 border-t border-slate-800 mt-2 flex items-center justify-between text-[10px] text-slate-500">
+        <span>* 쿠팡 파트너스 제휴 모델이며 수수료 2%는 부부 기프티콘 적립금으로 환원됩니다.</span>
+        <button onclick="closeCoupangPartnersModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-xs transition shrink-0">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🛍️ 쿠팡 직결 쇼핑 모달 (키즈노트 방식: 검색어 입력 -> 쿠팡 직결 & 자동 적립) -->
+  <div id="coupangGeneralShopModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 md:p-4" style="z-index: 6000;">
+    <div class="bg-slate-900 border-2 border-indigo-500/50 rounded-3xl p-5 max-w-sm w-full flex flex-col gap-3.5 shadow-2xl relative text-slate-100 animate-dialog">
+      <!-- Close Button -->
+      <button onclick="closeCoupangGeneralShopModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg p-1 rounded-lg hover:bg-slate-800 transition">✕</button>
+
+      <!-- Modal Header -->
+      <div class="flex items-center gap-3 pb-2.5 border-b border-slate-800">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-500 via-pink-500 to-indigo-600 flex items-center justify-center text-2xl shadow-lg shrink-0">
+          🛒
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5">
+            <h3 class="text-sm font-black text-white">쿠팡 제휴 직결 쇼핑</h3>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">키즈노트 방식</span>
+          </div>
+          <p class="text-[11px] text-slate-400 truncate">검색어 입력 후 쿠팡 이동 시 2% 포인트 자동 적립!</p>
+        </div>
+      </div>
+
+      <!-- Search Input Box (Toss Style) -->
+      <div class="flex flex-col gap-2">
+        <label class="text-[11px] font-bold text-slate-300">쇼핑할 품목 또는 검색어</label>
+        <div class="relative flex items-center">
+          <input type="text" id="genShopItemInput" placeholder="예: 3겹 롤화장지, 생수 2L, 밑반찬, 밀키트..." class="w-full bg-slate-950 border border-slate-700 focus:border-[#3182f6] rounded-2xl pl-3.5 pr-9 py-2.5 text-white placeholder-slate-500 text-xs outline-none transition font-medium" value="3겹 롤화장지" onkeydown="if(event.key === 'Enter') launchCoupangSearchDirect();" />
+          <button type="button" onclick="document.getElementById('genShopItemInput').value = ''; document.getElementById('genShopItemInput').focus();" class="absolute right-3 text-slate-500 hover:text-slate-300 text-xs">✕</button>
+        </div>
+      </div>
+
+      <!-- Quick Preset Suggestions Chips -->
+      <div class="flex flex-col gap-1.5">
+        <span class="text-[10px] font-bold text-slate-400">자주 찾는 인기 생필품·장보기 빠른 선택</span>
+        <div class="flex flex-wrap gap-1.5">
+          <button type="button" onclick="setGenShopKeyword('3겹 롤화장지')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-medium border border-slate-700 transition active:scale-95">🧻 3겹 롤화장지</button>
+          <button type="button" onclick="setGenShopKeyword('생수 2L 12병')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-medium border border-slate-700 transition active:scale-95">💧 생수 2L</button>
+          <button type="button" onclick="setGenShopKeyword('밑반찬 5종 세트')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-medium border border-slate-700 transition active:scale-95">🥗 밑반찬·밀키트</button>
+          <button type="button" onclick="setGenShopKeyword('퍼실 세탁세제')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-medium border border-slate-700 transition active:scale-95">🧺 세탁세제</button>
+          <button type="button" onclick="setGenShopKeyword('제주 하우스 감귤')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-medium border border-slate-700 transition active:scale-95">🍊 신선과일</button>
+          <button type="button" onclick="setGenShopKeyword('쌀 10kg')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-medium border border-slate-700 transition active:scale-95">🍚 쌀 10kg</button>
+        </div>
+      </div>
+
+      <!-- Monthly Cap Status Box -->
+      <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
+        <div class="flex flex-col">
+          <span class="text-[10px] text-slate-400 font-medium">이번 달 쿠팡 제휴 적립 현황</span>
+          <span class="text-xs font-black text-amber-300 font-mono" id="genShopCapText">0P / 3,500P</span>
+        </div>
+        <div class="text-right">
+          <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+            구매액 2% 자동 적립 ✨
+          </span>
+        </div>
+      </div>
+
+      <!-- Direct Coupang Action Button (Toss Signature Button) -->
+      <button type="button" onclick="launchCoupangSearchDirect()" class="w-full py-3.5 rounded-2xl bg-[#3182f6] hover:bg-blue-600 text-white font-black text-xs shadow-lg hover:shadow-blue-500/30 transition flex items-center justify-center gap-1.5 active:scale-95">
+        <span>🔍 쿠팡에서 검색하고 2% 적립받기 ➔</span>
+      </button>
+
+      <p class="text-[10px] text-slate-500 text-center -mt-1 leading-snug">
+        ※ 키즈노트와 동일하게 쿠팡 링크로 즉시 연결되며, 결제금액의 2%가 부부 공동 저금통에 자동 적립됩니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- 🎰 육퇴 보너스 룰렛 모달 (Roulette Modal - Toss Style & Shuffled Sectors) -->
+  <div id="rouletteModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 md:p-4" style="z-index: 5500;">
+    <div class="bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-4 md:p-6 max-w-sm w-full max-h-[92vh] flex flex-col shadow-2xl relative text-slate-100 animate-dialog text-center">
+      <!-- Close Button -->
+      <button onclick="closeRouletteModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg p-1 rounded-lg hover:bg-slate-800 transition">✕</button>
+
+      <!-- Header -->
+      <div class="flex items-center justify-center gap-2 mb-1">
+        <span class="text-2xl">🎰</span>
+        <h2 class="text-base font-black text-amber-300">육퇴 보너스 룰렛</h2>
+      </div>
+      <p class="text-[11px] text-slate-400 mb-1.5">오늘도 육아 고생하셨습니다! 15초 광고 보고 최대 1,000P 받기</p>
+
+      <!-- Remaining Count & Reset Notice Badge -->
+      <div id="rouletteDailyLimitBadge" class="inline-flex items-center justify-center gap-1.5 bg-amber-500/20 px-3 py-1 rounded-full border border-amber-500/40 text-[11px] mb-2 mx-auto text-amber-300 font-bold">
+        <span>오늘 남은 기회: 3/3회 (매일 21:00 리셋)</span>
+      </div>
+
+      <!-- Current Points Display -->
+      <div class="inline-flex items-center justify-center gap-1.5 bg-slate-950 px-3 py-0.5 rounded-full border border-slate-800 text-[10px] mb-2 mx-auto">
+        <span class="text-slate-400">현재 저금통:</span>
+        <span class="font-black text-amber-300 couple-points-val">3,450P</span>
+      </div>
+
+      <!-- Roulette Wheel Container (6 Sectors: 1000P 1칸, 500P 1칸, 200P 2칸, 20P 1칸, 10P 1칸) -->
+      <div class="relative w-64 h-64 mx-auto my-2 flex items-center justify-center select-none">
+        <!-- Outer Glowing Rim -->
+        <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-500 p-1.5 shadow-[0_0_25px_rgba(245,158,11,0.5)]">
+          <!-- Wheel Inner (Rendered dynamically by renderRouletteWheelSVG) -->
+          <div id="rouletteWheel" class="w-full h-full rounded-full relative overflow-hidden bg-slate-950 border-2 border-amber-300/40 shadow-inner" style="transition: transform 3.5s cubic-bezier(0.15, 0.9, 0.25, 1);">
+            <!-- SVG dynamically injected -->
+          </div>
+        </div>
+        <!-- Pointer Arrow with Golden Glow -->
+        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 w-0 h-0 border-x-[10px] border-x-transparent border-t-[20px] border-t-amber-400 drop-shadow-[0_2px_8px_rgba(245,158,11,0.9)]"></div>
+      </div>
+
+      <!-- Action Button -->
+      <button id="rouletteSpinBtn" type="button" onclick="triggerRouletteWithAd()" class="w-full mt-3 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-xs shadow-lg transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer">
+        <span>📺 15초 광고 보고 룰렛 돌리기 (남은 기회: 3/3회)</span>
+      </button>
+
+      <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
+        ※ 1일 최대 3회까지 광고 시청 가능하며, 매일 밤 9시(21:00)에 3회가 리셋됩니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- 🏆 퀘스트 달성 & 2배 광고 보너스 모달 (Quest Victory Modal) -->
+  <div id="questVictoryModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4" style="z-index: 5500;">
+    <div class="bg-slate-900 border-2 border-emerald-500/60 rounded-3xl p-5 max-w-sm w-full flex flex-col items-center text-center shadow-2xl relative text-slate-100 animate-dialog">
+      <!-- Confetti Icon -->
+      <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-emerald-500 via-teal-500 to-amber-500 flex items-center justify-center text-3xl mb-3 shadow-[0_0_20px_rgba(16,185,129,0.5)] animate-bounce">
+        🏆
+      </div>
+      <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40 mb-1">
+        부부 공동 퀘스트 완주 성공!
+      </span>
+      <h3 id="questVictoryTitle" class="text-base font-black text-white mb-2">
+        📵 주간 노폰 집중 20시간 달성
+      </h3>
+      
+      <!-- Reward Summary Box -->
+      <div class="w-full bg-slate-950 p-3 rounded-2xl border border-slate-800 text-xs flex flex-col gap-1.5 mb-4">
+        <div class="flex items-center justify-between text-slate-400 text-[11px]">
+          <span>기본 적립 포인트</span>
+          <span id="questVictoryBasePoints" class="font-bold text-amber-300 font-mono text-sm">+500 P</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-400 text-[11px]">
+          <span>함께 받은 기본 보상</span>
+          <span id="questVictoryBaseReward" class="font-bold text-slate-200">☕ 외식 쿠폰 1장</span>
+        </div>
+      </div>
+
+      <!-- 2X Rewarded Ad Booster Button -->
+      <button type="button" onclick="claimDoubleQuestPoints()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-xs shadow-xl transition flex items-center justify-center gap-1.5 active:scale-95 animate-pulse">
+        <span>📺 15초 광고 보고 부부 포인트 2배 받기!</span>
+      </button>
+      <div id="questVictoryDoubleInfo" class="text-[10px] text-amber-300 mt-1 font-bold">
+        👉 시청 즉시 500P 추가 적립 (총 1,000P 지급!)
+      </div>
+
+      <!-- Skip Button -->
+      <button type="button" onclick="closeQuestVictoryModal()" class="mt-3 text-slate-400 hover:text-slate-200 text-xs py-1 transition underline">
+        기본 포인트만 받고 닫기
+      </button>
+    </div>
+  </div>
+
+  <!-- 🎫 기프티콘 상세 & 모바일 바코드 모달 (Gifticon Barcode Modal) -->
+  <div id="gifticonBarcodeModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4" style="z-index: 5500;">
+    <div class="bg-white rounded-3xl p-5 max-w-sm w-full flex flex-col items-center text-center shadow-2xl relative text-slate-900 animate-dialog">
+      <!-- Close Button -->
+      <button onclick="closeGifticonBarcodeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 text-lg p-1 rounded-lg hover:bg-slate-100 transition">✕</button>
+
+      <!-- Brand & Product Header -->
+      <div class="flex items-center gap-2 mb-2">
+        <span id="barcodeModalBrandBadge" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[10px]">
+          스타벅스
+        </span>
+        <span id="barcodeModalUsedBadge" class="hidden px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 font-bold text-[10px]">
+          사용완료
+        </span>
+      </div>
+      <h3 id="barcodeModalTitle" class="text-base font-black text-slate-900 mb-1">
+        아이스 카페 아메리카노 T
+      </h3>
+      <p id="barcodeModalSubtitle" class="text-xs text-slate-500 mb-4">
+        전국 스타벅스 매장에서 바코드를 제시해주세요
+      </p>
+
+      <!-- Real-looking SVG Barcode -->
+      <div class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col items-center shadow-inner mb-3">
+        <svg id="barcodeSvgGraphic" viewBox="0 0 240 60" class="w-full h-14">
+          <!-- Dynamically filled with vertical barcode bars -->
+        </svg>
+        <div id="barcodeNumberText" class="mt-2 text-sm font-mono font-black text-slate-800 tracking-widest select-all">
+          8801 - 4920 - 5821 - 9923
+        </div>
+        <button type="button" onclick="copyBarcodeNumber()" class="mt-1.5 px-3 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] font-bold transition flex items-center gap-1">
+          <span>📋 번호 복사</span>
+        </button>
+      </div>
+
+      <!-- Expiry & Buyer Info -->
+      <div class="w-full text-left bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-[11px] text-slate-600 flex flex-col gap-1 mb-4">
+        <div class="flex justify-between">
+          <span>유효기간</span>
+          <span id="barcodeExpiryText" class="font-bold text-slate-800">2026.12.25까지</span>
+        </div>
+        <div class="flex justify-between">
+          <span>교환 포인트</span>
+          <span id="barcodePointsText" class="font-bold text-amber-600">4,500P (부부 공동)</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col gap-2 w-full">
+        <button id="barcodeGiftSpouseBtn" type="button" onclick="sendSpouseGifticonShare()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-xs shadow transition flex items-center justify-center gap-1.5 active:scale-95">
+          <span>💌 배우자에게 커피 선물 알림 보내기</span>
+        </button>
+        <button id="barcodeUseBtn" type="button" onclick="markCurrentBarcodeUsed()" class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-300 transition">
+          <span>✅ 매장에서 사용 완료 처리</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📺 보상형 광고 시청 시뮬레이터 오버레이 (Rewarded Ad Overlay) -->
+  <div id="adSimulationOverlay" class="hidden fixed inset-0 bg-black/95 backdrop-blur-lg flex flex-col items-center justify-center p-6 text-center text-white" style="z-index: 10000;">
+    <div class="max-w-xs w-full bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-5 shadow-2xl flex flex-col items-center animate-dialog">
+      <!-- Sponsor Header Badge -->
+      <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30 mb-3">
+        <span>📺</span>
+        <span>스폰서 광고 시청 중</span>
+      </div>
+
+      <!-- Ad Graphic Box -->
+      <div class="w-full h-36 rounded-2xl bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 border border-slate-700 flex flex-col items-center justify-center p-3 relative overflow-hidden mb-3">
+        <span class="text-4xl mb-1 animate-bounce">👶🎁</span>
+        <h4 id="adSimTitle" class="font-extrabold text-amber-300 text-xs text-center">
+          뽀마 프리미엄 기저귀 & 아기용품 대축제
+        </h4>
+        <p id="adSimSubtitle" class="text-[9px] text-slate-300 text-center mt-1">
+          쿠팡 & 뽀마키즈 단독 2% 추가 적립 특가!
+        </p>
+      </div>
+
+      <!-- Countdown Text -->
+      <div id="adSimTimerText" class="text-xs font-bold text-slate-300 mb-2 font-mono">
+        ⏱️ 광고 종료 및 보상 지급까지: 3초
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700 mb-4">
+        <div id="adSimProgressBar" class="h-full bg-gradient-to-r from-amber-400 to-rose-500 transition-all duration-100" style="width: 0%"></div>
+      </div>
+
+      <!-- Claim Reward Button (Appears after countdown) -->
+      <button id="adSimClaimBtn" type="button" class="hidden w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs rounded-xl shadow-lg transition animate-pulse">
+        <span>🎉 보상 획득 완료! 닫기</span>
+      </button>
+    </div>
+  </div>
+
   <!-- Live Toast Alert Area -->
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
 
@@ -1200,26 +1794,32 @@
         <!-- 📱 Native Mobile App Header (AppBar) -->
         <div class="mobile-app-header h-12 bg-slate-900/95 border-b border-slate-800/80 px-3 flex items-center justify-between z-25 select-none shrink-0 shadow-sm">
           <!-- Profile Badge & Account Switcher -->
-          <button id="momProfileButton" onclick="setViewMode('dad')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 text-rose-200 transition text-left" title="클릭하여 배우자(아빠) 앱으로 전환">
-            <span class="text-base">👩</span>
+          <button id="momProfileButton" onclick="openUserProfileModal('mom')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 text-rose-200 transition text-left active:scale-95" title="클릭하여 내 프로필 및 이름 변경">
+            <span id="momHeaderAvatarDisplay" class="text-base">👩</span>
             <div class="flex flex-col leading-none">
               <span class="font-black text-xs text-rose-300 flex items-center gap-1">
                 <span id="momHeaderNameDisplay">지은</span>
                 <span id="momHeaderRoleDisplay" class="text-[9px] text-rose-400/80 font-normal">(엄마)</span>
-                <span class="text-[8px] text-slate-400">⇄</span>
+                <span class="text-[9px] text-amber-300">✏️</span>
               </span>
             </div>
           </button>
 
-          <!-- Center Bboma Mini Status -->
-          <div onclick="openParentingReportModal()" class="flex items-center gap-1 p-1 px-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 cursor-pointer transition" title="부부 육아 통계 & 리포트 열기">
-            <span class="text-xs">🐣</span>
-            <span class="text-[10px] font-black text-amber-300">뽀마 Lv.3</span>
+          <!-- Center: Bboma Mini Status & Gifticon Points -->
+          <div class="flex items-center gap-1 shrink-0">
+            <div onclick="openParentingReportModal()" class="flex items-center gap-1 p-1 px-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 cursor-pointer transition" title="부부 육아 통계 & 리포트 열기">
+              <span class="text-xs">🐣</span>
+              <span class="text-[10px] font-black text-amber-300">Lv.3</span>
+            </div>
+            <button type="button" onclick="openGifticonShopModal()" class="flex items-center gap-1 p-1 px-2 rounded-xl bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-amber-500/20 hover:from-pink-500/30 hover:to-amber-500/30 border border-pink-500/40 text-pink-300 font-bold text-[10px] shadow transition active:scale-95" title="부부 기프티콘 샵">
+              <span>🎁</span>
+              <span id="momPointsBadge" class="couple-points-val font-mono font-black text-amber-300">3,450P</span>
+            </button>
           </div>
 
           <!-- Right Action Icons -->
           <div id="momHeaderActions" class="flex items-center gap-1">
-            <button onclick="startOnboardingGuide(0)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="온보딩 가이드 투어">
+            <button id="momGuideTourButton" onclick="startOnboardingGuide(0)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="온보딩 가이드 투어">
               <span class="text-xs">🌟</span>
             </button>
             <button onclick="openTutorialVideoModal(true)" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="튜토리얼 영상">
@@ -1392,21 +1992,27 @@
         <!-- 📱 Native Mobile App Header (AppBar) -->
         <div class="mobile-app-header h-12 bg-slate-900/95 border-b border-slate-800/80 px-3 flex items-center justify-between z-25 select-none shrink-0 shadow-sm">
           <!-- Profile Badge & Account Switcher -->
-          <button id="dadProfileButton" onclick="setViewMode('mom')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-sky-950/60 hover:bg-sky-900/80 border border-sky-500/40 text-sky-200 transition text-left" title="클릭하여 배우자(엄마) 앱으로 전환">
-            <span class="text-base">👨</span>
+          <button id="dadProfileButton" onclick="openUserProfileModal('dad')" class="flex items-center gap-1.5 p-1 px-2 rounded-xl bg-sky-950/60 hover:bg-sky-900/80 border border-sky-500/40 text-sky-200 transition text-left active:scale-95" title="클릭하여 내 프로필 및 이름 변경">
+            <span id="dadHeaderAvatarDisplay" class="text-base">👨</span>
             <div class="flex flex-col leading-none">
               <span class="font-black text-xs text-sky-300 flex items-center gap-1">
                 <span id="dadHeaderNameDisplay">민수</span>
                 <span id="dadHeaderRoleDisplay" class="text-[9px] text-sky-400/80 font-normal">(아빠)</span>
-                <span class="text-[8px] text-slate-400">⇄</span>
+                <span class="text-[9px] text-sky-300">✏️</span>
               </span>
             </div>
           </button>
 
-          <!-- Center Bboma Mini Status -->
-          <div onclick="openParentingReportModal()" class="flex items-center gap-1 p-1 px-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 cursor-pointer transition" title="부부 육아 통계 & 리포트 열기">
-            <span class="text-xs">🐣</span>
-            <span class="text-[10px] font-black text-amber-300">뽀마 Lv.3</span>
+          <!-- Center: Bboma Mini Status & Gifticon Points -->
+          <div class="flex items-center gap-1 shrink-0">
+            <div onclick="openParentingReportModal()" class="flex items-center gap-1 p-1 px-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 cursor-pointer transition" title="부부 육아 통계 & 리포트 열기">
+              <span class="text-xs">🐣</span>
+              <span class="text-[10px] font-black text-amber-300">Lv.3</span>
+            </div>
+            <button type="button" onclick="openGifticonShopModal()" class="flex items-center gap-1 p-1 px-2 rounded-xl bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-amber-500/20 hover:from-pink-500/30 hover:to-amber-500/30 border border-pink-500/40 text-pink-300 font-bold text-[10px] shadow transition active:scale-95" title="부부 기프티콘 샵">
+              <span>🎁</span>
+              <span id="dadPointsBadge" class="couple-points-val font-mono font-black text-amber-300">3,450P</span>
+            </button>
           </div>
 
           <!-- Right Action Icons -->
@@ -1656,12 +2262,104 @@
         mood: '행복함 💕',
         speech: '엄마 아빠 오늘도 힘내요! 뽀마가 응원해요 🍼'
       },
+      couplePoints: (function() {
+        try {
+          const val = localStorage.getItem('bboma_couple_points');
+          return val !== null ? parseInt(val, 10) : 3450;
+        } catch(e) { return 3450; }
+      })(),
+      pointTargetGoal: 4500, // 스타벅스 아메리카노 기준
+      purchasedGifticons: (function() {
+        try {
+          const saved = localStorage.getItem('bboma_purchased_gifticons');
+          if (saved) return JSON.parse(saved);
+        } catch(e) {}
+        return [
+          {
+            id: 'g_init_1',
+            brand: 'CU편의점',
+            title: 'CU 모바일 금액권 3,000원권',
+            icon: '🏪',
+            category: 'store',
+            points: 3000,
+            barcode: '8801-4920-5821-9923',
+            date: '2026.09.22',
+            expires: '2026.12.23',
+            buyer: '지은',
+            used: false,
+            giftTo: '민수'
+          }
+        ];
+      })(),
+      pointHistory: (function() {
+        try {
+          const saved = localStorage.getItem('bboma_point_history');
+          if (saved) return JSON.parse(saved);
+        } catch(e) {}
+        return [
+          { id: 'ph_1', type: 'quest', title: '📵 주간 노폰 20시간 완주 기본 보상', points: +500, date: '2026.09.23 21:00' },
+          { id: 'ph_2', type: 'ad', title: '📺 완주 기념 2배 광고 부스터 보너스', points: +500, date: '2026.09.23 21:01' },
+          { id: 'ph_3', type: 'coupang', title: '🛒 쿠팡 제휴 적립 (베베숲 물티슈 10팩)', points: +378, date: '2026.09.24 14:20' },
+          { id: 'ph_4', type: 'roulette', title: '🎰 육퇴 보너스 룰렛 당첨', points: +200, date: '2026.09.24 22:30' },
+          { id: 'ph_5', type: 'shop', title: '🎁 CU 모바일 상품권 3,000원권 교환', points: -3000, date: '2026.09.22 18:00' }
+        ];
+      })(),
+      gifticonCatalog: [
+        // 🍗 치킨 (Chicken) - Exact match to Toss brandcon reference 1
+        { id: 'g_bbq', brand: 'BBQ', title: '황금올리브치킨 + 콜라 1.25L', points: 22500, priceWon: 22500, icon: '🍗', category: 'chicken', desc: '바삭바삭 육즙 가득 대표 황금올리브치킨', color: 'from-amber-500 to-orange-700', rank: 1, badge: '1위', brandColor: 'text-amber-400' },
+        { id: 'g_goobne', brand: '굽네치킨', title: '고추바사삭 + 콜라 1.25L', points: 20500, priceWon: 20500, icon: '🍗', category: 'chicken', desc: '매콤바삭 깔끔한 오븐구이 치킨', color: 'from-orange-500 to-red-700', rank: 2, badge: '2위', brandColor: 'text-orange-400' },
+        { id: 'g_kyochon', brand: '교촌치킨', title: '허니콤보 + 콜라 1.25L', points: 26000, priceWon: 26000, icon: '🍗', category: 'chicken', desc: '달콤 짭조름한 단짠의 정석 허니콤보', color: 'from-yellow-500 to-amber-700', rank: 3, badge: '3위', brandColor: 'text-yellow-400' },
+        
+        // ☕ 카페 (Cafe)
+        { id: 'g_sbux', brand: '스타벅스', title: '아이스 카페 아메리카노 T', points: 4500, priceWon: 4500, icon: '☕', category: 'cafe', desc: '육아에 지친 부부를 깨우는 시원한 커피', color: 'from-emerald-700 to-green-950', rank: 1, badge: '1위', brandColor: 'text-emerald-400' },
+        { id: 'g_twosome', brand: '투썸플레이스', title: '아메리카노 + 스초생 피스 세트', points: 11000, priceWon: 11000, icon: '🍰', category: 'cafe', desc: '스트로베리 초콜릿 생크림과 진한 커피', color: 'from-rose-600 to-red-950', rank: 2, badge: '2위', brandColor: 'text-rose-400' },
+        { id: 'g_mega', brand: '메가MGC커피', title: '아이스 아메리카노 2잔 세트', points: 4000, priceWon: 4000, icon: '☕', category: 'cafe', desc: '부부가 함께 마시는 가성비 짱 대용량 커피', color: 'from-yellow-600 to-amber-900', rank: 3, badge: '3위', brandColor: 'text-yellow-400' },
+
+        // 🎟️ 상품권 (Voucher)
+        { id: 'g_baemin', brand: '배달의민족', title: '모바일 상품권 10,000원권', points: 10000, priceWon: 10000, icon: '🛵', category: 'voucher', desc: '요리하기 힘든 저녁 맛있는 배달 음식', color: 'from-cyan-600 to-teal-950', rank: 1, badge: '1위', brandColor: 'text-cyan-400' },
+        { id: 'g_olive', brand: '올리브영', title: '모바일 기프트카드 10,000원권', points: 10000, priceWon: 10000, icon: '💄', category: 'voucher', desc: '스킨케어, 뷰티, 건강 힐링 쇼핑', color: 'from-green-600 to-teal-900', rank: 2, badge: '2위', brandColor: 'text-green-400' },
+        { id: 'g_naver', brand: '네이버페이', title: '네이버페이 포인트 10,000원권', points: 10000, priceWon: 10000, icon: '🟢', category: 'voucher', desc: '온라인 쇼핑 어디서나 쓰는 네이버페이', color: 'from-emerald-600 to-teal-900', rank: 3, badge: '3위', brandColor: 'text-emerald-400' },
+
+        // 🏪 편의점 (Store)
+        { id: 'g_cu', brand: 'CU편의점', title: '모바일 금액권 5,000원권', points: 5000, priceWon: 5000, icon: '🏪', category: 'store', desc: '야식 컵라면이나 달콤한 간식 털어오기', color: 'from-purple-600 to-indigo-950', rank: 1, badge: '1위', brandColor: 'text-purple-400' },
+        { id: 'g_gs25', brand: 'GS25', title: '모바일 금액권 5,000원권', points: 5000, priceWon: 5000, icon: '🏪', category: 'store', desc: '간편 도시락과 간식 자유 이용권', color: 'from-blue-600 to-sky-950', rank: 2, badge: '2위', brandColor: 'text-blue-400' },
+
+        // 🍕 피자·버거 (Pizza/Burger)
+        { id: 'g_domino', brand: '도미노피자', title: '포테이토 피자 M + 콜라 1.25L', points: 21500, priceWon: 21500, icon: '🍕', category: 'pizza', desc: '온 가족이 사랑하는 베스트셀러 피자', color: 'from-blue-700 to-indigo-950', rank: 1, badge: '1위', brandColor: 'text-blue-400' },
+        { id: 'g_mc', brand: '맥도날드', title: '빅맥 버거 세트', points: 7200, priceWon: 7200, icon: '🍔', category: 'pizza', desc: '육퇴 후 간편하고 든든한 햄버거 세트', color: 'from-red-600 to-yellow-950', rank: 2, badge: '2위', brandColor: 'text-red-400' },
+
+        // 🍰 디저트 (Dessert)
+        { id: 'g_baskin', brand: '배스킨라빈스', title: '파인트 아이스크림 (3가지맛)', points: 9800, priceWon: 9800, icon: '🍦', category: 'dessert', desc: '달콤한 디저트로 육아 피로 싹 날리기', color: 'from-pink-600 to-rose-950', rank: 1, badge: '1위', brandColor: 'text-pink-400' },
+        { id: 'g_sulbing', brand: '설빙', title: '인절미설빙 빙수', points: 9500, priceWon: 9500, icon: '🍧', category: 'dessert', desc: '고소한 콩가루와 쫄깃한 인절미 빙수', color: 'from-amber-600 to-stone-900', rank: 2, badge: '2위', brandColor: 'text-amber-400' },
+
+        // 🍲 외식 (Dining)
+        { id: 'g_outback', brand: '아웃백', title: '아웃백 모바일 상품권 50,000원권', points: 50000, priceWon: 50000, icon: '🥩', category: 'food', desc: '부부 기념일 맛있는 스테이크 만찬', color: 'from-red-800 to-rose-950', rank: 1, badge: '1위', brandColor: 'text-red-400' },
+        { id: 'g_vips', brand: '빕스', title: '샐러드바 1인 성인 이용권', points: 37900, priceWon: 37900, icon: '🥗', category: 'food', desc: '신선한 샐러드바와 뷔페 식사권', color: 'from-rose-700 to-amber-950', rank: 2, badge: '2위', brandColor: 'text-rose-400' }
+      ],
+      coupangRecommendations: [
+        // 🍼 필수 육아용품 (Baby)
+        { id: 'cp_1', title: '페넬로페 씬씬씬 아기 밴드기저귀 4팩', price: 34000, rewardPoints: 680, category: 'baby', categoryLabel: '기저귀/위생', icon: '👶', rate: '2%' },
+        { id: 'cp_2', title: '베베숲 시그니처 엠보싱 물티슈 70매 10팩', price: 18900, rewardPoints: 378, category: 'baby', categoryLabel: '물티슈', icon: '💧', rate: '2%' },
+        { id: 'cp_3', title: '압타밀 프로푸트라 영유아 분유 800g 3통', price: 92000, rewardPoints: 1840, category: 'baby', categoryLabel: '수유/분유', icon: '🍼', rate: '2%' },
+        { id: 'cp_4', title: '모윰 올인원 실리콘 흡착 유아식기 세트', price: 29800, rewardPoints: 596, category: 'baby', categoryLabel: '이유식', icon: '🥣', rate: '2%' },
+        // 🧻 생활 & 생필품 (Life Essentials)
+        { id: 'cp_5', title: '크리넥스 3겹 순수 소프트 롤화장지 30롤', price: 24900, rewardPoints: 498, category: 'life', categoryLabel: '화장지/생필품', icon: '🧻', rate: '2%' },
+        { id: 'cp_6', title: '퍼실 딥클린 파워젤 세탁세제 2.7L x 2', price: 21900, rewardPoints: 438, category: 'life', categoryLabel: '세탁세제', icon: '🧺', rate: '2%' },
+        { id: 'cp_7', title: '프로쉬 친환경 알로에베라 주방세제 750ml 2개', price: 14200, rewardPoints: 284, category: 'life', categoryLabel: '주방위생', icon: '🧴', rate: '2%' },
+        { id: 'cp_8', title: '뽀로로 키즈 저불소 안심 치약·칫솔 6입', price: 13500, rewardPoints: 270, category: 'life', categoryLabel: '구강/욕실', icon: '🪥', rate: '2%' },
+        // 🥗 장보기 & 반찬 & 식품 (Groceries & Food)
+        { id: 'cp_9', title: '매일 먹는 집밥 안심 밑반찬 5종 세트 (메추리알 등)', price: 26500, rewardPoints: 530, category: 'food', categoryLabel: '밑반찬/가정식', icon: '🥗', rate: '2%' },
+        { id: 'cp_10', title: '삼다수 무라벨 친환경 생수 2L x 12병', price: 12800, rewardPoints: 256, category: 'food', categoryLabel: '생수/음료', icon: '💧', rate: '2%' },
+        { id: 'cp_11', title: '프레시지 소고기 샤브샤브 전골 밀키트 (2~3인분)', price: 18900, rewardPoints: 378, category: 'food', categoryLabel: '간편밀키트', icon: '🍲', rate: '2%' },
+        { id: 'cp_12', title: '당도선별 고당도 제주 하우스 감귤/과일 3kg', price: 19900, rewardPoints: 398, category: 'food', categoryLabel: '신선과일', icon: '🍊', rate: '2%' }
+      ],
       users: {
         mom: {
           name: '지은',
           role: '엄마',
           avatar: '👩',
           tab: 'focus',
+          questSubTab: 'quest', // 'quest' | 'bank'
           todoViewScope: 'mine', // 'mine' | 'spouse'
           focusActive: false,
           focusSecondsLeft: 1500,
@@ -1694,6 +2392,7 @@
           role: '아빠',
           avatar: '👨',
           tab: 'focus',
+          questSubTab: 'quest', // 'quest' | 'bank'
           todoViewScope: 'mine', // 'mine' | 'spouse'
           focusActive: false,
           focusSecondsLeft: 1500,
@@ -1796,7 +2495,8 @@
           current: 18.5,
           target: 20.0,
           unit: '시간',
-          baseReward: '☕ 외식 쿠폰 1장 + ⭐ 100 EXP',
+          points: 500,
+          baseReward: '☕ 외식 쿠폰 1장 + ⭐ 100 EXP + 💖 500P',
           customReward: {
             enabled: true,
             icon: '🍗',
@@ -1814,7 +2514,8 @@
           current: 4,
           target: 5,
           unit: '회',
-          baseReward: '🛡️ 페널티 면제권 1장 + ⭐ 80 EXP',
+          points: 400,
+          baseReward: '🛡️ 페널티 면제권 1장 + ⭐ 80 EXP + 💖 400P',
           customReward: {
             enabled: true,
             icon: '☕',
@@ -1832,7 +2533,8 @@
           current: 6,
           target: 7,
           unit: '일',
-          baseReward: '🛡️ 페널티 면제권 1장씩 + ⭐ 100 EXP',
+          points: 1000,
+          baseReward: '🛡️ 페널티 면제권 1장씩 + ⭐ 100 EXP + 💖 1,000P',
           customReward: {
             enabled: true,
             icon: '🏨',
@@ -1850,7 +2552,8 @@
           current: 8,
           target: 10,
           unit: '회',
-          baseReward: '⭐ 뽀마 성장 +150 EXP',
+          points: 300,
+          baseReward: '⭐ 뽀마 성장 +150 EXP + 💖 300P',
           customReward: {
             enabled: false,
             icon: '🍰',
@@ -3022,6 +3725,14 @@
       } else if (tempThreshold === 10 && c10) {
         c10.className = 'p-3.5 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1.5 bg-gradient-to-b from-amber-950/60 to-slate-800 border-amber-500 shadow-lg scale-105';
       }
+
+      // Update current profile display in Settings Modal
+      const activeUserKey = (STATE.viewMode === 'dad' ? 'dad' : 'mom');
+      const activeUser = STATE.users[activeUserKey];
+      const pName = document.getElementById('ruleSettingsProfileName');
+      const pAvatar = document.getElementById('ruleSettingsProfileAvatar');
+      if (pName && activeUser) pName.innerText = `${activeUser.name} (${activeUser.role})`;
+      if (pAvatar && activeUser) pAvatar.innerText = activeUser.avatar;
     }
 
     function confirmRuleSettings() {
@@ -3044,6 +3755,216 @@
       renderApp('dad');
     }
 
+    // --- 👤 User Profile & Name Edit Modal Logic ---
+    let currentEditingProfileUser = 'mom';
+    let currentProfileGender = 'female';
+    let currentProfileRole = '엄마';
+
+    function openUserProfileModal(userKey) {
+      currentEditingProfileUser = userKey || (STATE.viewMode === 'dad' ? 'dad' : 'mom');
+      const user = STATE.users[currentEditingProfileUser];
+      const spouseKey = currentEditingProfileUser === 'mom' ? 'dad' : 'mom';
+      const spouse = STATE.users[spouseKey];
+
+      const modal = document.getElementById('userProfileModal');
+      const badge = document.getElementById('profileModalUserBadge');
+      const switchBtnText = document.getElementById('profileSwitchViewBtnText');
+      const nameInput = document.getElementById('profileInputName');
+
+      if (badge) {
+        badge.innerText = `${user.role} 모드 (배우자: ${spouse.name})`;
+        badge.className = currentEditingProfileUser === 'mom'
+          ? 'text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold'
+          : 'text-[10px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 font-bold';
+      }
+
+      if (switchBtnText) {
+        switchBtnText.innerText = `🔄 배우자(${spouse.name}) 화면으로 전환하기 (테스트 모드)`;
+      }
+
+      if (nameInput) {
+        nameInput.value = user.name || '';
+      }
+
+      // Determine gender from avatar
+      const isMale = user.avatar === '👨';
+      selectProfileGender(isMale ? 'male' : 'female');
+
+      // Select role
+      selectProfileRole(user.role || (currentEditingProfileUser === 'mom' ? '엄마' : '아빠'));
+
+      if (modal) {
+        modal.classList.remove('hidden');
+        lucide.createIcons();
+      }
+
+      setTimeout(() => {
+        if (nameInput) {
+          nameInput.focus();
+          nameInput.select();
+        }
+      }, 100);
+    }
+
+    function closeUserProfileModal() {
+      const modal = document.getElementById('userProfileModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function selectProfileGender(gender) {
+      currentProfileGender = gender;
+      const btnFemale = document.getElementById('profileBtnGenderFemale');
+      const btnMale = document.getElementById('profileBtnGenderMale');
+      const avatarIcon = document.getElementById('profileModalAvatarIcon');
+
+      if (gender === 'female') {
+        if (btnFemale) btnFemale.className = 'py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-rose-500/20 border-rose-400 text-rose-300 shadow';
+        if (btnMale) btnMale.className = 'py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-950 border-slate-700 text-slate-400';
+        if (avatarIcon) avatarIcon.innerText = '👩';
+      } else {
+        if (btnFemale) btnFemale.className = 'py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-950 border-slate-700 text-slate-400';
+        if (btnMale) btnMale.className = 'py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-sky-500/20 border-sky-400 text-sky-300 shadow';
+        if (avatarIcon) avatarIcon.innerText = '👨';
+      }
+    }
+
+    function selectProfileRole(role) {
+      currentProfileRole = role;
+      const roleBtns = {
+        '엄마': document.getElementById('roleBtn_mom'),
+        '아빠': document.getElementById('roleBtn_dad'),
+        '파트너': document.getElementById('roleBtn_partner'),
+        '기타': document.getElementById('roleBtn_other')
+      };
+      const customInput = document.getElementById('profileInputCustomRole');
+
+      let isPreset = ['엄마', '아빠', '파트너'].includes(role);
+      Object.keys(roleBtns).forEach(k => {
+        const btn = roleBtns[k];
+        if (!btn) return;
+        if ((isPreset && k === role) || (!isPreset && k === '기타')) {
+          btn.className = 'py-2 rounded-xl border text-xs font-bold transition bg-amber-500/20 border-amber-400 text-amber-300 shadow';
+        } else {
+          btn.className = 'py-2 rounded-xl border text-xs font-bold transition bg-slate-950 border-slate-700 text-slate-400';
+        }
+      });
+
+      if (!isPreset) {
+        if (customInput) {
+          customInput.classList.remove('hidden');
+          customInput.value = (role !== '기타' ? role : '');
+        }
+      } else {
+        if (customInput) customInput.classList.add('hidden');
+      }
+    }
+
+    function saveUserProfile() {
+      const nameInput = document.getElementById('profileInputName');
+      const newName = nameInput ? nameInput.value.trim() : '';
+      if (!newName) {
+        showToast('⚠️ 이름을 1자 이상 입력해주세요!');
+        if (nameInput) nameInput.focus();
+        return;
+      }
+
+      let finalRole = currentProfileRole;
+      if (finalRole === '기타') {
+        const customInput = document.getElementById('profileInputCustomRole');
+        const customVal = customInput ? customInput.value.trim() : '';
+        finalRole = customVal || '보호자';
+      }
+
+      const finalAvatar = currentProfileGender === 'female' ? '👩' : '👨';
+
+      // Apply to STATE
+      STATE.users[currentEditingProfileUser].name = newName;
+      STATE.users[currentEditingProfileUser].role = finalRole;
+      STATE.users[currentEditingProfileUser].avatar = finalAvatar;
+
+      // Save to localStorage
+      try {
+        localStorage.setItem('bboma_user_profiles', JSON.stringify({
+          mom: {
+            name: STATE.users.mom.name,
+            role: STATE.users.mom.role,
+            avatar: STATE.users.mom.avatar
+          },
+          dad: {
+            name: STATE.users.dad.name,
+            role: STATE.users.dad.role,
+            avatar: STATE.users.dad.avatar
+          }
+        }));
+      } catch (e) {
+        console.error('Failed to save user profiles to localStorage', e);
+      }
+
+      renderHeaderProfiles();
+      renderApp('mom');
+      renderApp('dad');
+      closeUserProfileModal();
+
+      confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 } });
+      showToast(`✨ 프로필 저장 완료: [${newName} (${finalRole})]`);
+      logEvent(`[사용자 프로필 수정] ${currentEditingProfileUser.toUpperCase()}: 이름='${newName}', 역할='${finalRole}', 아바타='${finalAvatar}'`);
+    }
+
+    function toggleOppositeViewFromProfile() {
+      const targetView = currentEditingProfileUser === 'mom' ? 'dad' : 'mom';
+      closeUserProfileModal();
+      setViewMode(targetView);
+      showToast(`📱 ${targetView === 'dad' ? STATE.users.dad.name : STATE.users.mom.name} 화면으로 전환되었습니다.`);
+    }
+
+    function renderHeaderProfiles() {
+      const mom = STATE.users.mom;
+      const dad = STATE.users.dad;
+      
+      const momNameEl = document.getElementById('momHeaderNameDisplay');
+      const momRoleEl = document.getElementById('momHeaderRoleDisplay');
+      const momAvatarEl = document.getElementById('momHeaderAvatarDisplay');
+      if (momNameEl) momNameEl.innerText = mom.name;
+      if (momRoleEl) momRoleEl.innerText = `(${mom.role})`;
+      if (momAvatarEl) momAvatarEl.innerText = mom.avatar;
+
+      const dadNameEl = document.getElementById('dadHeaderNameDisplay');
+      const dadRoleEl = document.getElementById('dadHeaderRoleDisplay');
+      const dadAvatarEl = document.getElementById('dadHeaderAvatarDisplay');
+      if (dadNameEl) dadNameEl.innerText = dad.name;
+      if (dadRoleEl) dadRoleEl.innerText = `(${dad.role})`;
+      if (dadAvatarEl) dadAvatarEl.innerText = dad.avatar;
+
+      const activeKey = (STATE.viewMode === 'dad' ? 'dad' : 'mom');
+      const activeUser = STATE.users[activeKey];
+      const pName = document.getElementById('ruleSettingsProfileName');
+      const pAvatar = document.getElementById('ruleSettingsProfileAvatar');
+      if (pName && activeUser) pName.innerText = `${activeUser.name} (${activeUser.role})`;
+      if (pAvatar && activeUser) pAvatar.innerText = activeUser.avatar;
+    }
+
+    function loadSavedUserProfiles() {
+      try {
+        const saved = localStorage.getItem('bboma_user_profiles');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.mom) {
+            STATE.users.mom.name = parsed.mom.name || STATE.users.mom.name;
+            STATE.users.mom.role = parsed.mom.role || STATE.users.mom.role;
+            STATE.users.mom.avatar = parsed.mom.avatar || STATE.users.mom.avatar;
+          }
+          if (parsed.dad) {
+            STATE.users.dad.name = parsed.dad.name || STATE.users.dad.name;
+            STATE.users.dad.role = parsed.dad.role || STATE.users.dad.role;
+            STATE.users.dad.avatar = parsed.dad.avatar || STATE.users.dad.avatar;
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load user profiles from localStorage', e);
+      }
+      renderHeaderProfiles();
+    }
+
     // --- Core UI & Tab Renderers ---
 
     function initApp() {
@@ -3054,12 +3975,14 @@
       } else {
         setViewMode('dual');
       }
+      loadSavedUserProfiles();
       if (typeof NativeNotificationManager !== 'undefined') {
         NativeNotificationManager.init();
       }
       lucide.createIcons();
       updatePetUI();
       updateNotifBadges();
+      updatePointsDisplay();
       renderApp('mom');
       renderApp('dad');
       logEvent('시스템 준비 완료 (수호 요정 뽀마 세션 활성화)');
@@ -3118,10 +4041,14 @@
         if (dadPhone) dadPhone.classList.remove('hidden');
         if (dadBtn) dadBtn.className = 'px-3 py-1.5 rounded-lg font-medium bg-sky-600 text-white shadow';
       }
+      renderHeaderProfiles();
     }
 
     function switchTab(userKey, tabName) {
       STATE.users[userKey].tab = tabName;
+      if (tabName === 'quest') {
+        STATE.users[userKey].questSubTab = 'quest';
+      }
       ['focus', 'todo', 'battle', 'quest'].forEach(t => {
         const btn = document.getElementById(`${userKey}Tab_${t}`);
         if (btn) {
@@ -3165,6 +4092,7 @@
     }
 
     function renderApp(userKey) {
+      renderHeaderProfiles();
       const user = STATE.users[userKey];
       const spouseKey = userKey === 'mom' ? 'dad' : 'mom';
       const spouse = STATE.users[spouseKey];
@@ -3632,6 +4560,23 @@
             </div>
           </div>
 
+          <!-- 🛒 키즈노트식 쿠팡 제휴 쇼핑 적립 배너 -->
+          <div onclick="openCoupangPartnersModal()" class="cursor-pointer bg-gradient-to-r from-rose-950/70 via-purple-950/40 to-slate-900 border border-rose-500/40 rounded-2xl p-2.5 flex items-center justify-between text-[11px] text-slate-300 shadow hover:border-rose-400 transition group active:scale-[0.99]">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-rose-500 to-amber-500 flex items-center justify-center text-sm shadow shrink-0">
+                🛒
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="font-extrabold text-white text-xs">쿠팡 육아용품 제휴 쇼핑</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-black animate-pulse">2% 하트 적립</span>
+                </div>
+                <p class="text-[10px] text-slate-400 truncate">기저귀·물티슈 살 때 경유하면 부부 포인트 자동 적립!</p>
+              </div>
+            </div>
+            <span class="text-[10px] text-amber-300 font-bold shrink-0 ml-1.5">적립 ➔</span>
+          </div>
+
           <!-- 👤 View Scope Switcher: [내 할 일 (기본)] vs [상대방 할 일 보기] -->
           <div id="${userKey}TodoScopeSection" class="flex items-center bg-slate-950 p-1 rounded-2xl border border-slate-800 text-[11px] shadow">
             <button type="button" onclick="setTodoViewScope('${userKey}', 'mine')" class="flex-1 py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1.5 ${viewScope === 'mine' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md font-black' : 'text-slate-400 hover:text-slate-200'}">
@@ -3761,7 +4706,18 @@
                           ` : `
                             <span class="text-[8px] font-bold px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded">📌 ${task.targetDate ? task.targetDate.slice(5) : '단발'}</span>
                           `)}
-                          ${rec.incompleteNotice ? '<span class="text-[8px] font-black px-1.5 py-0.2 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded">⚠️ 미흡</span>' : ''}
+                          ${(() => {
+                            const isShopItem = /기저귀|물티슈|분유|보습제|식기|이유식|장보기|소독|간식|반찬|휴지|화장지|생필품|세제|식자재|밀키트|생수|비누|치약|샴푸|바디워시|쓰레기봉투|마트|쇼핑|구매/i.test(task.title);
+                            if (!isShopItem) return '';
+                            let cat = 'baby';
+                            if (/반찬|식자재|밀키트|생수|마트|장보기|과일|쌀|식품/i.test(task.title)) cat = 'food';
+                            else if (/휴지|화장지|세제|비누|치약|샴푸|바디워시|쓰레기봉투|생필품/i.test(task.title)) cat = 'life';
+                            return `
+                              <button type="button" onclick="openCoupangPartnersModal('${cat}')" class="text-[8px] font-bold px-1.5 py-0.2 bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded flex items-center gap-0.5 hover:bg-rose-500/40 transition shadow-sm" title="쿠팡 2% 부부 포인트 적립 (월 최대 3,500P)">
+                                <span>🛒</span> 쿠팡 2% 적립
+                              </button>
+                            `;
+                          })()}
                         </div>
                         <div class="text-[10px] ${isPenalty ? 'text-pink-300/80' : 'text-slate-400'} flex items-center gap-1.5 mt-0.5 flex-wrap">
                           <span>${assigneeUser.avatar} 담당: <strong class="${isMine ? (isPenalty ? 'text-pink-300' : 'text-amber-300') : 'text-slate-300'}">${assigneeUser.name}</strong></span>
@@ -3873,19 +4829,6 @@
                 </div>
               `;
             }).join('')}
-
-            <!-- Bottom Peek Bar when in 'mine' mode and spouse has tasks -->
-            ${viewScope === 'mine' && spouseDateTasks.length > 0 && filteredTasks.length > 0 ? `
-              <div class="p-2.5 bg-slate-950/60 rounded-2xl border border-slate-800/80 flex items-center justify-between text-[11px] mt-1 shadow">
-                <div class="flex items-center gap-2 text-slate-400">
-                  <span>${spouse.avatar}</span>
-                  <span>${spouse.name}님의 오늘 할 일 <strong class="text-slate-200">${spouseDateTasks.length}건</strong></span>
-                </div>
-                <button onclick="setTodoViewScope('${userKey}', 'spouse')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 font-bold text-[10px] border border-slate-700 transition flex items-center gap-1">
-                  <span>상대방 할 일 보기 ➔</span>
-                </button>
-              </div>
-            ` : ''}
           </div>
         </div>
       `;
@@ -4020,128 +4963,264 @@
       `;
     }
 
-    // --- Tab 4: 뽀마 & 퀘스트 (RPG Story & Quests & Custom Rewards) ---
+    // --- Tab 4: 뽀마 & 퀘스트 (SubTabs: 협력 퀘스트 탭 vs 저금통 탭 완벽 분리) ---
+    function setQuestSubTab(subTab, userKey = 'mom') {
+      if (STATE.users[userKey]) {
+        STATE.users[userKey].questSubTab = subTab;
+      }
+      renderApp(userKey);
+    }
+
     function renderQuestTab(userKey) {
+      const u = STATE.users[userKey] || STATE.users.mom;
+      const subTab = u.questSubTab || 'quest'; // Default: 공식 협력 퀘스트 우선 노출
+
       return `
         <div class="flex flex-col gap-3 text-xs">
-          <!-- Story Banner -->
-          <div class="bg-gradient-to-r from-amber-950/60 via-purple-950/40 to-slate-900 border border-amber-500/40 rounded-2xl p-3.5 shadow">
-            <div class="flex items-center gap-2 font-bold text-amber-300 mb-1">
-              <span>📖</span>
-              <span>뽀마의 육아 성장 일기</span>
-            </div>
-            <p class="text-[11px] text-slate-300 leading-relaxed">
-              서로 잔소리 대신 칭찬하고 도와줄 때마다 뽀마가 성장합니다. 퀘스트를 완료하고 <strong>'🛡️ 페널티 면제권'</strong>과 <strong>'🎁 부부 맞춤 보상'</strong>을 모아보세요!
-            </p>
-          </div>
-
-          <!-- Official Quest Notice Banner -->
-          <div class="bg-slate-950/80 border border-indigo-500/40 rounded-2xl p-2.5 flex items-center justify-between text-[11px] text-slate-300 shadow">
-            <div class="flex items-center gap-2">
-              <span class="text-base">⚡</span>
-              <div>
-                <span class="font-bold text-indigo-300">어플 제공 공식 협력 퀘스트</span>
-                <p class="text-[10px] text-slate-400">100% 자동 집계 & 기본 보상 + 부부 맞춤 보상 동시 지급</p>
-              </div>
-            </div>
-            <button onclick="openQuestRewardModal('q_focus', '${userKey}')" class="px-2.5 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 font-bold text-[9px] border border-amber-500/40 transition flex items-center gap-1">
-              <span>🎁 보상 커스텀</span>
+          <!-- 🧭 서브탭 세그먼트 (토스 스타일: 공식 퀘스트 우선 노출) -->
+          <div class="flex items-center p-1 bg-slate-950 rounded-2xl border border-slate-800 text-xs shrink-0 shadow-lg">
+            <button type="button" onclick="setQuestSubTab('quest', '${userKey}')" class="flex-1 py-2 px-3 rounded-xl transition flex items-center justify-center gap-1.5 ${subTab === 'quest' ? 'bg-[#3182f6] text-white font-black shadow-md' : 'text-slate-400 hover:text-slate-200 font-bold'}">
+              <span>⚔️</span>
+              <span>공식 협력 퀘스트 (${STATE.quests.length})</span>
+            </button>
+            <button type="button" onclick="setQuestSubTab('bank', '${userKey}')" class="flex-1 py-2 px-3 rounded-xl transition flex items-center justify-center gap-1.5 ${subTab === 'bank' ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-slate-200 font-bold'}">
+              <span>🎁</span>
+              <span>부부 기프티콘 저금통</span>
             </button>
           </div>
 
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-200">공식 협력 퀘스트 목록 (${STATE.quests.length}종)</span>
-            <span class="text-[10px] text-amber-400">자동 완주 시 부부 모두에게 보상</span>
+          ${subTab === 'quest' ? renderQuestListSubTab(userKey) : renderQuestBankSubTab(userKey)}
+        </div>
+      `;
+    }
+
+    // --- SubTab 1: 🎁 부부 기프티콘 저금통 (토스 치킨 저금통 스타일: 토스어플3.jpg) ---
+    function renderQuestBankSubTab(userKey) {
+      const monthlyEarned = typeof getCoupangMonthlyEarned === 'function' ? getCoupangMonthlyEarned() : 0;
+      const coupangCap = 3500;
+      const remainingCoupangCap = Math.max(0, coupangCap - monthlyEarned);
+      const rouletteRemaining = typeof getRouletteRemainingCount === 'function' ? getRouletteRemainingCount() : 3;
+      const unusedCouponsCount = (STATE.purchasedGifticons || []).filter(c => !c.used).length;
+      const targetGoal = 22500; // BBQ 황금올리브치킨 목표
+      const pointsRem = Math.max(0, targetGoal - STATE.couplePoints);
+      const progressPct = Math.min(100, Math.round((STATE.couplePoints / targetGoal) * 100));
+
+      const recentHistory = (STATE.pointHistory || []).slice(0, 4);
+
+      return `
+        <!-- 토스형 상단 헤더 문구 (토스어플3.jpg 디자인) -->
+        <div class="px-1 pt-1 pb-1 flex flex-col gap-0.5">
+          <span class="text-xs text-slate-400 font-bold">부부 기프티콘 저금통</span>
+          <h2 class="text-xl font-black text-white leading-tight">
+            저금할 때마다<br/>
+            치킨 조각이 모여요
+          </h2>
+        </div>
+
+        <!-- 🎁 토스 스타일 중앙 하이라이트 카드 (토스어플3.jpg 모은 치킨값 카드 완벽 구현) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl flex flex-col items-center text-center relative gap-2">
+          <span class="text-xs text-slate-400 font-semibold">모은 치킨값</span>
+          <div class="border-b-2 border-white pb-0.5 mb-1">
+            <span class="text-3xl font-black text-white font-mono tracking-tight couple-points-val">${STATE.couplePoints.toLocaleString()}원</span>
           </div>
 
-          <div class="flex flex-col gap-3">
-            ${STATE.quests.map(q => {
+          <!-- 치킨 플레이트 일러스트레이션 (토스어플3.jpg 그래픽) -->
+          <div class="w-24 h-24 my-1 flex items-center justify-center text-6xl drop-shadow-[0_12px_24px_rgba(245,158,11,0.25)] animate-float">
+            🍗
+          </div>
+
+          <!-- 목표 진행률 바 -->
+          <div class="w-full bg-slate-950 p-3 rounded-2xl border border-slate-800 text-left flex flex-col gap-1.5 my-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-300 font-bold">🎯 BBQ 황금올리브치킨(22,500원)까지</span>
+              <span class="text-pink-400 font-mono font-bold">${pointsRem.toLocaleString()}원 남음</span>
+            </div>
+            <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
+              <div class="h-full bg-gradient-to-r from-pink-500 via-amber-400 to-emerald-400 transition-all duration-500" style="width: ${progressPct}%"></div>
+            </div>
+            <div class="flex justify-between text-[10px] text-slate-400 pt-0.5">
+              <span>달성률: <strong class="text-amber-300">${progressPct}%</strong></span>
+              <span>목표 달성 시 실시간 바코드 발급</span>
+            </div>
+          </div>
+
+          <!-- 토스 대표 액션 버튼 (Vibrant Blue, Rounded-2xl) -->
+          <button type="button" onclick="openGifticonShopModal()" class="w-full py-3.5 rounded-2xl bg-[#3182f6] hover:bg-blue-600 text-white font-black text-sm shadow-lg hover:shadow-blue-500/30 transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer">
+            <span>치킨값 모아보기</span>
+          </button>
+
+          <!-- 보조 링크 (다음에 할게요 / 보관함 가기) -->
+          <button type="button" onclick="openGifticonShopModal('myCoupons')" class="text-xs text-slate-400 hover:text-slate-200 mt-0.5 font-semibold flex items-center gap-1">
+            <span>내 브랜드콘 보관함 (${unusedCouponsCount}개 보유) &gt;</span>
+          </button>
+        </div>
+
+        <!-- 2대 리워드 숏컷 카드: 쿠팡 제휴 쇼핑 & 육퇴 룰렛 -->
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="openCoupangPartnersModal()" class="p-3 rounded-2xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-200 text-xs font-bold flex flex-col items-center justify-center gap-1 transition active:scale-95 text-center shadow">
+            <span class="text-2xl">🛒</span>
+            <span class="font-black text-xs text-rose-300">쿠팡 2% 제휴 적립</span>
+            <span class="text-[10px] text-slate-400">월 최대 3,500P 한도</span>
+          </button>
+          <button onclick="openRouletteModal()" class="p-3 rounded-2xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-200 text-xs font-bold flex flex-col items-center justify-center gap-1 transition active:scale-95 text-center shadow">
+            <span class="text-2xl">🎰</span>
+            <span class="font-black text-xs text-amber-300">육퇴 보너스 룰렛</span>
+            <span class="text-[10px] text-amber-400 font-medium">오늘 잔여: ${rouletteRemaining}/3회</span>
+          </button>
+        </div>
+
+        <!-- 🛍️ 쿠팡 전 상품 쇼핑 배너 (키즈노트 직결 검색 방식) -->
+        <div class="p-3.5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-2.5 shadow">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🛍️</span>
+              <div>
+                <span class="font-black text-white text-xs">생필품·장보기 쿠팡 직결 쇼핑</span>
+                <p class="text-[10px] text-slate-400">검색어 입력 후 바로 이동 시 2% 자동 적립!</p>
+              </div>
+            </div>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">
+              한도: ${monthlyEarned.toLocaleString()} / 3,500P
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input type="text" id="bankCoupangQuickInput" placeholder="예: 3겹 롤화장지, 생수, 세제, 밀키트..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 text-xs focus:border-[#3182f6] outline-none" value="3겹 롤화장지" onkeydown="if(event.key === 'Enter') launchCoupangSearchDirect(this.value);" />
+            <button type="button" onclick="launchCoupangSearchDirect(document.getElementById('bankCoupangQuickInput').value)" class="px-3.5 py-2 rounded-xl bg-[#3182f6] hover:bg-blue-600 text-white font-black text-xs shadow transition active:scale-95 shrink-0">
+              검색 ➔
+            </button>
+          </div>
+        </div>
+
+        <!-- 📜 최근 포인트 적립 & 사용 내역 요약 -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-3.5 flex flex-col gap-2 shadow">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="font-bold text-slate-200 text-xs">최근 포인트 변동 내역</span>
+            <button onclick="openGifticonShopModal('history')" class="text-[10px] text-amber-400 hover:text-amber-300 font-bold">전체보기 &gt;</button>
+          </div>
+          ${recentHistory.length === 0 ? `
+            <div class="py-3 text-center text-slate-500 text-[11px]">
+              아직 적립 내역이 없습니다. 퀘스트를 완료하거나 쇼핑해 보세요!
+            </div>
+          ` : `
+            <div class="flex flex-col gap-1.5">
+              ${recentHistory.map(h => {
+                const pts = typeof h.points === 'number' ? h.points : (h.delta || 0);
+                const isPlus = pts > 0;
+                let badgeIcon = '⭐';
+                if (h.type === 'shop') badgeIcon = '🎁';
+                else if (h.type === 'coupang') badgeIcon = '🛒';
+                else if (h.type === 'roulette') badgeIcon = '🎰';
+                else if (h.type === 'quest') badgeIcon = '⚔️';
+                else if (h.type === 'ad') badgeIcon = '📺';
+
+                return `
+                  <div class="flex items-center justify-between text-[11px] py-1.5 border-b border-slate-800/60 last:border-none">
+                    <div class="flex items-center gap-2 min-w-0 flex-1 pr-2">
+                      <span>${badgeIcon}</span>
+                      <span class="text-slate-300 truncate">${h.title || h.desc || '포인트 변동'}</span>
+                    </div>
+                    <span class="font-mono font-black ${isPlus ? 'text-emerald-400' : 'text-rose-400'} shrink-0">
+                      ${isPlus ? `+${pts.toLocaleString()}` : pts.toLocaleString()} P
+                    </span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // --- SubTab 2: ⚔️ 공식 협력 퀘스트 (토스 미션 스타일: 토스어플2.jpg) ---
+    function renderQuestListSubTab(userKey) {
+      const remainingQuests = STATE.quests.filter(q => !(q.completed || q.current >= q.target)).length;
+
+      return `
+        <!-- 토스형 미션 상단 헤더 & 카운터 (토스어플2.jpg) -->
+        <div class="px-1 pt-1 pb-1 flex flex-col gap-0.5">
+          <span class="text-xs text-slate-400 font-semibold">오늘 남은 미션</span>
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-3xl font-black text-white font-mono tracking-tight">${remainingQuests}개</span>
+            <span class="text-base text-slate-500 font-bold font-mono">/${STATE.quests.length}</span>
+          </div>
+        </div>
+
+        <!-- 3D 뽀마 마스코트 & 토스형 말풍선 (토스어플2.jpg '사실 배부른 척 하는 중' 완벽 구현) -->
+        <div class="flex flex-col items-center justify-center py-2 relative select-none">
+          <div class="bg-slate-800/95 border border-slate-700/80 px-3.5 py-1.5 rounded-2xl text-xs font-bold text-amber-300 shadow-md mb-1 relative after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-slate-800">
+            ${remainingQuests === 0 ? '오늘 미션 올클리어! 엄빠 최고예요 💖' : '사실 배부른 척 하는 중 🐣'}
+          </div>
+          <div class="text-5xl animate-float">
+            ${remainingQuests === 0 ? '👑' : '🐣'}
+          </div>
+        </div>
+
+        <!-- 토스 스타일 둥근 퀘스트 카드 컨테이너 (토스어플2.jpg) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl flex flex-col gap-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-black text-white">부부 공식 협력 퀘스트</h3>
+              <span class="text-[9px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">자동 집계</span>
+            </div>
+            <button onclick="openQuestRewardModal('q_focus', '${userKey}')" class="text-[11px] text-amber-400 hover:text-amber-300 font-bold flex items-center gap-0.5">
+              <span>🎁 맞춤 보상 설정 &gt;</span>
+            </button>
+          </div>
+
+          <!-- 퀘스트 목록 (토스 미션 리스트 형태) -->
+          <div class="flex flex-col gap-2.5">
+            ${STATE.quests.map((q, idx) => {
               const progressPct = Math.min(100, Math.round((q.current / q.target) * 100));
               const isCompleted = q.completed || q.current >= q.target;
               
               let recipLabel = '👥 부부 함께';
-              if (q.customReward && q.customReward.recipient === 'mom') recipLabel = '👩 엄마에게';
-              else if (q.customReward && q.customReward.recipient === 'dad') recipLabel = '👨 아빠에게';
+              if (q.customReward && q.customReward.recipient === 'mom') recipLabel = '👩 엄마';
+              else if (q.customReward && q.customReward.recipient === 'dad') recipLabel = '👨 아빠';
 
               return `
-                <div class="bg-slate-800/90 border ${isCompleted ? 'border-emerald-500/60 bg-emerald-950/20' : (q.id === 'q_help' ? 'border-pink-500/80 bg-pink-950/20' : 'border-slate-700')} rounded-2xl p-3.5 shadow flex flex-col gap-2.5 transition">
-                  <!-- Header: Only Title & Progress Time/Count -->
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="font-bold text-slate-100 text-xs truncate flex-1">${q.title}</span>
-                    <span class="text-[11px] font-black ${isCompleted ? 'text-emerald-400' : 'text-amber-400'} font-mono shrink-0">
-                      ${q.current} / ${q.target} ${q.unit || ''}
+                <div class="bg-slate-950/80 border ${isCompleted ? 'border-emerald-500/50 bg-emerald-950/15' : 'border-slate-800'} rounded-2xl p-3 shadow-sm flex flex-col gap-2 transition hover:border-slate-700">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div class="w-8 h-8 rounded-xl ${isCompleted ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-300'} flex items-center justify-center text-sm font-bold shrink-0">
+                        ${isCompleted ? '✓' : (idx + 1)}
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <h4 class="font-bold text-white text-xs truncate">${q.title}</h4>
+                          ${isCompleted ? `
+                            <span class="text-[8px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">완주 성공</span>
+                          ` : ''}
+                        </div>
+                        <p class="text-[10px] text-slate-400 line-clamp-1 mt-0.5">${q.desc}</p>
+                      </div>
+                    </div>
+                    <span class="text-xs font-mono font-black ${isCompleted ? 'text-emerald-400' : 'text-amber-400'} shrink-0">
+                      ${q.current}/${q.target}${q.unit || ''}
                     </span>
                   </div>
 
-                  <p class="text-[10px] text-slate-400 leading-snug">
-                    ${q.desc}
-                  </p>
-                  
-                  <!-- Progress Bar -->
-                  <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
-                    <div class="h-full ${isCompleted ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : (q.id === 'q_help' ? 'bg-gradient-to-r from-pink-400 to-rose-500' : 'bg-gradient-to-r from-amber-400 to-orange-500')} transition-all duration-500" style="width: ${progressPct}%"></div>
+                  <!-- 진행률 바 -->
+                  <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                    <div class="h-full ${isCompleted ? 'bg-emerald-400' : 'bg-gradient-to-r from-amber-400 to-[#3182f6]'} transition-all duration-500" style="width: ${progressPct}%"></div>
                   </div>
 
-                  <!-- Reward Breakdown Box (Contains Base Reward, Custom Reward & Configuration Actions) -->
-                  <div class="bg-slate-950/70 rounded-xl p-2.5 border border-slate-800/90 flex flex-col gap-1.5 text-[10px]">
-                    <!-- Base Reward Row + Action Buttons -->
-                    <div class="flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                        <span class="text-amber-400">⭐</span>
-                        <span class="text-slate-400 shrink-0">기본 보상:</span>
-                        <span class="font-bold text-amber-300 truncate">${q.baseReward || q.reward}</span>
-                      </div>
-                      
-                      <!-- Config Buttons moved here -->
-                      <div class="flex items-center gap-1 shrink-0">
-                        ${q.id === 'q_help' ? `
-                          <button onclick="openRuleSettingsModal()" class="px-2 py-0.5 rounded-lg bg-pink-500/20 hover:bg-pink-500/40 text-pink-300 font-bold border border-pink-500/40 text-[9px] transition flex items-center gap-0.5">
-                            <i data-lucide="settings" class="w-2.5 h-2.5"></i> 목표
-                          </button>
-                        ` : ''}
-                        <button onclick="openQuestRewardModal('${q.id}', '${userKey}')" class="px-2 py-0.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 font-bold border border-amber-500/40 text-[9px] transition flex items-center gap-0.5" title="맞춤 보상 설정">
-                          <span>🎁 보상 설정</span>
+                  <!-- 보상 & 시뮬레이션 푸터 -->
+                  <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-900">
+                    <div class="flex items-center gap-1 text-amber-300 font-bold">
+                      <span>💖 +${q.points || 500}P</span>
+                      <span class="text-rose-300 text-[9px] font-extrabold">(📺 광고 시 +${(q.points || 500) * 2}P)</span>
+                    </div>
+
+                    <div class="flex items-center gap-1.5">
+                      ${!isCompleted ? `
+                        <button type="button" onclick="simulateQuestComplete('${q.id}', '${userKey}')" class="px-2 py-0.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 font-bold border border-emerald-500/30 text-[9px] transition active:scale-95">
+                          ⚡ 완주 테스트
                         </button>
-                      </div>
-                    </div>
-
-                    <!-- Custom Couple Reward if Enabled -->
-                    ${q.customReward && q.customReward.enabled ? `
-                      <div class="pt-1.5 border-t border-slate-800/80 flex items-start justify-between gap-2">
-                        <div class="flex items-start gap-1.5 min-w-0 flex-1">
-                          <span class="text-sm shrink-0">${q.customReward.icon}</span>
-                          <div class="min-w-0">
-                            <div class="font-extrabold text-pink-300 truncate">
-                              [부부 맞춤] ${q.customReward.title}
-                              <span class="text-[8px] px-1.5 py-0.2 rounded-full bg-pink-500/20 text-pink-300 ml-1 font-normal border border-pink-500/30">${recipLabel}</span>
-                            </div>
-                            <div class="text-[9px] text-slate-400 truncate">"${q.customReward.desc}"</div>
-                          </div>
-                        </div>
-                      </div>
-                    ` : `
-                      <div class="pt-1.5 border-t border-slate-800/80 flex items-center justify-between text-[9px] text-slate-500">
-                        <span>💡 추가 맞춤 보상 미등록 (치맥/호캉스 등 부부 약속 등록 가능)</span>
-                      </div>
-                    `}
-                  </div>
-
-                  <!-- Auto Trigger & Status Footer -->
-                  <div class="bg-slate-950/40 rounded-xl p-2 border border-slate-800/60 flex items-center justify-between text-[10px] gap-2">
-                    <div class="flex items-center gap-1 text-slate-400 truncate flex-1 text-[9px]">
-                      <span class="text-amber-400">💡</span>
-                      <span class="truncate">${q.autoTriggerDesc || '시스템 이벤트 발생 시 자동 누적'}</span>
-                    </div>
-                    <div class="shrink-0">
-                      ${isCompleted ? `
-                        <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 text-[9px] flex items-center gap-0.5">
-                          <span>✅</span> 달성 완료
-                        </span>
-                      ` : `
-                        <span class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-medium text-[9px] flex items-center gap-0.5 border border-slate-700">
-                          <span>⚡</span> 실시간 자동 집계
-                        </span>
-                      `}
+                      ` : ''}
+                      <button type="button" onclick="openQuestRewardModal('${q.id}', '${userKey}')" class="text-slate-400 hover:text-slate-200 text-[10px]">
+                        보상 설정 &gt;
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -5331,12 +6410,991 @@
           }
           logEvent(`[🎁 맞춤 보상 발급] ${quest.customReward.title} 쿠폰 지급 완료 (${quest.customReward.recipient})`);
         }
+
+        // Award Couple Shared Points & Trigger Victory 2x Booster Modal
+        const basePoints = quest.points || 500;
+        addCouplePoints(basePoints, `🏆 [${quest.title}] 완주 기본 보상`, 'quest');
+        openQuestVictoryModal(quest, basePoints);
       } else {
         logEvent(`[퀘스트 자동 누적] ${quest.title}: ${quest.current} / ${quest.target} ${quest.unit || ''}`);
       }
 
       renderApp('mom');
       renderApp('dad');
+    }
+
+    // --- 🎁 Couple Gifticon Shop, Coupang Partners & Rewarded Ad Booster Engine ---
+    let currentShopTab = 'catalog';
+    let currentCatalogFilter = 'all';
+    let currentActiveBarcodeId = null;
+    let pendingVictoryQuest = null;
+    let pendingVictoryBasePoints = 500;
+    let isRouletteSpinning = false;
+    let rouletteCurrentDeg = 0;
+
+    function addCouplePoints(amount, reason = '포인트 변동', type = 'general') {
+      STATE.couplePoints += amount;
+      if (STATE.couplePoints < 0) STATE.couplePoints = 0;
+      try {
+        localStorage.setItem('bboma_couple_points', STATE.couplePoints.toString());
+      } catch(e) {}
+
+      const historyEntry = {
+        id: 'ph_' + Date.now(),
+        type: type,
+        title: reason,
+        points: amount,
+        date: new Date().toLocaleDateString('ko-KR') + ' ' + new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+      };
+      if (!STATE.pointHistory) STATE.pointHistory = [];
+      STATE.pointHistory.unshift(historyEntry);
+      try {
+        localStorage.setItem('bboma_point_history', JSON.stringify(STATE.pointHistory));
+      } catch(e) {}
+
+      updatePointsDisplay();
+      const shopModal = document.getElementById('gifticonShopModal');
+      if (shopModal && !shopModal.classList.contains('hidden')) {
+        renderGifticonShop();
+      }
+      renderApp('mom');
+      renderApp('dad');
+    }
+
+    function updatePointsDisplay() {
+      document.querySelectorAll('.couple-points-val').forEach(el => {
+        el.innerText = STATE.couplePoints.toLocaleString() + 'P';
+      });
+      const momBadge = document.getElementById('momPointsBadge');
+      const dadBadge = document.getElementById('dadPointsBadge');
+      if (momBadge) momBadge.innerText = STATE.couplePoints.toLocaleString() + 'P';
+      if (dadBadge) dadBadge.innerText = STATE.couplePoints.toLocaleString() + 'P';
+
+      const targetGoal = STATE.pointTargetGoal || 4500;
+      const pct = Math.min(100, Math.round((STATE.couplePoints / targetGoal) * 100));
+      const rem = Math.max(0, targetGoal - STATE.couplePoints);
+
+      const targetBar = document.getElementById('shopTargetProgressBar');
+      const targetTxt = document.getElementById('shopTargetRemaining');
+      if (targetBar) targetBar.style.width = pct + '%';
+      if (targetTxt) targetTxt.innerText = `${rem.toLocaleString()}P 남음 (${pct}%)`;
+
+      const myCouponsBadge = document.getElementById('shopMyCouponsCountBadge');
+      if (myCouponsBadge && STATE.purchasedGifticons) myCouponsBadge.innerText = STATE.purchasedGifticons.length.toString();
+    }
+
+    function openGifticonShopModal(tab = 'catalog') {
+      const modal = document.getElementById('gifticonShopModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        switchGifticonShopTab(tab);
+      }
+    }
+
+    function closeGifticonShopModal() {
+      const modal = document.getElementById('gifticonShopModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+    }
+
+    function switchGifticonShopTab(tab) {
+      currentShopTab = tab;
+      const catalogView = document.getElementById('shopCatalogView');
+      const myCouponsView = document.getElementById('shopMyCouponsView');
+      const historyView = document.getElementById('shopHistoryView');
+
+      const btnCatalog = document.getElementById('shopTabBtn_catalog');
+      const btnMyCoupons = document.getElementById('shopTabBtn_myCoupons');
+      const btnHistory = document.getElementById('shopTabBtn_history');
+
+      [catalogView, myCouponsView, historyView].forEach(v => {
+        if (v) { v.classList.add('hidden'); v.style.display = 'none'; }
+      });
+      [btnCatalog, btnMyCoupons, btnHistory].forEach(b => {
+        if (b) {
+          b.className = 'flex-1 py-1.5 rounded-xl font-bold transition flex items-center justify-center gap-1 text-slate-400 hover:text-slate-200';
+        }
+      });
+
+      if (tab === 'catalog') {
+        if (catalogView) { catalogView.classList.remove('hidden'); catalogView.style.display = 'flex'; }
+        if (btnCatalog) btnCatalog.className = 'flex-1 py-2 rounded-xl transition flex items-center justify-center gap-1 bg-[#3182f6] text-white shadow font-black';
+      } else if (tab === 'myCoupons') {
+        if (myCouponsView) { myCouponsView.classList.remove('hidden'); myCouponsView.style.display = 'flex'; }
+        if (btnMyCoupons) btnMyCoupons.className = 'flex-1 py-2 rounded-xl transition flex items-center justify-center gap-1 bg-[#3182f6] text-white shadow font-black';
+      } else {
+        if (historyView) { historyView.classList.remove('hidden'); historyView.style.display = 'flex'; }
+        if (btnHistory) btnHistory.className = 'flex-1 py-2 rounded-xl transition flex items-center justify-center gap-1 bg-[#3182f6] text-white shadow font-black';
+      }
+
+      renderGifticonShop();
+    }
+
+    function renderGifticonShop() {
+      updatePointsDisplay();
+
+      // Render Tab 1: Catalog (Toss Brandcon Style - 토스어플1.jpg)
+      const catalogContainer = document.getElementById('shopCatalogView');
+      if (catalogContainer && STATE.gifticonCatalog) {
+        const categories = [
+          { id: 'recommend', name: '추천', icon: '⭐' },
+          { id: 'cafe', name: '카페', icon: '☕' },
+          { id: 'voucher', name: '상품권', icon: '🎟️' },
+          { id: 'chicken', name: '치킨', icon: '🍗' },
+          { id: 'pizza', name: '피자·버거', icon: '🍕' },
+          { id: 'store', name: '편의점', icon: '🏪' },
+          { id: 'food', name: '외식', icon: '🍲' },
+          { id: 'dessert', name: '디저트', icon: '🍰' }
+        ];
+
+        const activeCat = categories.find(c => c.id === currentCatalogFilter) || categories[3]; // default chicken
+        const activeCatName = activeCat.name;
+
+        let filteredItems = STATE.gifticonCatalog.filter(item => {
+          if (currentCatalogFilter === 'recommend') return item.rank === 1;
+          return item.category === currentCatalogFilter;
+        });
+
+        if (filteredItems.length === 0) {
+          filteredItems = STATE.gifticonCatalog.filter(item => item.category === 'chicken');
+        }
+
+        catalogContainer.innerHTML = `
+          <!-- 8대 카테고리 아이콘 그리드 (토스어플1.jpg 완벽 구현: 4열 x 2행) -->
+          <div class="grid grid-cols-4 gap-1.5 p-2 bg-slate-950/80 rounded-2xl border border-slate-800 shrink-0">
+            ${categories.map(c => `
+              <button type="button" onclick="filterCatalog('${c.id}')" class="flex flex-col items-center justify-center py-2 px-1 rounded-xl transition ${currentCatalogFilter === c.id ? 'bg-slate-800 text-white font-black shadow' : 'text-slate-400 hover:text-slate-200 font-medium'}">
+                <span class="text-xl mb-1">${c.icon}</span>
+                <span class="text-[11px]">${c.name}</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <!-- 섹션 타이틀: ${activeCatName} 인기 상품 (토스어플1.jpg) -->
+          <div class="flex items-center justify-between pt-1">
+            <h3 class="text-sm font-black text-white">${activeCatName} 인기 상품</h3>
+            <span class="text-[10px] text-slate-400 font-medium">부부 포인트로 즉시 교환</span>
+          </div>
+
+          <!-- 상품 리스트 (토스어플1.jpg 세로 행 레이아웃: 파란색 순위, 굵은 폰트, 큰 썸네일) -->
+          <div class="flex flex-col gap-2">
+            ${filteredItems.map(item => {
+              const canAfford = STATE.couplePoints >= item.points;
+              const deficit = item.points - STATE.couplePoints;
+
+              return `
+                <div class="bg-slate-950/90 border border-slate-800 hover:border-slate-700 rounded-2xl p-3 shadow-sm flex items-center justify-between gap-3 transition">
+                  <!-- 좌측 큼직한 둥근 썸네일 -->
+                  <div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center text-3xl shadow shrink-0 border border-white/10">
+                    ${item.icon}
+                  </div>
+
+                  <!-- 중앙 정보 (순위, 브랜드, 상품명, 가격) -->
+                  <div class="min-w-0 flex-1">
+                    <span class="text-[#3182f6] font-black text-xs">${item.rank || 1}위</span>
+                    <h4 class="font-bold text-white text-xs truncate mt-0.5">${item.brand} | ${item.title}</h4>
+                    <div class="text-sm font-black text-white font-mono mt-0.5">${item.points.toLocaleString()}원</div>
+                  </div>
+
+                  <!-- 우측 토스풍 액션 버튼 -->
+                  <div class="shrink-0">
+                    ${canAfford ? `
+                      <button type="button" onclick="exchangeGifticon('${item.id}')" class="px-3.5 py-2 rounded-xl bg-[#3182f6] hover:bg-blue-600 text-white font-black text-xs shadow transition active:scale-95">
+                        교환
+                      </button>
+                    ` : `
+                      <button type="button" onclick="promptLackOfPoints(${deficit})" class="px-2.5 py-1.5 rounded-xl bg-slate-800 text-slate-400 font-bold text-[10px] border border-slate-700 transition">
+                        ${deficit.toLocaleString()}P 부족
+                      </button>
+                    `}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
+      // Render Tab 2: Purchased Gifticons
+      const myCouponsContainer = document.getElementById('shopMyCouponsView');
+      if (myCouponsContainer) {
+        if (!STATE.purchasedGifticons || STATE.purchasedGifticons.length === 0) {
+          myCouponsContainer.innerHTML = `
+            <div class="p-8 text-center bg-slate-950/60 rounded-2xl border border-dashed border-slate-800 text-slate-400">
+              <span class="text-3xl block mb-2">🎫</span>
+              <p class="text-xs">아직 교환한 기프티콘이 없습니다.</p>
+              <p class="text-[10px] text-slate-500 mt-1">부부 퀘스트와 쿠팡 쇼핑으로 포인트를 모아 교환해보세요!</p>
+              <button type="button" onclick="switchGifticonShopTab('catalog')" class="mt-3 px-3 py-1.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs shadow">
+                기프티콘 구경하기 ➔
+              </button>
+            </div>
+          `;
+        } else {
+          myCouponsContainer.innerHTML = STATE.purchasedGifticons.map(c => `
+            <div class="bg-slate-950/80 border ${c.used ? 'border-slate-800 opacity-60' : 'border-pink-500/40'} rounded-2xl p-3 shadow flex flex-col gap-2 transition">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500/20 to-amber-500/20 border border-pink-500/30 flex items-center justify-center text-xl shrink-0">
+                    ${c.icon || '🎁'}
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[10px] font-black text-pink-300">${c.brand}</span>
+                      ${c.used ? '<span class="text-[8px] px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-400 font-bold">사용완료</span>' : '<span class="text-[8px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">사용가능</span>'}
+                    </div>
+                    <h4 class="font-bold text-slate-100 text-xs truncate">${c.title}</h4>
+                    <span class="text-[10px] text-slate-400 font-mono">유효기간: ${c.expires}</span>
+                  </div>
+                </div>
+                <button type="button" onclick="openGifticonBarcodeModal('${c.id}')" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 text-white font-black text-xs shadow transition active:scale-95 shrink-0">
+                  📱 바코드
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // Render Tab 3: History
+      const historyContainer = document.getElementById('shopHistoryView');
+      if (historyContainer && STATE.pointHistory) {
+        historyContainer.innerHTML = STATE.pointHistory.map(h => `
+          <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-2.5 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              <span class="text-base">${h.type === 'quest' ? '🏆' : h.type === 'ad' ? '📺' : h.type === 'coupang' ? '🛒' : h.type === 'roulette' ? '🎰' : '🎁'}</span>
+              <div class="min-w-0 flex-1">
+                <div class="font-bold text-slate-200 text-xs truncate">${h.title}</div>
+                <div class="text-[9px] text-slate-500">${h.date}</div>
+              </div>
+            </div>
+            <div class="font-mono font-black text-xs ${h.points > 0 ? 'text-amber-400' : 'text-rose-400'} shrink-0 ml-2">
+              ${h.points > 0 ? '+' : ''}${h.points.toLocaleString()} P
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function filterCatalog(category) {
+      currentCatalogFilter = category;
+      renderGifticonShop();
+    }
+
+    function promptLackOfPoints(deficit) {
+      showToast(`💡 포인트가 ${deficit.toLocaleString()}P 부족합니다! 퀘스트 완주, 육퇴 룰렛, 쿠팡 쇼핑으로 모아보세요.`);
+    }
+
+    function exchangeGifticon(catalogId) {
+      const item = STATE.gifticonCatalog.find(g => g.id === catalogId);
+      if (!item) return;
+
+      if (STATE.couplePoints < item.points) {
+        promptLackOfPoints(item.points - STATE.couplePoints);
+        return;
+      }
+
+      // Generate random barcode number
+      const seg1 = '88' + Math.floor(10 + Math.random() * 90);
+      const seg2 = Math.floor(1000 + Math.random() * 9000);
+      const seg3 = Math.floor(1000 + Math.random() * 9000);
+      const seg4 = Math.floor(1000 + Math.random() * 9000);
+      const barcodeStr = `${seg1}-${seg2}-${seg3}-${seg4}`;
+
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 93);
+      const expiryStr = expiryDate.getFullYear() + '.' + String(expiryDate.getMonth() + 1).padStart(2, '0') + '.' + String(expiryDate.getDate()).padStart(2, '0');
+
+      const newGifticon = {
+        id: 'purchased_' + Date.now(),
+        catalogId: item.id,
+        brand: item.brand,
+        title: item.title,
+        icon: item.icon,
+        category: item.category,
+        points: item.points,
+        barcode: barcodeStr,
+        date: new Date().toLocaleDateString('ko-KR'),
+        expires: expiryStr,
+        buyer: STATE.users.mom.name,
+        used: false,
+        giftTo: null
+      };
+
+      addCouplePoints(-item.points, `🎁 [${item.brand}] ${item.title} 기프티콘 교환`, 'shop');
+      if (!STATE.purchasedGifticons) STATE.purchasedGifticons = [];
+      STATE.purchasedGifticons.unshift(newGifticon);
+      try {
+        localStorage.setItem('bboma_purchased_gifticons', JSON.stringify(STATE.purchasedGifticons));
+      } catch(e) {}
+
+      confetti({ particleCount: 140, spread: 100, origin: { y: 0.5 }, colors: ['#ec4899', '#f59e0b', '#10b981', '#3b82f6'] });
+      showToast(`🎉 [교환 완료] [${item.title}] 기프티콘 바코드가 발급되었습니다!`);
+
+      // Open Barcode modal right away
+      openGifticonBarcodeModal(newGifticon.id);
+    }
+
+    function openGifticonBarcodeModal(purchasedId) {
+      const coupon = STATE.purchasedGifticons.find(c => c.id === purchasedId);
+      if (!coupon) return;
+      currentActiveBarcodeId = purchasedId;
+
+      const modal = document.getElementById('gifticonBarcodeModal');
+      if (!modal) return;
+
+      document.getElementById('barcodeModalBrandBadge').innerText = coupon.brand;
+      document.getElementById('barcodeModalTitle').innerText = coupon.title;
+      document.getElementById('barcodeNumberText').innerText = coupon.barcode;
+      document.getElementById('barcodeExpiryText').innerText = `${coupon.expires}까지`;
+      document.getElementById('barcodePointsText').innerText = `${coupon.points.toLocaleString()}P (부부 공동)`;
+
+      const usedBadge = document.getElementById('barcodeModalUsedBadge');
+      const giftBtn = document.getElementById('barcodeGiftSpouseBtn');
+      const useBtn = document.getElementById('barcodeUseBtn');
+
+      if (coupon.used) {
+        if (usedBadge) usedBadge.classList.remove('hidden');
+        if (giftBtn) giftBtn.classList.add('hidden');
+        if (useBtn) {
+          useBtn.disabled = true;
+          useBtn.innerText = '✅ 이미 사용 완료된 기프티콘입니다';
+          useBtn.className = 'w-full py-2 rounded-xl bg-slate-200 text-slate-500 font-bold text-xs border border-slate-300 cursor-not-allowed';
+        }
+      } else {
+        if (usedBadge) usedBadge.classList.add('hidden');
+        if (giftBtn) giftBtn.classList.remove('hidden');
+        if (useBtn) {
+          useBtn.disabled = false;
+          useBtn.innerText = '✅ 매장에서 사용 완료 처리';
+          useBtn.className = 'w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-300 transition';
+        }
+      }
+
+      // Generate SVG vertical lines for barcode
+      const svg = document.getElementById('barcodeSvgGraphic');
+      if (svg) {
+        let barsHtml = '';
+        let x = 10;
+        const pattern = [2, 1, 3, 1, 2, 4, 1, 2, 3, 2, 1, 4, 2, 1, 3, 1, 2, 4, 1, 2, 3, 1, 4, 2, 1, 3, 2, 1, 4, 2, 1, 3, 1, 2, 4, 2, 1, 3, 1, 2];
+        pattern.forEach((w, idx) => {
+          if (idx % 2 === 0) {
+            barsHtml += `<rect x="${x}" y="0" width="${w * 1.5}" height="60" fill="#0f172a" />`;
+          }
+          x += w * 2.8;
+        });
+        svg.innerHTML = barsHtml;
+      }
+
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+    }
+
+    function closeGifticonBarcodeModal() {
+      const modal = document.getElementById('gifticonBarcodeModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+      currentActiveBarcodeId = null;
+    }
+
+    function copyBarcodeNumber() {
+      const coupon = STATE.purchasedGifticons.find(c => c.id === currentActiveBarcodeId);
+      if (!coupon) return;
+      try {
+        navigator.clipboard.writeText(coupon.barcode.replace(/-/g, ''));
+      } catch(e) {}
+      showToast('📋 바코드 번호가 클립보드에 복사되었습니다!');
+    }
+
+    function sendSpouseGifticonShare() {
+      const coupon = STATE.purchasedGifticons.find(c => c.id === currentActiveBarcodeId);
+      if (!coupon) return;
+      coupon.giftTo = STATE.users.dad.name;
+      try {
+        localStorage.setItem('bboma_purchased_gifticons', JSON.stringify(STATE.purchasedGifticons));
+      } catch(e) {}
+
+      sendSpouseNotification('mom', {
+        type: 'battle',
+        icon: coupon.icon || '☕',
+        title: '🎁 기프티콘 선물 도착!',
+        message: `지은님이 민수님에게 [${coupon.brand}] ${coupon.title} 기프티콘을 선물했습니다! "여보 오늘도 육아 고생했어, 달콤하게 마셔요 💕"`
+      });
+      confetti({ particleCount: 70, spread: 70, origin: { y: 0.5 } });
+      showToast(`💌 민수(배우자)님에게 [${coupon.title}] 선물 알림을 전송했습니다!`);
+      closeGifticonBarcodeModal();
+    }
+
+    function markCurrentBarcodeUsed() {
+      const coupon = STATE.purchasedGifticons.find(c => c.id === currentActiveBarcodeId);
+      if (!coupon) return;
+      coupon.used = true;
+      try {
+        localStorage.setItem('bboma_purchased_gifticons', JSON.stringify(STATE.purchasedGifticons));
+      } catch(e) {}
+      showToast('✅ 매장 사용 완료 처리되었습니다.');
+      openGifticonBarcodeModal(coupon.id);
+      renderGifticonShop();
+    }
+
+    // --- 🛒 KidsNote-style Coupang Partners Shopping Engine & 3,500P Monthly Cap ---
+    let currentCoupangCat = 'all';
+
+    function getCoupangMonthKey() {
+      const now = new Date();
+      return `bboma_coupang_earned_${now.getFullYear()}_${now.getMonth() + 1}`;
+    }
+
+    function getCoupangMonthlyEarned() {
+      try {
+        const val = localStorage.getItem(getCoupangMonthKey());
+        return val ? parseInt(val, 10) : 0;
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    function addCoupangMonthlyEarned(points) {
+      try {
+        const cur = getCoupangMonthlyEarned();
+        const next = cur + points;
+        localStorage.setItem(getCoupangMonthKey(), next.toString());
+        return next;
+      } catch (e) {
+        return points;
+      }
+    }
+
+    function updateCoupangCapUI() {
+      const earned = getCoupangMonthlyEarned();
+      const cap = 3500;
+      const remaining = Math.max(0, cap - earned);
+      const pct = Math.min(100, Math.round((earned / cap) * 100));
+
+      const earnedEl = document.getElementById('coupangEarnedText');
+      const barEl = document.getElementById('coupangMonthlyProgressBar');
+      const remEl = document.getElementById('coupangRemainingCapText');
+
+      if (earnedEl) earnedEl.innerText = `${earned.toLocaleString()}P`;
+      if (barEl) barEl.style.width = `${pct}%`;
+      if (remEl) remEl.innerText = `${remaining.toLocaleString()}P`;
+    }
+
+    function filterCoupangCategory(cat) {
+      currentCoupangCat = cat || 'all';
+      ['all', 'baby', 'life', 'food'].forEach(c => {
+        const btn = document.getElementById(`cpCatBtn_${c}`);
+        if (btn) {
+          if (c === currentCoupangCat) {
+            btn.className = 'flex-1 py-1 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow font-black shrink-0';
+          } else {
+            btn.className = 'flex-1 py-1 px-2 rounded-xl font-bold transition flex items-center justify-center gap-1 text-slate-400 hover:text-slate-200 shrink-0';
+          }
+        }
+      });
+      renderCoupangItems();
+    }
+
+    function openCoupangPartnersModal(initialCat = 'all') {
+      filterCoupangCategory(initialCat);
+      updateCoupangCapUI();
+      const modal = document.getElementById('coupangPartnersModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+      }
+    }
+
+    function closeCoupangPartnersModal() {
+      const modal = document.getElementById('coupangPartnersModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+    }
+
+    function renderCoupangItems() {
+      const container = document.getElementById('coupangItemsContainer');
+      if (!container || !STATE.coupangRecommendations) return;
+
+      const items = currentCoupangCat === 'all' 
+        ? STATE.coupangRecommendations 
+        : STATE.coupangRecommendations.filter(it => it.categoryKey === currentCoupangCat);
+
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="py-8 text-center text-slate-500 text-xs">
+            해당 카테고리 상품을 준비 중입니다.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = items.map(item => `
+        <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-3 shadow hover:border-rose-500/40 transition">
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-rose-500/20 to-amber-500/20 border border-rose-500/30 flex items-center justify-center text-2xl shrink-0">
+              ${item.icon}
+            </div>
+            <div class="min-w-0 flex-1">
+              <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-bold">${item.category}</span>
+              <h4 class="font-bold text-slate-100 text-xs truncate mt-0.5">${item.title}</h4>
+              <div class="flex items-center gap-2 mt-0.5 text-[10px]">
+                <span class="text-slate-400 font-mono">${item.price.toLocaleString()}원</span>
+                <span class="font-black text-rose-400 font-mono">2% 적립 ➔ +${item.rewardPoints.toLocaleString()}P</span>
+              </div>
+            </div>
+          </div>
+          <button type="button" onclick="simulateCoupangPurchase('${item.id}')" class="px-3 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-black text-xs shadow transition active:scale-95 shrink-0 flex items-center gap-1">
+            <span>🛒 주문 & 적립</span>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function simulateCoupangPurchase(itemId) {
+      const item = STATE.coupangRecommendations.find(cp => cp.id === itemId);
+      if (!item) return;
+
+      const monthlyEarned = getCoupangMonthlyEarned();
+      const cap = 3500;
+      const available = Math.max(0, cap - monthlyEarned);
+
+      if (available <= 0) {
+        showToast('⚠️ 이번 달 쿠팡 2% 적립 한도(3,500P)를 이미 달성하셨습니다! (매월 1일 리셋)');
+        closeCoupangPartnersModal();
+        return;
+      }
+
+      const actualReward = Math.min(available, item.rewardPoints);
+      addCouplePoints(actualReward, `🛒 쿠팡 제휴 적립 (${item.title.slice(0, 14)}...)`, 'coupang');
+      addCoupangMonthlyEarned(actualReward);
+      updateCoupangCapUI();
+
+      confetti({ particleCount: 90, spread: 80, origin: { y: 0.5 }, colors: ['#f43f5e', '#f59e0b', '#10b981'] });
+      if (actualReward < item.rewardPoints) {
+        showToast(`🛒 [쿠팡 적립] 이번 달 최대 한도(3,500P)에 도달하여 잔여 ${actualReward}P가 부부 공동 저금통에 적립되었습니다!`);
+      } else {
+        showToast(`🛒 [쿠팡 제휴 적립 성공] ${item.title.slice(0, 16)} 구매 확인! 부부 공동 포인트 +${actualReward}P 적립 완료!`);
+      }
+      closeCoupangPartnersModal();
+      renderApp('mom');
+      renderApp('dad');
+    }
+
+    // --- 🛍️ Coupang Direct Shop (키즈노트 직결 검색 & 2% 자동 적립 엔진) ---
+    function openCoupangGeneralShopModal(prefillQuery = '') {
+      const qInput = document.getElementById('genShopItemInput');
+      if (qInput) {
+        qInput.value = prefillQuery || '3겹 롤화장지';
+      }
+      
+      const capText = document.getElementById('genShopCapText');
+      if (capText) {
+        const monthlyEarned = getCoupangMonthlyEarned();
+        capText.innerText = `${monthlyEarned.toLocaleString()}P / 3,500P`;
+      }
+
+      const modal = document.getElementById('coupangGeneralShopModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+      }
+    }
+
+    function closeCoupangGeneralShopModal() {
+      const modal = document.getElementById('coupangGeneralShopModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+    }
+
+    function setGenShopKeyword(kw) {
+      const qInput = document.getElementById('genShopItemInput');
+      if (qInput) {
+        qInput.value = kw;
+        qInput.focus();
+      }
+    }
+
+    function launchCoupangSearchDirect(customQuery = '') {
+      const qInput = document.getElementById('genShopItemInput');
+      const query = (customQuery || (qInput && qInput.value.trim()) || '생필품 장보기');
+
+      const monthlyEarned = getCoupangMonthlyEarned();
+      const cap = 3500;
+      const available = Math.max(0, cap - monthlyEarned);
+
+      // 키즈노트식 시뮬레이션: 통상 장보기 결제(22,500원)의 2% = 450P 자동 환원 (잔여 한도 내)
+      const simulatedReward = Math.min(available, 450);
+
+      if (simulatedReward > 0) {
+        addCouplePoints(simulatedReward, `🛒 쿠팡 쇼핑 (${query.slice(0, 14)})`, 'coupang');
+        addCoupangMonthlyEarned(simulatedReward);
+        updateCoupangCapUI();
+        confetti({ particleCount: 110, spread: 85, origin: { y: 0.5 }, colors: ['#3182f6', '#ec4899', '#f59e0b'] });
+        showToast(`🛒 [쿠팡 연결 완료] '${query}' 검색으로 이동합니다! 2% 적립으로 +${simulatedReward}P가 부부 공동 저금통에 적립되었습니다!`);
+      } else {
+        showToast(`🛒 [쿠팡 연결] 이번 달 제휴 적립 한도(3,500P)를 이미 달성하셨습니다. 쿠팡 검색 페이지로 이동합니다.`);
+      }
+
+      // 실제 쿠팡 검색 페이지로 직결 오픈 (키즈노트 앱 방식)
+      try {
+        window.open(`https://www.coupang.com/np/search?q=${encodeURIComponent(query)}`, '_blank');
+      } catch (e) {
+        console.error('Coupang URL open error:', e);
+      }
+
+      closeCoupangGeneralShopModal();
+      closeCoupangPartnersModal();
+      renderApp('mom');
+      renderApp('dad');
+    }
+
+    function checkTaskTitleShoppingKeyword(val) {
+      const badge = document.getElementById('taskShoppingBadge');
+      if (!badge) return;
+      const kwRegex = /(반찬|장보기|식자재|밀키트|휴지|화장지|물티슈|기저귀|분유|세제|생필품|치약|칫솔|샴푸|비누|쿠팡|구매|주문|쇼핑|마트|생수)/i;
+      if (val && kwRegex.test(val)) {
+        badge.classList.remove('hidden');
+        badge.style.display = 'flex';
+      } else {
+        badge.classList.add('hidden');
+        badge.style.display = 'none';
+      }
+    }
+
+    // --- 🎰 Evening Childcare Off (육퇴) Roulette Engine (1일 3회, 21:00 리셋, 6개 슬롯) ---
+    function getRouletteCycleKey() {
+      const now = new Date();
+      const d = new Date(now);
+      if (d.getHours() < 21) {
+        d.setDate(d.getDate() - 1);
+      }
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}_21:00`;
+    }
+
+    function getRouletteDailyCount() {
+      try {
+        const key = 'bboma_roulette_ad_' + getRouletteCycleKey();
+        const val = localStorage.getItem(key);
+        return val ? parseInt(val, 10) : 0;
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    function incrementRouletteDailyCount() {
+      try {
+        const key = 'bboma_roulette_ad_' + getRouletteCycleKey();
+        const count = getRouletteDailyCount() + 1;
+        localStorage.setItem(key, count.toString());
+        return count;
+      } catch (e) {
+        return 1;
+      }
+    }
+
+    function getRouletteRemainingCount() {
+      return Math.max(0, 3 - getRouletteDailyCount());
+    }
+
+    function updateRouletteUI() {
+      const remaining = getRouletteRemainingCount();
+      const badge = document.getElementById('rouletteDailyLimitBadge');
+      const btn = document.getElementById('rouletteSpinBtn');
+
+      if (badge) {
+        badge.innerHTML = `<span>오늘 남은 기회: <strong class="text-amber-200">${remaining}/3회</strong> (매일 21:00 리셋)</span>`;
+      }
+
+      if (btn && !isRouletteSpinning) {
+        if (remaining > 0) {
+          btn.disabled = false;
+          btn.innerHTML = `<span>📺 15초 광고 보고 룰렛 돌리기 (남은 기회: ${remaining}/3회)</span>`;
+          btn.className = 'w-full mt-3 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-xs shadow-lg transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer';
+        } else {
+          btn.disabled = true;
+          btn.innerHTML = '<span>🔒 오늘의 룰렛 광고 기회(3회)를 모두 사용했습니다 (매일 21:00 리셋)</span>';
+          btn.className = 'w-full mt-3 py-3 rounded-2xl bg-slate-800 text-slate-500 font-bold text-xs border border-slate-700 cursor-not-allowed';
+        }
+      }
+    }
+
+    // --- 🎰 육퇴 룰렛 동적 셔플 & SVG 렌더링 엔진 (토스 스타일 & 칸 구분선 & 비인접 200P) ---
+    let currentRouletteSectors = [
+      { id: 'p1000', points: 1000, label: '대박 1,000P!', shortLabel: '1000P', color: '#f59e0b', textColor: '#0f172a', icon: '⭐' },
+      { id: 'p20', points: 20, label: '20P', shortLabel: '20P', color: '#10b981', textColor: '#ffffff', icon: '🍀' },
+      { id: 'p200_a', points: 200, label: '200P', shortLabel: '200P', color: '#3182f6', textColor: '#ffffff', icon: '💎' },
+      { id: 'p500', points: 500, label: '500P', shortLabel: '500P', color: '#8b5cf6', textColor: '#ffffff', icon: '🎉' },
+      { id: 'p10', points: 10, label: '10P', shortLabel: '10P', color: '#06b6d4', textColor: '#ffffff', icon: '✨' },
+      { id: 'p200_b', points: 200, label: '200P', shortLabel: '200P', color: '#f43f5e', textColor: '#ffffff', icon: '🎁' }
+    ];
+
+    function generateShuffledRouletteSectors() {
+      const pool = [
+        { id: 'p1000', points: 1000, label: '대박 1,000P!', shortLabel: '1000P', color: '#f59e0b', textColor: '#0f172a', icon: '⭐' },
+        { id: 'p500', points: 500, label: '500P', shortLabel: '500P', color: '#8b5cf6', textColor: '#ffffff', icon: '🎉' },
+        { id: 'p200_a', points: 200, label: '200P', shortLabel: '200P', color: '#3182f6', textColor: '#ffffff', icon: '💎' },
+        { id: 'p200_b', points: 200, label: '200P', shortLabel: '200P', color: '#f43f5e', textColor: '#ffffff', icon: '🎁' },
+        { id: 'p20', points: 20, label: '20P', shortLabel: '20P', color: '#10b981', textColor: '#ffffff', icon: '🍀' },
+        { id: 'p10', points: 10, label: '10P', shortLabel: '10P', color: '#06b6d4', textColor: '#ffffff', icon: '✨' }
+      ];
+
+      // 동일한 포인트(200P 2칸)가 절대 몰려있지 않도록 교차 분리 검증 셔플
+      for (let attempt = 0; attempt < 50; attempt++) {
+        const shuffled = [...pool].sort(() => Math.random() - 0.5);
+        const idx1 = shuffled.findIndex(s => s.id === 'p200_a');
+        const idx2 = shuffled.findIndex(s => s.id === 'p200_b');
+        const dist = Math.abs(idx1 - idx2);
+        // 원형 6칸에서 인접하는 경우는 dist === 1 또는 dist === 5 (끝과 끝)
+        if (dist > 1 && dist < 5) {
+          return shuffled;
+        }
+      }
+      return pool;
+    }
+
+    function renderRouletteWheelSVG(sectors) {
+      const wheelEl = document.getElementById('rouletteWheel');
+      if (!wheelEl) return;
+
+      const r = 98;
+      const toRad = deg => (deg * Math.PI) / 180;
+      const getXY = deg => {
+        const rad = toRad(deg);
+        return {
+          x: (100 + r * Math.sin(rad)).toFixed(2),
+          y: (100 - r * Math.cos(rad)).toFixed(2)
+        };
+      };
+
+      let pathsHtml = '';
+      sectors.forEach((sec, i) => {
+        const a1 = i * 60;
+        const a2 = (i + 1) * 60;
+        const p1 = getXY(a1);
+        const p2 = getXY(a2);
+        const midAngle = i * 60 + 30;
+
+        // 선명하고 확실한 칸 구분선 (stroke="#0f172a" stroke-width="3.5")
+        pathsHtml += `
+          <path d="M 100 100 L ${p1.x} ${p1.y} A ${r} ${r} 0 0 1 ${p2.x} ${p2.y} Z" fill="${sec.color}" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round"/>
+          <g transform="rotate(${midAngle}, 100, 100)">
+            <text x="100" y="32" font-size="11" font-weight="900" fill="${sec.textColor}" text-anchor="middle" letter-spacing="-0.5">${sec.shortLabel}</text>
+            <text x="100" y="47" font-size="10" text-anchor="middle">${sec.icon}</text>
+          </g>
+        `;
+      });
+
+      wheelEl.innerHTML = `
+        <svg viewBox="0 0 200 200" class="w-full h-full">
+          ${pathsHtml}
+          <!-- 테두리 링 -->
+          <circle cx="100" cy="100" r="${r}" fill="none" stroke="#0f172a" stroke-width="3"/>
+          <!-- 토스풍 중앙 메탈릭 핀 -->
+          <circle cx="100" cy="100" r="18" fill="#0f172a" stroke="#ffffff" stroke-width="3" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.5))"/>
+          <circle cx="100" cy="100" r="11" fill="#3182f6"/>
+          <text x="100" y="103.5" font-size="8.5" font-weight="900" fill="#ffffff" text-anchor="middle">GO</text>
+        </svg>
+      `;
+    }
+
+    function openRouletteModal() {
+      updateRouletteUI();
+      if (!isRouletteSpinning) {
+        currentRouletteSectors = generateShuffledRouletteSectors();
+        renderRouletteWheelSVG(currentRouletteSectors);
+        const wheelEl = document.getElementById('rouletteWheel');
+        if (wheelEl) {
+          wheelEl.style.transition = 'none';
+          wheelEl.style.transform = 'rotate(0deg)';
+          rouletteCurrentDeg = 0;
+        }
+      }
+      const modal = document.getElementById('rouletteModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+      }
+    }
+
+    function closeRouletteModal() {
+      if (isRouletteSpinning) return;
+      const modal = document.getElementById('rouletteModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+    }
+
+    function triggerRouletteWithAd() {
+      if (isRouletteSpinning) return;
+
+      const remaining = getRouletteRemainingCount();
+      if (remaining <= 0) {
+        showToast('🔒 오늘의 광고 시청 기회(3회)를 모두 사용하셨습니다! 매일 밤 9시(21:00)에 3회가 새로 충전됩니다.');
+        return;
+      }
+
+      playRewardedAdSimulation('roulette', () => {
+        incrementRouletteDailyCount();
+        updateRouletteUI();
+        spinRouletteWheel();
+      });
+    }
+
+    function spinRouletteWheel() {
+      if (isRouletteSpinning) return;
+      isRouletteSpinning = true;
+
+      const wheelEl = document.getElementById('rouletteWheel');
+      const spinBtn = document.getElementById('rouletteSpinBtn');
+      if (spinBtn) {
+        spinBtn.disabled = true;
+        spinBtn.innerText = '룰렛 회전 중... 🎡';
+      }
+
+      // 6칸 중 정확한 확률로 슬롯 선택 (1000P 1칸, 500P 1칸, 200P 2칸, 20P 1칸, 10P 1칸)
+      const chosenIdx = Math.floor(Math.random() * currentRouletteSectors.length);
+      const chosen = currentRouletteSectors[chosenIdx];
+
+      // 선택된 섹터(chosenIdx)의 중심각 theta를 상단 12시 바늘(0도)에 정확히 맞추기 위한 회전각
+      const theta = chosenIdx * 60 + 30;
+      const stopDeg = (360 - theta) % 360;
+
+      // 최소 5바퀴(1800도) 이상 회전 후 해당 각도에 멈춤
+      const currentBase = Math.floor(rouletteCurrentDeg / 360) * 360;
+      rouletteCurrentDeg = currentBase + 1800 + stopDeg;
+
+      if (wheelEl) {
+        wheelEl.style.transition = 'transform 3.5s cubic-bezier(0.15, 0.9, 0.25, 1)';
+        wheelEl.style.transform = `rotate(${rouletteCurrentDeg}deg)`;
+      }
+
+      setTimeout(() => {
+        isRouletteSpinning = false;
+        updateRouletteUI();
+
+        addCouplePoints(chosen.points, `🎰 육퇴 보너스 룰렛 당첨 (${chosen.label})`, 'roulette');
+        confetti({ particleCount: 130, spread: 90, origin: { y: 0.5 }, colors: ['#f59e0b', '#ec4899', '#3b82f6', '#10b981'] });
+        showToast(`🎰 [육퇴 룰렛 당첨] 축하합니다! ${chosen.label}가 부부 공동 저금통에 쏙 들어갔어요!`);
+        renderApp('mom');
+        renderApp('dad');
+      }, 3700);
+    }
+
+    // --- 🏆 Quest Victory & 2X Rewarded Ad Booster Engine ---
+    function openQuestVictoryModal(quest, basePoints = 500) {
+      pendingVictoryQuest = quest;
+      pendingVictoryBasePoints = basePoints;
+
+      const titleEl = document.getElementById('questVictoryTitle');
+      const basePointsEl = document.getElementById('questVictoryBasePoints');
+      const baseRewardEl = document.getElementById('questVictoryBaseReward');
+      const doubleInfoEl = document.getElementById('questVictoryDoubleInfo');
+
+      if (titleEl) titleEl.innerText = quest.title;
+      if (basePointsEl) basePointsEl.innerText = `+${basePoints.toLocaleString()} P`;
+      if (baseRewardEl) baseRewardEl.innerText = quest.baseReward || '기본 보상 완료';
+      if (doubleInfoEl) doubleInfoEl.innerText = `👉 시청 즉시 ${basePoints.toLocaleString()}P 추가 적립 (총 ${(basePoints * 2).toLocaleString()}P 지급!)`;
+
+      const modal = document.getElementById('questVictoryModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+      }
+    }
+
+    function closeQuestVictoryModal() {
+      const modal = document.getElementById('questVictoryModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+      pendingVictoryQuest = null;
+    }
+
+    function claimDoubleQuestPoints() {
+      const quest = pendingVictoryQuest;
+      const extraPoints = pendingVictoryBasePoints;
+      closeQuestVictoryModal();
+
+      playRewardedAdSimulation('quest_double', () => {
+        addCouplePoints(extraPoints, `📺 [${quest ? quest.title : '퀘스트'}] 2배 광고 보너스`, 'ad');
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 }, colors: ['#f59e0b', '#ec4899', '#10b981'] });
+        showToast(`🎉 [2배 부스터] 광고 시청 완료! 포인트가 2배(총 +${(extraPoints * 2).toLocaleString()}P)로 적립되었습니다!`);
+      });
+    }
+
+    function simulateQuestComplete(questId, userKey = 'mom') {
+      const quest = STATE.quests.find(q => q.id === questId);
+      if (!quest) return;
+      quest.current = quest.target;
+      onQuestProgress(questId, 0, userKey);
+    }
+
+    // --- 📺 Rewarded Ad Simulator Engine ---
+    function playRewardedAdSimulation(adType, onRewardCallback) {
+      const overlay = document.getElementById('adSimulationOverlay');
+      if (!overlay) {
+        if (onRewardCallback) onRewardCallback();
+        return;
+      }
+
+      overlay.classList.remove('hidden');
+      overlay.style.display = 'flex';
+      overlay.style.zIndex = '10000';
+
+      const timerText = document.getElementById('adSimTimerText');
+      const progressBar = document.getElementById('adSimProgressBar');
+      const rewardClaimBtn = document.getElementById('adSimClaimBtn');
+      const adTitle = document.getElementById('adSimTitle');
+      const adSubtitle = document.getElementById('adSimSubtitle');
+
+      if (rewardClaimBtn) rewardClaimBtn.classList.add('hidden');
+      if (progressBar) progressBar.style.width = '0%';
+
+      if (adType === 'quest_double') {
+        if (adTitle) adTitle.innerText = '👶 뽀마 프리미엄 기저귀 & 아기용품 대축제';
+        if (adSubtitle) adSubtitle.innerText = '광고 시청 후 부부 퀘스트 포인트 2배 보너스가 지급됩니다!';
+      } else if (adType === 'roulette') {
+        if (adTitle) adTitle.innerText = '🌙 육아퇴근 보너스 스폰서 파트너스';
+        if (adSubtitle) adSubtitle.innerText = '광고 시청 후 무료 육퇴 룰렛 회전 티켓이 즉시 충전됩니다!';
+      } else {
+        if (adTitle) adTitle.innerText = '☕ 고생한 엄빠를 위한 힐링 타임';
+        if (adSubtitle) adSubtitle.innerText = '보상형 광고 시청이 완료되면 포인트가 지급됩니다.';
+      }
+
+      let elapsed = 0;
+      const interval = setInterval(() => {
+        elapsed += 0.1;
+        const pct = Math.min(100, Math.round((elapsed / 3.0) * 100));
+        if (progressBar) progressBar.style.width = `${pct}%`;
+
+        const rem = Math.max(0, Math.ceil(3.0 - elapsed));
+        if (timerText) timerText.innerText = rem > 0 ? `⏱️ 광고 종료 및 보상 지급까지: ${rem}초` : '✅ 광고 시청 완료! 보상을 확인하세요.';
+
+        if (elapsed >= 3.0) {
+          clearInterval(interval);
+          if (rewardClaimBtn) {
+            rewardClaimBtn.classList.remove('hidden');
+            rewardClaimBtn.onclick = () => {
+              overlay.classList.add('hidden');
+              overlay.style.display = 'none';
+              if (onRewardCallback) onRewardCallback();
+            };
+          }
+        }
+      }, 100);
     }
 
     // --- 🎁 Custom Quest Reward Modal Engine Functions ---
@@ -6107,7 +8165,6 @@
 
     function skipTutorialVideo() {
       closeTutorialVideoModal();
-      startOnboardingGuide(0);
     }
 
     function restartTutorialVideo() {
@@ -6118,128 +8175,248 @@
       }
     }
 
-    // --- 🌟 Interactive Step-by-Step Hybrid Onboarding Guide Engine ---
+    // --- 🌟 Interactive Step-by-Step Showcase Onboarding Guide Engine ---
     const ONBOARDING = {
       isActive: false,
       currentStep: 0,
-      userData: {
-        name: '지은',
-        gender: 'female',
-        relation: 'spouse', // 'spouse', 'partner', 'other'
-        otherText: ''
-      },
-      isMatchingExpanded: false,
       
       steps: [
         {
           step: 0,
-          title: '가이드를 시작합니다! 👶✨',
-          subtitle: '뽀마키즈에 오신 것을 환영해요',
+          title: '뽀마키즈 둘러보기 👶✨',
           icon: '🐣',
           highlightId: null,
           tab: 'focus',
           openModal: null,
-          desc: '수호 요정 <strong>뽀마</strong>와 함께하는 부부 공동 육아 RPG 앱입니다.<br/>실제 기능 창들을 열어보며 핵심 기능을 빠르게 익혀볼까요?',
-          buttonText: '시작하기 🚀'
+          desc: '수호 요정 <strong>뽀마</strong>와 함께하는 부부 공동 육아 RPG 앱입니다.<br/>앱의 핵심 기능과 사용 방법을 편안하게 안내해 드릴게요!',
+          customCard: `
+            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center gap-3">
+              <span class="text-3xl">🧚</span>
+              <div class="flex flex-col text-xs">
+                <span class="font-bold text-amber-300">부부 공동 육아 RPG</span>
+                <span class="text-slate-400 text-[11px]">함께 일과를 나누고 육아 스트레스를 게임처럼 즐겁게 해결해요.</span>
+              </div>
+            </div>
+          `,
+          buttonText: '둘러보기 시작 ➔'
         },
         {
           step: 1,
-          title: '사용자 정보 입력 📝',
-          subtitle: '1단계: 이름과 역할을 알려주세요',
+          title: '1. 사용자 프로필 & 이름 설정 👤',
           icon: '👤',
           highlightId: 'momProfileButton',
           tab: 'focus',
           openModal: null,
-          desc: '앱에서 사용할 사용자 이름과 성별, 파트너와의 관계를 설정합니다.',
-          isForm: true,
-          buttonText: '다음 (매칭 안내) ➔'
+          desc: '상단 <strong>이름(지은)</strong> 또는 <strong>설정(⚙️)</strong>을 눌러 부부의 <strong>이름, 성별, 역할</strong>(엄마, 아빠, 파트너 등)을 언제든지 변경할 수 있습니다.',
+          customCard: `
+            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-rose-500/20 border border-rose-400/50 flex items-center justify-center text-2xl">👩</div>
+              <div class="flex flex-col gap-0.5 flex-1 text-xs">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-black text-white">지은</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">엄마 (나)</span>
+                </div>
+                <span class="text-[10px] text-slate-400">💡 상단 이름(지은)을 누르면 즉시 이름과 역할을 수정할 수 있습니다.</span>
+              </div>
+            </div>
+          `,
+          buttonText: '다음 (부부 매칭 안내) ➔'
         },
         {
           step: 2,
-          title: '상대방과 어플 연결하기 🔗',
-          subtitle: '2단계: 실시간 공동 육아 매칭',
+          title: '2. 부부 실시간 1:1 매칭 🔗',
           icon: '🤝',
           highlightId: 'momProfileButton',
           tab: 'focus',
           openModal: null,
-          desc: '상대방과 어플을 연결하면 실시간으로 일과를 공유하고 서로 체크할 수 있습니다.<br/><span class="text-slate-400 text-xs">(매칭은 지금 바로 하거나, 나중에 언제든 설정할 수 있습니다.)</span>',
-          isMatchingPrompt: true
+          desc: '배우자의 스마트폰과 <strong>초대 코드</strong>로 연결하면, 실시간으로 서로의 일과를 공유하고 함께 퀘스트를 수행할 수 있습니다.',
+          customCard: `
+            <div class="p-3 bg-gradient-to-tr from-amber-950/40 to-slate-900 border border-amber-500/30 rounded-2xl flex flex-col gap-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-300 font-medium">초대 코드 예시:</span>
+                <span class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-mono font-black text-xs border border-amber-500/40">BBOMA-7749</span>
+              </div>
+              <p class="text-[10px] text-slate-400">💡 앱 시작 후 프로필 메뉴에서 상대방 스마트폰과 언제든 1초 만에 연결할 수 있습니다.</p>
+            </div>
+          `,
+          buttonText: '다음 (할 일 등록 안내) ➔'
         },
         {
           step: 3,
-          title: '오늘 할 일을 지정해주세요 📋',
-          subtitle: '3단계: [실제 기능 창] 오늘 할 일 등록 모달',
+          title: '3. 오늘 할 일 등록 📋',
           icon: '📅',
           highlightId: null,
           tab: 'todo',
           openModal: 'taskManageModal',
-          desc: '아기 목욕, 젖병 소독 등 빠른 추천 프리셋을 누르거나, 할 일 제목과 주기(매일 루틴/1회성), 수행 시간을 설정하는 <strong>실제 할 일 등록 창</strong>입니다.',
-          buttonText: '📋 할 일 등록창 확인 완료 ➔ 다음'
+          desc: '아기 목욕, 젖병 소독 등 <strong>빠른 추천 프리셋</strong>을 누르거나, 할 일 제목과 주기(매일 루틴/1회성), 수행 시간을 지정하여 등록할 수 있는 <strong>할 일 등록 창</strong>입니다.',
+          customCard: `
+            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 text-[11px] text-slate-300 flex items-center gap-2">
+              <span class="text-emerald-400 text-lg">💡</span>
+              <div class="flex flex-col">
+                <span class="font-bold text-white">할 일 등록 및 시간 설정</span>
+                <span class="text-[10px] text-slate-400">부부의 하루 루틴을 계획하고 시간대별로 배분할 수 있습니다.</span>
+              </div>
+            </div>
+          `,
+          buttonText: '다음 (일과 체크 안내) ➔'
         },
         {
           step: 4,
-          title: '내가 할 일과 상대방의 할 일을 체크할 수 있습니다 ✅',
-          subtitle: '4단계: [화면 조작] 실시간 일과 확인 및 체크',
+          title: '4. 부부 일과 공유 및 체크 ✅',
           icon: '👥',
           highlightId: 'momTodoScopeSection',
           tab: 'todo',
           openModal: null,
-          desc: '<strong>[내 할 일]</strong>과 <strong>[상대방 할 일]</strong> 탭을 넘나들며 부부가 서로의 일과를 확인하고, 완료된 항목은 터치하여 실시간으로 체크할 수 있습니다.',
+          desc: '<strong>[내 할 일]</strong>과 <strong>[상대방 할 일]</strong>을 터치하여 서로의 일과를 확인하고, 완료된 항목은 터치하여 실시간으로 체크할 수 있습니다.',
+          customCard: `
+            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">✓</span>
+                <span class="text-white font-medium">아기 목욕 & 마사지 (완료)</span>
+              </div>
+              <span class="text-[10px] text-amber-300 font-bold">+100 EXP</span>
+            </div>
+          `,
           buttonText: '다음 (완료 알림 안내) ➔'
         },
         {
           step: 5,
-          title: '완료 시 상대방에게 알림이 갑니다 🔔',
-          subtitle: '5단계: [실제 알림 센터] 실시간 부부 알림 수신 창',
+          title: '5. 실시간 부부 알림 🔔',
           icon: '🎉',
           highlightId: null,
           tab: 'todo',
           openModal: 'notificationModal',
-          desc: '내가 맡은 일을 체크 완료하면, 상대방의 스마트폰으로 <em>"지은님이 아기 목욕을 완료했습니다! 🎉"</em> 축하 알림이 즉시 전송되는 <strong>실제 알림 센터 창</strong>입니다.',
-          buttonText: '🔔 알림 센터 확인 완료 ➔ 다음'
+          desc: '내가 할 일을 완료하면 상대방의 스마트폰으로 <em>"지은님이 아기 목욕을 완료했습니다! 🎉"</em> 축하 알림이 즉시 전송되는 <strong>실제 알림 센터 창</strong>입니다.',
+          customCard: `
+            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center gap-2.5 text-xs">
+              <span class="text-xl">🔔</span>
+              <div class="flex flex-col">
+                <span class="text-white font-bold">지은님이 '아기 목욕'을 완료했습니다!</span>
+                <span class="text-[10px] text-slate-400">상대방 스마트폰에 푸시 알림과 축하 메시지가 도착합니다.</span>
+              </div>
+            </div>
+          `,
+          buttonText: '다음 (육아 집중 모드) ➔'
         },
         {
           step: 6,
-          title: '육아 집중 시간을 사용할 수 있습니다 👶',
-          subtitle: '6단계: [화면 조작] 딴짓 방지 & 눈맞춤 집중',
+          title: '6. 육아 집중 모드 👶',
           icon: '⏳',
           highlightId: 'momFocusMainCard',
           tab: 'focus',
           openModal: null,
-          desc: '아이에게 온전히 눈을 맞추는 <strong>육아 집중 모드</strong>입니다. 앱을 닫아도 스마트폰 상단 상태바에 실시간 아이콘이 상주합니다.<br/>지금 사용해보시겠습니까?',
-          isFocusPrompt: true
+          desc: '아이에게 온전히 눈을 맞추는 <strong>육아 집중 모드</strong>입니다. 앱을 나가도 스마트폰 상단 상태바에 <strong>미디어 컨트롤러 알림</strong>으로 집중 진행 시간이 표시됩니다.',
+          customCard: `
+            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center gap-2.5 text-xs">
+              <span class="text-2xl">🎵</span>
+              <div class="flex flex-col">
+                <span class="text-amber-300 font-bold">상태바 미디어 컨트롤러 탑재</span>
+                <span class="text-[10px] text-slate-400">일시정지(⏸), +5분 연장(⏩), 종료(✕) 컨트롤 지원</span>
+              </div>
+            </div>
+          `,
+          buttonText: '다음 (시간 설정 안내) ➔'
         },
         {
           step: 7,
-          title: '집중할 시간을 설정해주세요 ⏱️',
-          subtitle: '7단계: [화면 조작] 원하는 시간만큼 유연하게 설정',
+          title: '7. 집중 시간 자유 설정 ⏱️',
           icon: '⚙️',
           highlightId: 'momFocusSettingsSection',
           tab: 'focus',
           openModal: null,
-          desc: '<strong>[⚡ 간편 분 단위]</strong>(15분, 25분, 50분 등) 또는 <strong>[⏰ 시간대 직접 지정]</strong>(13:30~18:30)으로 원하는 육아 집중 시간을 자유롭게 설정하세요.',
-          buttonText: '다음 (차단 앱 설정) ➔'
+          desc: '<strong>[⚡ 간편 분 단위]</strong>(15분, 25분, 50분 등) 또는 <strong>[⏰ 시간대 직접 지정]</strong>(13:30~18:30)으로 원하는 육아 집중 시간을 유연하게 설정할 수 있습니다.',
+          customCard: `
+            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center justify-around text-xs">
+              <span class="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 font-bold">⚡ 15분</span>
+              <span class="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 font-bold">⚡ 30분</span>
+              <span class="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 font-bold">⚡ 60분</span>
+              <span class="px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 font-bold">⏰ 직접지정</span>
+            </div>
+          `,
+          buttonText: '다음 (차단 어플 설정) ➔'
         },
         {
           step: 8,
-          title: '미차단/허용할 어플을 지정해주세요 🛡️',
-          subtitle: '8단계: [실제 기능 창] 차단 및 허용 앱 관리 모달',
+          title: '8. 어플 차단 및 허용 관리 🛡️',
           icon: '📱',
           highlightId: null,
           tab: 'focus',
           openModal: 'appFilterModal',
-          desc: '육아 집중 시간 동안 꼭 필요한 <strong>허용 앱</strong>(전화, 카메라, 카카오톡 등)과 차단할 <strong>딴짓 앱</strong>(유튜브, SNS 등)을 안전하게 지정하는 <strong>실제 차단 앱 관리 창</strong>입니다.',
-          buttonText: '🛡️ 차단 앱 설정 확인 완료 ➔ 가이드 완료'
+          desc: '육아 집중 시간 동안 꼭 필요한 <strong>허용 앱</strong>(전화, 카메라, 메신저 등)과 차단할 <strong>딴짓 앱</strong>(유튜브, SNS, 게임 등)을 지정하는 <strong>차단 앱 관리 창</strong>입니다.',
+          customCard: `
+            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
+              <span class="text-emerald-400 font-bold">🛡️ 허용 앱: 전화, 카메라, 메신저</span>
+              <span class="text-rose-400 font-bold">🚫 차단 앱: SNS, 게임</span>
+            </div>
+          `,
+          buttonText: '다음 (저금통 & 쿠팡 적립) ➔'
         },
         {
           step: 9,
-          title: '🎉 뽀마키즈를 시작합니다!',
-          subtitle: '모든 설정이 완료되었습니다',
+          title: '9. 부부 기프티콘 저금통 & 쿠팡 2% 적립 🎁',
+          icon: '🛒',
+          highlightId: null,
+          tab: 'quest',
+          openModal: null,
+          desc: '부부 퀘스트 달성과 <strong>쿠팡 제휴 쇼핑</strong>(육아용품, 생필품, 반찬 등)으로 <strong>결제 금액의 2%</strong>가 공동 적립되어 <strong>진짜 기프티콘(스타벅스, 치킨, 마트)</strong>으로 바꿀 수 있습니다! <span class="text-amber-300 font-bold">(월 최대 3,500P 적립 한도)</span>',
+          customCard: `
+            <div class="bg-slate-950/80 p-3 rounded-2xl border border-amber-500/30 flex flex-col gap-2 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-amber-300">부부 공동 기프티콘 저금통</span>
+                <span class="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold text-[10px]">쿠팡 전 품목 2% 적립</span>
+              </div>
+              <div class="flex items-center gap-2 text-[11px] text-slate-300">
+                <span>🛒 생필품/반찬 쇼핑</span>
+                <span>➔</span>
+                <span class="font-black text-amber-300">포인트 적립 (월 최대 3,500P)</span>
+                <span>➔</span>
+                <span>☕ 기프티콘 교환</span>
+              </div>
+            </div>
+          `,
+          buttonText: '다음 (광고 시청 & 룰렛) ➔'
+        },
+        {
+          step: 10,
+          title: '10. 보상형 광고 시청 & 육퇴 룰렛 🎰',
+          icon: '🎡',
+          highlightId: null,
+          tab: 'quest',
+          openModal: null,
+          desc: '오늘 하루도 육아에 헌신한 엄빠를 위한 선물! <strong>15초 광고 시청</strong> 후 <strong>최대 1,000P</strong>를 받는 <strong>육퇴 룰렛</strong>(하루 3회, 매일 21:00 리셋)과 <strong>퀘스트 보너스 2배</strong> 혜택을 누려보세요!',
+          customCard: `
+            <div class="bg-slate-950/80 p-3 rounded-2xl border border-purple-500/30 flex flex-col gap-2 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-purple-300">🎰 육퇴 보너스 룰렛 & 2배 부스터</span>
+                <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-[10px]">1일 3회 (21:00 리셋)</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
+                <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                  <div class="font-bold text-amber-300">🎡 육퇴 룰렛</div>
+                  <div class="text-slate-400 mt-0.5">최대 1,000P 행운 획득</div>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                  <div class="font-bold text-pink-300">⚡ 2배 부스터</div>
+                  <div class="text-slate-400 mt-0.5">퀘스트 완주 시 2배 지급</div>
+                </div>
+              </div>
+            </div>
+          `,
+          buttonText: '다음 (가이드 완료) ➔'
+        },
+        {
+          step: 11,
+          title: '가이드를 모두 둘러보았습니다! 🎉',
           icon: '🚀',
           highlightId: null,
           tab: 'focus',
           openModal: null,
-          desc: '이제 수호 요정 뽀마와 함께 평화롭고 행복한 공동 육아를 시작해보세요! 🍼✨',
+          desc: '이제 수호 요정 뽀마와 함께 평화롭고 행복한 부부 공동 육아를 시작해보세요! 🍼✨<br/><br/><span class="text-amber-400 font-bold">💡 언제든 상단 [🌟 온보딩 가이드] 버튼을 누르면 다시 확인할 수 있습니다.</span>',
+          customCard: `
+            <div class="p-3 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 border border-amber-500/30 rounded-2xl text-center">
+              <span class="text-sm font-black text-amber-300">🎉 뽀마키즈 준비 완료!</span>
+            </div>
+          `,
           isFinal: true,
           buttonText: '🚀 뽀마키즈 시작하기'
         }
@@ -6247,15 +8424,18 @@
     };
 
     function startOnboardingGuide(startStep = 0) {
+      console.log('🌟 [ONBOARDING] startOnboardingGuide invoked, startStep:', startStep);
       ONBOARDING.isActive = true;
       ONBOARDING.currentStep = startStep;
-      ONBOARDING.isMatchingExpanded = false;
 
       // Ensure Mom view is focused for the tour
       setViewMode('mom');
 
       const overlay = document.getElementById('onboardingGuideOverlay');
-      if (overlay) overlay.classList.remove('hidden');
+      if (overlay) {
+        overlay.classList.remove('hidden');
+        overlay.style.display = 'flex';
+      }
 
       renderGuideStep();
     }
@@ -6270,9 +8450,12 @@
       const taskModal = document.getElementById('taskManageModal');
       const notifModal = document.getElementById('notificationModal');
       const filterModal = document.getElementById('appFilterModal');
-      if (taskModal) taskModal.classList.add('hidden');
-      if (notifModal) notifModal.classList.add('hidden');
-      if (filterModal) filterModal.classList.add('hidden');
+      [taskModal, notifModal, filterModal].forEach(modal => {
+        if (modal) {
+          modal.classList.add('hidden');
+          modal.classList.remove('guide-modal-locked');
+        }
+      });
     }
 
     function renderGuideStep() {
@@ -6292,7 +8475,7 @@
       // 2. Open actual UI modal if this step is a modal step (Hybrid Mode)
       if (step.openModal) {
         if (backdrop) {
-          backdrop.className = 'absolute inset-0 bg-black/40 backdrop-blur-[1px] pointer-events-auto';
+          backdrop.className = 'absolute inset-0 bg-black/40 backdrop-blur-[1px] pointer-events-auto cursor-default';
         }
         if (step.openModal === 'taskManageModal') {
           openTaskManageModal(null, 'mom');
@@ -6301,9 +8484,14 @@
         } else if (step.openModal === 'appFilterModal') {
           openAppFilterModal();
         }
+        // Lock modal from user touches/inputs during guide
+        const modalEl = document.getElementById(step.openModal);
+        if (modalEl) {
+          modalEl.classList.add('guide-modal-locked');
+        }
       } else {
         if (backdrop) {
-          backdrop.className = 'absolute inset-0 bg-black/75 backdrop-blur-[2px] pointer-events-auto';
+          backdrop.className = 'absolute inset-0 bg-black/75 backdrop-blur-[2px] pointer-events-auto cursor-default';
         }
       }
 
@@ -6327,121 +8515,21 @@
       const card = document.getElementById('onboardingGuideCard');
       if (!card) return;
 
-      let customContent = '';
-
-      if (step.isForm) {
-        customContent = `
-          <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 flex flex-col gap-2.5 my-1">
-            <!-- Name Input -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[11px] text-slate-400 font-bold">이름</label>
-              <input id="guideInputName" type="text" value="${ONBOARDING.userData.name}" placeholder="이름을 입력하세요" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-amber-300 font-bold focus:border-amber-400 focus:outline-none" />
-            </div>
-
-            <!-- Gender Toggle -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[11px] text-slate-400 font-bold">성별</label>
-              <div class="flex gap-2">
-                <button type="button" onclick="setGuideGender('female')" class="flex-1 py-1.5 rounded-xl border text-xs font-bold transition ${ONBOARDING.userData.gender === 'female' ? 'bg-rose-500/20 border-rose-400 text-rose-300 shadow-sm' : 'bg-slate-900 border-slate-700 text-slate-400'}">
-                  👩 여성
-                </button>
-                <button type="button" onclick="setGuideGender('male')" class="flex-1 py-1.5 rounded-xl border text-xs font-bold transition ${ONBOARDING.userData.gender === 'male' ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-sm' : 'bg-slate-900 border-slate-700 text-slate-400'}">
-                  👨 남성
-                </button>
-              </div>
-            </div>
-
-            <!-- Relation Toggle -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[11px] text-slate-400 font-bold">관계</label>
-              <div class="grid grid-cols-3 gap-1.5">
-                <button type="button" onclick="setGuideRelation('spouse')" class="py-1.5 rounded-xl border text-xs font-bold transition ${ONBOARDING.userData.relation === 'spouse' ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm' : 'bg-slate-900 border-slate-700 text-slate-400'}">
-                  💍 배우자
-                </button>
-                <button type="button" onclick="setGuideRelation('partner')" class="py-1.5 rounded-xl border text-xs font-bold transition ${ONBOARDING.userData.relation === 'partner' ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm' : 'bg-slate-900 border-slate-700 text-slate-400'}">
-                  🤝 파트너
-                </button>
-                <button type="button" onclick="setGuideRelation('other')" class="py-1.5 rounded-xl border text-xs font-bold transition ${ONBOARDING.userData.relation === 'other' ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm' : 'bg-slate-900 border-slate-700 text-slate-400'}">
-                  🌟 기타
-                </button>
-              </div>
-              ${ONBOARDING.userData.relation === 'other' ? `
-                <input id="guideInputRelationOther" type="text" value="${ONBOARDING.userData.otherText}" placeholder="관계를 직접 입력하세요 (예: 조부모, 이모)" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-amber-300 font-bold focus:border-amber-400 focus:outline-none" />
-              ` : ''}
-            </div>
-          </div>
-        `;
-      } else if (step.isMatchingPrompt) {
-        customContent = `
-          <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 flex flex-col gap-2.5 my-1">
-            <div class="font-bold text-xs text-amber-300 flex items-center gap-1.5">
-              <span>💬</span>
-              <span>지금 상대방과 매칭하시겠습니까?</span>
-            </div>
-
-            ${ONBOARDING.isMatchingExpanded ? `
-              <div class="p-3 bg-gradient-to-tr from-amber-950/50 to-slate-900 border border-amber-500/40 rounded-xl flex flex-col gap-2 animate-shield">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-slate-300 font-medium">나의 부부 매칭 초대 코드:</span>
-                  <span class="px-2 py-0.5 rounded bg-amber-500/30 text-amber-200 font-mono font-black text-xs">BBOMA-7749</span>
-                </div>
-                <button type="button" onclick="copyGuideInviteCode()" class="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black rounded-xl text-xs shadow transition flex items-center justify-center gap-1.5">
-                  <span>📋 초대 링크 & 코드 복사하기</span>
-                </button>
-                <p class="text-[10px] text-slate-400 text-center">상대방 스마트폰에 코드를 전달하면 즉시 1:1 매칭됩니다.</p>
-              </div>
-            ` : ''}
-
-            <div class="flex flex-col gap-1.5 pt-1">
-              ${!ONBOARDING.isMatchingExpanded ? `
-                <button type="button" onclick="expandGuideMatching()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-slate-950 font-black rounded-xl text-xs shadow transition flex items-center justify-center gap-1.5">
-                  <span>🔗 지금 바로 매칭하기</span>
-                </button>
-              ` : `
-                <button type="button" onclick="nextGuideStep()" class="w-full py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black rounded-xl text-xs shadow transition flex items-center justify-center gap-1.5">
-                  <span>✅ 매칭 안내 확인 (다음으로) ➔</span>
-                </button>
-              `}
-              <button type="button" onclick="nextGuideStep()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-700 transition flex items-center justify-center gap-1">
-                <span>⏳ 나중에 매칭할게요 (가이드 계속하기)</span>
-              </button>
-            </div>
-          </div>
-        `;
-      } else if (step.isFocusPrompt) {
-        customContent = `
-          <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 flex flex-col gap-2.5 my-1">
-            <div class="font-bold text-xs text-amber-300 flex items-center gap-1.5">
-              <span>💬</span>
-              <span>육아 집중 시간을 지금 사용해보시겠습니까?</span>
-            </div>
-            <div class="flex flex-col gap-1.5 pt-1">
-              <button type="button" onclick="handleGuideFocusChoice('use')" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-slate-950 font-black rounded-xl text-xs shadow transition flex items-center justify-center gap-1.5">
-                <span>👶 네, 시간 설정해볼래요! (추천)</span>
-              </button>
-              <button type="button" onclick="handleGuideFocusChoice('later')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-700 transition flex items-center justify-center gap-1">
-                <span>⏳ 나중에 설정할게요 (가이드 완료로 이동)</span>
-              </button>
-            </div>
-          </div>
-        `;
-      }
-
       card.innerHTML = `
         <!-- Top Step Header -->
         <div class="flex items-center justify-between pb-1 border-b border-slate-800">
           <div class="flex items-center gap-1.5">
             <span class="text-base">${step.icon}</span>
-            <span class="text-[11px] font-black text-amber-300">뽀마 온보딩 가이드 (${step.step + 1} / 10)</span>
+            <span class="text-[11px] font-black text-amber-300">뽀마 온보딩 가이드 (${step.step + 1} / ${ONBOARDING.steps.length})</span>
           </div>
-          <button onclick="skipOnboardingGuide()" class="text-slate-400 hover:text-white text-xs px-2 py-0.5 rounded-lg hover:bg-slate-800 transition">
+          <button type="button" onclick="skipOnboardingGuide()" class="text-slate-400 hover:text-white text-xs px-2 py-0.5 rounded-lg hover:bg-slate-800 transition">
             건너뛰기 ✕
           </button>
         </div>
 
         <!-- Progress Bar -->
         <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 transition-all duration-300" style="width: ${((step.step + 1) / 10) * 100}%"></div>
+          <div class="h-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 transition-all duration-300" style="width: ${((step.step + 1) / ONBOARDING.steps.length) * 100}%"></div>
         </div>
 
         <!-- Step Title & Description -->
@@ -6452,88 +8540,24 @@
           <p class="text-xs text-slate-300 leading-relaxed">${step.desc}</p>
         </div>
 
-        <!-- Custom Interactive Area (if any) -->
-        ${customContent}
+        <!-- Visual Showcase Card -->
+        ${step.customCard || ''}
 
-        <!-- Bottom Action Buttons (Hidden if step has its own choice branch) -->
-        ${!step.isMatchingPrompt && !step.isFocusPrompt ? `
-          <div class="flex items-center gap-2 pt-1">
-            ${step.step > 0 && !step.isFinal ? `
-              <button type="button" onclick="prevGuideStep()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs transition">
-                ◀ 이전
-              </button>
-            ` : ''}
-            <button type="button" onclick="${step.isFinal ? 'finishOnboardingGuide()' : 'nextGuideStep()'}" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-xs shadow-lg transition flex items-center justify-center gap-1.5 active:scale-95">
-              <span>${step.buttonText || '다음 ➔'}</span>
+        <!-- Bottom Action Buttons -->
+        <div class="flex items-center gap-2 pt-1">
+          ${step.step > 0 && !step.isFinal ? `
+            <button type="button" onclick="prevGuideStep()" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs transition">
+              ◀ 이전
             </button>
-          </div>
-        ` : ''}
+          ` : ''}
+          <button type="button" onclick="${step.isFinal ? 'finishOnboardingGuide()' : 'nextGuideStep()'}" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-black text-xs shadow-lg transition flex items-center justify-center gap-1.5 active:scale-95">
+            <span>${step.buttonText || '다음 ➔'}</span>
+          </button>
+        </div>
       `;
     }
 
-    function setGuideGender(gender) {
-      ONBOARDING.userData.gender = gender;
-      renderGuideStep();
-    }
-
-    function setGuideRelation(rel) {
-      ONBOARDING.userData.relation = rel;
-      renderGuideStep();
-    }
-
-    function expandGuideMatching() {
-      ONBOARDING.isMatchingExpanded = true;
-      renderGuideStep();
-    }
-
-    function copyGuideInviteCode() {
-      showToast('📋 초대 코드(BBOMA-7749)와 링크가 복사되었습니다!');
-      logEvent('가이드 초대 코드 복사');
-    }
-
-    function handleGuideFocusChoice(choice) {
-      if (choice === 'use') {
-        ONBOARDING.currentStep = 7;
-        renderGuideStep();
-      } else {
-        ONBOARDING.currentStep = 9;
-        renderGuideStep();
-      }
-    }
-
     function nextGuideStep() {
-      if (ONBOARDING.currentStep === 1) {
-        const nameInput = document.getElementById('guideInputName');
-        const otherInput = document.getElementById('guideInputRelationOther');
-        if (nameInput && nameInput.value.trim()) {
-          ONBOARDING.userData.name = nameInput.value.trim();
-        }
-        if (otherInput && otherInput.value.trim()) {
-          ONBOARDING.userData.otherText = otherInput.value.trim();
-        }
-
-        const momUser = STATE.users.mom;
-        if (momUser) {
-          momUser.name = ONBOARDING.userData.name;
-          momUser.avatar = ONBOARDING.userData.gender === 'female' ? '👩' : '👨';
-          if (ONBOARDING.userData.relation === 'spouse') {
-            momUser.role = ONBOARDING.userData.gender === 'female' ? '엄마' : '아빠';
-          } else if (ONBOARDING.userData.relation === 'partner') {
-            momUser.role = '파트너';
-          } else {
-            momUser.role = ONBOARDING.userData.otherText || '보호자';
-          }
-        }
-
-        const nameDisplay = document.getElementById('momHeaderNameDisplay');
-        const roleDisplay = document.getElementById('momHeaderRoleDisplay');
-        if (nameDisplay) nameDisplay.innerText = ONBOARDING.userData.name;
-        if (roleDisplay && momUser) roleDisplay.innerText = `(${momUser.role})`;
-
-        renderApp('mom');
-        renderApp('dad');
-      }
-
       if (ONBOARDING.currentStep < ONBOARDING.steps.length - 1) {
         ONBOARDING.currentStep++;
         renderGuideStep();
@@ -6553,7 +8577,10 @@
       cleanupGuideHighlights();
       closeAllGuideModals();
       const overlay = document.getElementById('onboardingGuideOverlay');
-      if (overlay) overlay.classList.add('hidden');
+      if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.style.display = 'none';
+      }
       ONBOARDING.isActive = false;
       try {
         localStorage.setItem('bbomakids_onboarding_completed', 'true');
@@ -6566,54 +8593,58 @@
       cleanupGuideHighlights();
       closeAllGuideModals();
       const overlay = document.getElementById('onboardingGuideOverlay');
-      if (overlay) overlay.classList.add('hidden');
+      if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.style.display = 'none';
+      }
       ONBOARDING.isActive = false;
       try {
         localStorage.setItem('bbomakids_onboarding_completed', 'true');
       } catch(e) {}
-      showToast('💡 [상단 🌟 아이콘]을 눌러 가이드를 언제든 다시 볼 수 있습니다.');
+      showToast('💡 [상단 🌟 온보딩 가이드]를 눌러 언제든 다시 볼 수 있습니다.');
     }
 
-    // Initialize
-    window.addEventListener('DOMContentLoaded', () => {
+    // Initialize App & Auto-launch Guide Tour
+    function initOnboardingLaunch() {
       initApp();
 
-      // Check if user set 'Do not show today'
-      let shouldSkip = false;
+      let onboardingDone = false;
       try {
-        const skipDate = localStorage.getItem('weparent_tutorial_skip_date');
-        if (skipDate === new Date().toDateString()) {
-          shouldSkip = true;
-        }
-      } catch(e) {}
+        const val = localStorage.getItem('bbomakids_onboarding_completed');
+        console.log('🌟 [ONBOARDING] Check localStorage bbomakids_onboarding_completed:', val);
+        onboardingDone = (val === 'true');
+      } catch(e) {
+        console.error('🌟 [ONBOARDING] LocalStorage error:', e);
+      }
 
-      // Automatically play tutorial video on app launch
-      if (!shouldSkip) {
+      if (!onboardingDone) {
+        console.log('🌟 [ONBOARDING] Fresh launch! Auto-starting guide in 500ms...');
         setTimeout(() => {
-          openTutorialVideoModal(true);
-        }, 350);
+          startOnboardingGuide(0);
+        }, 500);
       } else {
-        try {
-          const onboardingDone = localStorage.getItem('bbomakids_onboarding_completed');
-          if (!onboardingDone) {
-            setTimeout(() => {
-              startOnboardingGuide(0);
-            }, 350);
-          }
-        } catch(e) {}
+        console.log('🌟 [ONBOARDING] Guide already completed previously.');
       }
 
       setInterval(() => {
         const now = new Date();
         const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-        document.getElementById('phoneClockMom').innerText = timeStr;
-        document.getElementById('phoneClockDad').innerText = timeStr;
+        const pMom = document.getElementById('phoneClockMom');
+        const pDad = document.getElementById('phoneClockDad');
+        if (pMom) pMom.innerText = timeStr;
+        if (pDad) pDad.innerText = timeStr;
         const homeMom = document.getElementById('homeClockMom');
         const homeDad = document.getElementById('homeClockDad');
         if (homeMom) homeMom.innerText = timeStr;
         if (homeDad) homeDad.innerText = timeStr;
       }, 1000);
-    });
+    }
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', initOnboardingLaunch);
+    } else {
+      initOnboardingLaunch();
+    }
   </script>
 </body>
 </html>
