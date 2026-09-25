@@ -240,9 +240,156 @@
       user-select: none !important;
       touch-action: none !important;
     }
-    .guide-modal-locked * {
-      pointer-events: none !important;
-      user-select: none !important;
+    /* ========================================================
+       🎨 듀얼 테마 시스템 (추천이미지.png & 추천이미지2.png 벤치마킹)
+       ======================================================== */
+    /* ☀️ 화이트톤 (White Tone - 라이트 모드) */
+    body.theme-white {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    body.theme-white #desktopHeader {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05) !important;
+    }
+    body.theme-white #desktopHeader h1,
+    body.theme-white #desktopHeader span.text-white {
+      color: #0f172a !important;
+    }
+    body.theme-white .phone-screen,
+    body.theme-white .phone-container {
+      background-color: #f8fafc !important;
+      color: #0f172a !important;
+    }
+    body.theme-white .mockup-status-bar {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #64748b !important;
+    }
+    body.theme-white .mockup-status-bar span {
+      color: #334155 !important;
+    }
+    body.theme-white .mobile-app-header {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+    }
+    body.theme-white #momBottomNav,
+    body.theme-white #dadBottomNav {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.03) !important;
+    }
+    body.theme-white #momBottomNav button.text-slate-400,
+    body.theme-white #dadBottomNav button.text-slate-400 {
+      color: #94a3b8 !important;
+    }
+    body.theme-white #momBottomNav button.text-slate-400:hover,
+    body.theme-white #dadBottomNav button.text-slate-400:hover {
+      color: #3b82f6 !important;
+    }
+
+    /* 카드, 리스트 및 섹션 배경 전환 */
+    body.theme-white .bg-slate-900,
+    body.theme-white .bg-slate-900\/95,
+    body.theme-white .bg-slate-900\/90,
+    body.theme-white .bg-slate-900\/80,
+    body.theme-white .bg-slate-950,
+    body.theme-white .bg-slate-950\/80,
+    body.theme-white .bg-slate-950\/90,
+    body.theme-white .bg-slate-800\/80,
+    body.theme-white .bg-slate-800\/90 {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
+    }
+    body.theme-white .hover\:bg-slate-850:hover,
+    body.theme-white .hover\:bg-slate-800:hover,
+    body.theme-white .bg-slate-850 {
+      background-color: #f8fafc !important;
+    }
+    body.theme-white .bg-slate-800 {
+      background-color: #f1f5f9 !important;
+    }
+
+    /* 텍스트 색상 오버라이드 */
+    body.theme-white .text-white,
+    body.theme-white .text-slate-100,
+    body.theme-white .text-slate-200 {
+      color: #0f172a !important;
+    }
+    body.theme-white .text-slate-300,
+    body.theme-white .text-slate-400 {
+      color: #475569 !important;
+    }
+    body.theme-white .text-slate-500 {
+      color: #64748b !important;
+    }
+
+    /* 테두리 색상 */
+    body.theme-white .border-slate-800,
+    body.theme-white .border-slate-800\/80,
+    body.theme-white .border-slate-800\/60,
+    body.theme-white .border-slate-700,
+    body.theme-white .border-slate-700\/80,
+    body.theme-white .border-slate-900 {
+      border-color: #e2e8f0 !important;
+    }
+
+    /* 인풋 및 폼 필드 */
+    body.theme-white input[type="text"],
+    body.theme-white input[type="number"],
+    body.theme-white select,
+    body.theme-white textarea {
+      background-color: #f8fafc !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    body.theme-white input::placeholder,
+    body.theme-white textarea::placeholder {
+      color: #94a3b8 !important;
+    }
+
+    /* 팝업 모달 다이얼로그 (배경 딤은 유지, 박스는 깨끗한 화이트) */
+    body.theme-white #ruleSettingsModal > div,
+    body.theme-white #rouletteModal > div,
+    body.theme-white #gifticonShopModal > div,
+    body.theme-white #coupangShoppingModal > div,
+    body.theme-white #parentingReportModal > div,
+    body.theme-white #notificationModal > div,
+    body.theme-white #userProfileModal > div,
+    body.theme-white #penaltyManageModal > div,
+    body.theme-white #appFilterModal > div,
+    body.theme-white #taskDetailModal > div,
+    body.theme-white #taskCreateModal > div,
+    body.theme-white #gifticonDetailModal > div {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25) !important;
+    }
+
+    /* 🌙 네이비톤 (Navy Tone - 다크 모드) */
+    body.theme-navy {
+      background-color: #070c18 !important;
+      color: #f8fafc !important;
+    }
+    body.theme-navy .phone-screen,
+    body.theme-navy .phone-container {
+      background-color: #0b132b !important;
+      color: #f8fafc !important;
+    }
+    body.theme-navy .bg-slate-900,
+    body.theme-navy .bg-slate-950 {
+      background-color: #131d38 !important;
+      border-color: #1e293b !important;
+    }
+    body.theme-navy .mobile-app-header,
+    body.theme-navy #momBottomNav,
+    body.theme-navy #dadBottomNav {
+      background-color: #0f172a !important;
+      border-color: #1e293b !important;
     }
   </style>
 
@@ -310,7 +457,7 @@
 
   <!-- ⚙️ Rule Settings Modal (User Profile & Angel Defense Goal) -->
   <div id="ruleSettingsModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-5 md:p-6 max-w-lg w-full shadow-2xl relative animate-shield text-slate-100 flex flex-col gap-3.5">
+    <div class="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-5 md:p-6 max-w-lg w-full shadow-2xl relative animate-shield text-slate-100 flex flex-col gap-3.5 max-h-[90vh] overflow-y-auto">
       <button onclick="closeRuleSettingsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
       
       <!-- Modal Header -->
@@ -323,7 +470,7 @@
             <span>부부 육아 설정 & 규칙</span>
             <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">부부 설정</span>
           </h2>
-          <p class="text-xs text-slate-400">내 프로필 정보 및 부부 상호작용 규칙을 관리합니다.</p>
+          <p class="text-xs text-slate-400">내 프로필, 디자인 테마, 위트 알림 및 부부 규칙을 관리합니다.</p>
         </div>
       </div>
 
@@ -346,8 +493,68 @@
         </button>
       </div>
 
+      <!-- 🎨 Theme Preference Section (White Tone vs Navy Tone) -->
+      <div class="border-t border-slate-800 pt-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🎨</span>
+            <h3 class="text-xs font-black text-slate-200">화면 디자인 & 색상 테마</h3>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold">듀얼 테마</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-2.5">원하시는 배경과 카드 색상 스타일을 선택하세요.</p>
+        
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- White Theme Button -->
+          <button type="button" id="themeBtn_white" onclick="setAppTheme('white')" class="p-3 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1 bg-slate-800/80 border-slate-700 hover:border-slate-500">
+            <span class="text-xl">☀️</span>
+            <span class="font-extrabold text-xs text-white">화이트톤 (밝은 테마)</span>
+            <span class="text-[9px] text-slate-400 leading-tight">화사하고 눈이 편안한 토스 스타일</span>
+          </button>
+          <!-- Navy Theme Button -->
+          <button type="button" id="themeBtn_navy" onclick="setAppTheme('navy')" class="p-3 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1 bg-slate-800/80 border-slate-700 hover:border-slate-500">
+            <span class="text-xl">🌙</span>
+            <span class="font-extrabold text-xs text-white">네이비톤 (다크 테마)</span>
+            <span class="text-[9px] text-slate-400 leading-tight">밤 육아에 눈이 편안한 딥 네이비</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 🔔 BankSalad Style Smart Parenting Nudge Section -->
+      <div class="border-t border-slate-800 pt-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🔔</span>
+            <h3 class="text-xs font-black text-slate-200">뱅크샐러드형 위트/팩폭 잔소리 알림</h3>
+          </div>
+          <!-- ON/OFF Switch -->
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="smartNudgeToggleInput" class="sr-only peer" onchange="toggleSmartNudge(this.checked)" checked>
+            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+          </label>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-2 leading-relaxed">
+          앱을 안 켜도 낮 시간 미완료 할 일(기저귀, 장보기 등), 집중 모드 0분, 기저귀 지출 리포트를 분석해 <strong class="text-amber-300">"니 꿈이 폰중독 부모야?!"</strong> 식의 재치 있는 팩폭 푸시를 보내드려요.
+        </p>
+
+        <!-- Preview Sample Banner -->
+        <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2 mb-2 text-left">
+          <span class="text-base shrink-0">💡</span>
+          <div class="text-[10px] text-amber-200/90 leading-snug">
+            <strong class="text-amber-300 font-bold block mb-0.5">실제 발송되는 멘트 예시:</strong>
+            "아빠! 오늘 기저귀 사기로 한 거 안 잊었죠? 기저귀 떨어지면 손빨래 각이에요!"<br/>
+            "엄마아빠! 이번 달 기저귀·생필품 148,000원 쓰셨네요! 그래도 쿠팡 2%로 2,960P 건져서 저금통에 쏙!"
+          </div>
+        </div>
+
+        <!-- Test Trigger Button -->
+        <button type="button" onclick="triggerSmartNudge(STATE.viewMode === 'dad' ? 'dad' : 'mom', true)" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-bold text-xs shadow transition active:scale-95 flex items-center justify-center gap-1.5">
+          <span>🧪 지금 잔소리 알림 받아보기 (테스트)</span>
+        </button>
+      </div>
+
       <!-- Sub Header: Angel Defense Goal -->
-      <div class="border-t border-slate-800 pt-2">
+      <div class="border-t border-slate-800 pt-3">
         <div class="flex items-center gap-2 mb-1">
           <span class="text-base">👼</span>
           <h3 class="text-xs font-black text-slate-200">천사 배우자 방어권 목표 설정</h3>
@@ -357,9 +564,9 @@
       </div>
 
       <!-- 3 Preset Cards -->
-      <div class="grid grid-cols-3 gap-3 my-4">
+      <div class="grid grid-cols-3 gap-3 my-3">
         <!-- 3회 Card -->
-        <button id="cardThreshold3" onclick="selectAngelThreshold(3)" class="p-3.5 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1.5 bg-slate-800/80 border-slate-700 hover:border-slate-500">
+        <button id="cardThreshold3" onclick="selectAngelThreshold(3)" class="p-3 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1.5 bg-slate-800/80 border-slate-700 hover:border-slate-500">
           <span class="text-2xl">⚡</span>
           <span class="font-extrabold text-sm text-white">3회 달성</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-bold">빠른 보상형</span>
@@ -367,7 +574,7 @@
         </button>
 
         <!-- 5회 Card (Default Recommended) -->
-        <button id="cardThreshold5" onclick="selectAngelThreshold(5)" class="p-3.5 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1.5 bg-gradient-to-b from-pink-950/60 to-slate-800 border-pink-500 shadow-lg scale-105">
+        <button id="cardThreshold5" onclick="selectAngelThreshold(5)" class="p-3 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1.5 bg-gradient-to-b from-pink-950/60 to-slate-800 border-pink-500 shadow-lg scale-105">
           <span class="text-2xl">⭐</span>
           <span class="font-extrabold text-sm text-pink-300">5회 달성</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/30 text-pink-200 font-bold border border-pink-400">추천 밸런스</span>
@@ -375,7 +582,7 @@
         </button>
 
         <!-- 10회 Card -->
-        <button id="cardThreshold10" onclick="selectAngelThreshold(10)" class="p-3.5 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1.5 bg-slate-800/80 border-slate-700 hover:border-slate-500">
+        <button id="cardThreshold10" onclick="selectAngelThreshold(10)" class="p-3 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1.5 bg-slate-800/80 border-slate-700 hover:border-slate-500">
           <span class="text-2xl">🏆</span>
           <span class="font-extrabold text-sm text-white">10회 달성</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold">도전 마스터</span>
@@ -384,7 +591,7 @@
       </div>
 
       <!-- Stepper for Custom Number -->
-      <div class="bg-slate-950 rounded-2xl p-3 border border-slate-800 flex items-center justify-between mb-5">
+      <div class="bg-slate-950 rounded-2xl p-3 border border-slate-800 flex items-center justify-between mb-2">
         <span class="text-xs font-semibold text-slate-300">직접 미세 조정:</span>
         <div class="flex items-center gap-3">
           <button onclick="stepAngelThreshold(-1)" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-base flex items-center justify-center transition">-</button>
@@ -395,7 +602,7 @@
 
       <!-- Confirm Button -->
       <button onclick="confirmRuleSettings()" class="w-full py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-2xl font-bold text-sm shadow-xl flex items-center justify-center gap-2 transition">
-        <span>✨ 이 목표로 합의 및 확정하기</span>
+        <span>✨ 설정 및 규칙 저장하기</span>
       </button>
     </div>
   </div>
@@ -1761,6 +1968,9 @@
 
           <!-- Right Action Icons -->
           <div id="momHeaderActions" class="flex items-center gap-1">
+            <button onclick="toggleAppTheme()" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="화이트/네이비 테마 즉시 전환">
+              <span class="theme-toggle-icon text-xs">☀️</span>
+            </button>
             <button onclick="openParentingReportModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-slate-800 transition" title="부부 통계/비교">
               <span class="text-xs">📊</span>
             </button>
@@ -1953,6 +2163,9 @@
 
           <!-- Right Action Icons -->
           <div id="dadHeaderActions" class="flex items-center gap-1">
+            <button onclick="toggleAppTheme()" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition" title="화이트/네이비 테마 즉시 전환">
+              <span class="theme-toggle-icon text-xs">☀️</span>
+            </button>
             <button onclick="openParentingReportModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-slate-800 transition" title="부부 통계/비교">
               <span class="text-xs">📊</span>
             </button>
@@ -2176,6 +2389,17 @@
     const STATE = {
       mode: 'easy',
       viewMode: 'dual',
+      theme: (function() {
+        try {
+          return localStorage.getItem('bboma_app_theme') || 'white';
+        } catch(e) { return 'white'; }
+      })(),
+      smartNudgeEnabled: (function() {
+        try {
+          const val = localStorage.getItem('bboma_smart_nudge_enabled');
+          return val !== null ? val === 'true' : true;
+        } catch(e) { return true; }
+      })(),
       tutorial: {
         currentScene: 1,
         totalScenes: 5
@@ -3663,6 +3887,199 @@
       const pAvatar = document.getElementById('ruleSettingsProfileAvatar');
       if (pName && activeUser) pName.innerText = `${activeUser.name} (${activeUser.role})`;
       if (pAvatar && activeUser) pAvatar.innerText = activeUser.avatar;
+
+      // Update Theme buttons UI
+      setAppTheme(STATE.theme || 'white', false);
+
+      // Update Smart Nudge toggle switch
+      const nudgeToggle = document.getElementById('smartNudgeToggleInput');
+      if (nudgeToggle) nudgeToggle.checked = !!STATE.smartNudgeEnabled;
+    }
+
+    // --- 🎨 Dual Theme System Logic (White Tone & Navy Tone) ---
+    function setAppTheme(theme, showFeedback = false) {
+      if (theme !== 'white' && theme !== 'navy') theme = 'white';
+      STATE.theme = theme;
+      try {
+        localStorage.setItem('bboma_app_theme', theme);
+      } catch(e) {}
+
+      document.body.classList.remove('theme-white', 'theme-navy');
+      document.body.classList.add('theme-' + theme);
+
+      // Header Icon Toggle Update
+      document.querySelectorAll('.theme-toggle-icon').forEach(el => {
+        el.innerText = theme === 'white' ? '☀️' : '🌙';
+      });
+
+      // Update Settings Modal Buttons UI
+      const btnWhite = document.getElementById('themeBtn_white');
+      const btnNavy = document.getElementById('themeBtn_navy');
+      if (btnWhite && btnNavy) {
+        if (theme === 'white') {
+          btnWhite.className = 'p-3 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1 bg-blue-500/20 border-blue-500 shadow-md scale-102';
+          btnNavy.className = 'p-3 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1 bg-slate-800/80 border-slate-700 hover:border-slate-500 opacity-70';
+        } else {
+          btnWhite.className = 'p-3 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1 bg-slate-800/80 border-slate-700 hover:border-slate-500 opacity-70';
+          btnNavy.className = 'p-3 rounded-2xl border-2 transition-all flex flex-col items-center text-center gap-1 bg-indigo-950/80 border-indigo-500 shadow-md scale-102';
+        }
+      }
+
+      if (showFeedback) {
+        showToast(theme === 'white' ? '☀️ 화이트톤(밝은 모드)이 적용되었습니다.' : '🌙 네이비톤(다크 모드)이 적용되었습니다.');
+      }
+
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics) {
+        try { window.Capacitor.Plugins.Haptics.impact({ style: 'LIGHT' }); } catch(e) {}
+      }
+    }
+
+    function toggleAppTheme() {
+      const nextTheme = STATE.theme === 'white' ? 'navy' : 'white';
+      setAppTheme(nextTheme, true);
+    }
+
+    // --- 🔔 BankSalad Style Smart Parenting Nudge Logic ---
+    function toggleSmartNudge(enabled) {
+      STATE.smartNudgeEnabled = !!enabled;
+      try {
+        localStorage.setItem('bboma_smart_nudge_enabled', STATE.smartNudgeEnabled ? 'true' : 'false');
+      } catch(e) {}
+      showToast(STATE.smartNudgeEnabled ? '🔔 뽀마의 위트/팩폭 잔소리 알림이 켜졌습니다.' : '🔕 뽀마의 잔소리 알림이 꺼졌습니다.');
+    }
+
+    function generateSmartNudge(userKey) {
+      const user = STATE.users[userKey] || STATE.users.mom;
+      const userName = user.name || (userKey === 'mom' ? '엄마' : '아빠');
+      
+      // 1) 미완료 할 일 탐색
+      const myTasks = (STATE.tasks || []).filter(t => t.assignee === userKey && !t.completed);
+      const diaperTask = myTasks.find(t => (t.title || '').includes('기저귀'));
+      const shoppingTask = myTasks.find(t => /장보기|생수|휴지|세제|반찬|식품|우유|물티슈|마트/.test(t.title || ''));
+      const otherUndone = myTasks[0];
+
+      // 풀 구성
+      const quotes = [];
+
+      // A: 기저귀 팩폭
+      if (diaperTask) {
+        quotes.push({
+          category: 'task_diaper',
+          icon: '👶',
+          title: `👶 뽀마의 팩폭 육아 레이더`,
+          body: `${userName}! 오늘 [${diaperTask.title}] 사기로 한 거 안 잊었죠? 기저귀 떨어지면 손빨래 각이에요! 뽀마 엉덩이가 울고 있어요 😭`
+        });
+      }
+
+      // B: 생필품·장보기 팩폭
+      if (shoppingTask) {
+        quotes.push({
+          category: 'task_shop',
+          icon: '🛒',
+          title: `🛒 냉장고 & 생필품 긴급 점검`,
+          body: `${userName}! 장바구니 생필품 주문 깜빡하셨나요? 쿠팡 2% 저금통 적립도 챙기고 오늘 저녁 배식 대란을 막으세요!`
+        });
+      }
+
+      // C: 일반 미완료 할 일
+      if (otherUndone && !diaperTask && !shoppingTask) {
+        quotes.push({
+          category: 'task_general',
+          icon: '📝',
+          title: `📝 등록해놓고 어디 가셨나요?!`,
+          body: `${userName}! 오늘 등록한 '${otherUndone.title}'(외 ${myTasks.length}건)가 기다리고 있어요. 설마 배우자 몰래 숏폼 보시는 중?! 👀`
+        });
+      }
+
+      // D: 집중 모드 0분 팩폭 ("스마트폰이 아기인가요? 니 꿈이 폰중독 부모야?!")
+      const todayFocusMins = user.focusActive ? Math.floor((user.focusTotalSeconds - user.focusSecondsLeft) / 60) : 0;
+      if (todayFocusMins === 0) {
+        quotes.push({
+          category: 'focus_zero',
+          icon: '📱',
+          title: `📱 혹시 스마트폰이 아기인가요?!`,
+          body: `${userName}! 오늘 온전한 육아 집중 모드가 0분입니다. 네 꿈이 폰중독 부모야?! 지금 당장 15분만 폰 내려놓고 눈맞춤 퀘스트 시작하세요!`
+        });
+        quotes.push({
+          category: 'focus_zero_2',
+          icon: '🚨',
+          title: `🚨 뽀마 긴급 제보`,
+          body: `아기가 스마트폰을 엄마/아빠의 진짜 자식으로 오해하기 일보 직전입니다! 지금 바로 노폰 집중 모드 ON!`
+        });
+      }
+
+      // E: 한달 기저귀/생필품 지출 & 쿠팡 적립 브리핑
+      quotes.push({
+        category: 'expense_report',
+        icon: '💸',
+        title: `💸 이번 달 기저귀·생필품 가계부 브리핑`,
+        body: `${userName}! 이번 달 기저귀·분유·생필품으로 약 148,000원 쓰셨네요! 그래도 뽀마키즈 쿠팡 2%로 ${STATE.couplePoints.toLocaleString()}P 건져서 저금통에 쏙! 선방 인정! 👍`
+      });
+
+      // F: 저금통 보너스 목표 독려
+      quotes.push({
+        category: 'bank_goal',
+        icon: '☕',
+        title: `☕ 치킨 & 커피가 코앞이에요!`,
+        body: `부부 공동 저금통에 ${STATE.couplePoints.toLocaleString()}P가 모였습니다! 조금만 더 모으면 스타벅스 아메리카노 무료 쿠폰 즉시 교환!`
+      });
+
+      // 무작위 선택
+      const chosen = quotes[Math.floor(Math.random() * quotes.length)];
+      return chosen;
+    }
+
+    async function triggerSmartNudge(userKey = 'mom', isTest = false) {
+      if (!isTest && !STATE.smartNudgeEnabled) return;
+
+      const nudge = generateSmartNudge(userKey);
+      if (!nudge) return;
+
+      const targetUser = STATE.users[userKey] || STATE.users.mom;
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+      // 앱 내 알림 센터에 추가
+      const newNotif = {
+        id: 'n_nudge_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        type: 'system',
+        icon: nudge.icon,
+        title: nudge.title,
+        message: nudge.body,
+        time: timeStr,
+        read: false,
+        timestamp: Date.now()
+      };
+
+      if (!targetUser.notifications) targetUser.notifications = [];
+      targetUser.notifications.unshift(newNotif);
+      updateNotifBadges();
+
+      // 안드로이드 시스템 로컬 푸시 알림 발송
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+        try {
+          await window.Capacitor.Plugins.LocalNotifications.schedule({
+            notifications: [{
+              title: nudge.title,
+              body: nudge.body,
+              id: (Date.now() % 100000) + 1000,
+              schedule: { at: new Date(Date.now() + 300) },
+              sound: 'beep.wav'
+            }]
+          });
+        } catch(e) {}
+      }
+
+      // 화면에 시각적 토스트 피드백 표시
+      showToast(`🔔 [뽀마 팩폭 알림] ${nudge.body}`);
+
+      // 알림 센터 모달이 열려있다면 즉시 새로고침
+      const notifModal = document.getElementById('notificationModal');
+      if (notifModal && !notifModal.classList.contains('hidden') && currentNotifUser === userKey) {
+        renderNotificationList();
+      }
+
+      logEvent(`[스마트 팩폭 알림 발송] ${targetUser.name} : ${nudge.title} - "${nudge.body}"`);
     }
 
     function confirmRuleSettings() {
@@ -5014,9 +5431,9 @@
             </span>
           </div>
 
-          <div class="flex items-center gap-2 w-full min-w-0">
-            <input type="text" id="bankCoupangQuickInput" placeholder="예: 3겹 롤화장지, 생수, 세제, 밀키트..." class="flex-1 min-w-0 w-0 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 text-xs focus:border-[#3182f6] outline-none font-medium" value="3겹 롤화장지" onkeydown="if(event.key === 'Enter') launchCoupangSearchDirect(this.value);" />
-            <button type="button" onclick="launchCoupangSearchDirect(document.getElementById('bankCoupangQuickInput').value)" class="px-3 py-2 rounded-xl bg-[#3182f6] hover:bg-blue-600 text-white font-black text-xs shadow transition active:scale-95 shrink-0 whitespace-nowrap">
+          <div class="relative w-full min-w-0">
+            <input type="text" id="bankCoupangQuickInput" placeholder="예: 3겹 롤화장지, 생수, 세제, 밀키트..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-3 pr-20 py-2.5 text-white placeholder-slate-500 text-xs focus:border-[#3182f6] outline-none font-medium box-border" value="3겹 롤화장지" onkeydown="if(event.key === 'Enter') launchCoupangSearchDirect(this.value);" />
+            <button type="button" onclick="launchCoupangSearchDirect(document.getElementById('bankCoupangQuickInput').value)" class="absolute right-1 top-1 bottom-1 px-3 rounded-lg bg-[#3182f6] hover:bg-blue-600 text-white font-black text-xs shadow transition active:scale-95 flex items-center justify-center whitespace-nowrap">
               검색 ➔
             </button>
           </div>
@@ -8092,6 +8509,9 @@
     function initAppLaunch() {
       initApp();
 
+      // Initialize App Theme (White / Navy)
+      setAppTheme(STATE.theme || 'white', false);
+
       setInterval(() => {
         const now = new Date();
         const timeStr = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -8104,6 +8524,16 @@
         if (homeMom) homeMom.innerText = timeStr;
         if (homeDad) homeDad.innerText = timeStr;
       }, 1000);
+
+      // Periodic Background Smart Nudge Engine (Checks daytime uncompleted tasks / 0m focus)
+      setInterval(() => {
+        if (STATE.smartNudgeEnabled) {
+          const hour = new Date().getHours();
+          if (hour >= 11 && hour <= 19) {
+            triggerSmartNudge(STATE.viewMode === 'dad' ? 'dad' : 'mom');
+          }
+        }
+      }, 20 * 60 * 1000); // Every 20 mins in daytime
     }
 
     if (document.readyState === 'loading') {
