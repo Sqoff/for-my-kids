@@ -22,7 +22,15 @@
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+      /* 한글 단어 중간 줄바꿈 금지 (예: '추 / 천' 방지). 너무 긴 단어만 넘칠 때 끊음 */
+      word-break: keep-all;
+      overflow-wrap: break-word;
     }
+    /* 제목은 줄 길이를 고르게, 본문은 마지막 줄에 한 글자만 남는 현상 방지 */
+    h1, h2, h3, h4, h5, .qb-title { text-wrap: balance; }
+    p, .qb-sub { text-wrap: pretty; }
+    /* 자동 글자 맞춤(autoFitLabels)으로 한 줄 고정된 라벨 */
+    .fit-one-line { white-space: nowrap !important; }
     ::-webkit-scrollbar {
       width: 4px;
       height: 4px;
@@ -248,7 +256,7 @@
     /* 🎠 퀘스트 광고형 배너 캐러셀 (좌우 스와이프 + scroll-snap + 햅틱) */
     .quest-carousel {
       display: flex; gap: 10px; overflow-x: auto; overflow-y: hidden;
-      margin: 0 -14px; padding: 4px 8% 6px;
+      margin: 0 calc(-1 * var(--cx-bleed, 14px)); padding: 4px 8% 6px;
       scroll-snap-type: x mandatory; scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
       scrollbar-width: none;
@@ -428,6 +436,55 @@
     body.theme-white .tint-soft .text-lime-300,
     body.theme-white .tint-soft.text-lime-400,
     body.theme-white .tint-soft .text-lime-400 { color: #4D7C0F !important; }
+    /* 패널티 목록/관리 · AI 맞춤 추천 버튼 (양 테마 명시 색상) */
+    .penalty-action-btn.is-list { background: #16213E; border-color: rgba(255,255,255,0.12); color: #E2E8F0; }
+    .penalty-action-btn.is-ai { background: #3182F6; border-color: #3182F6; color: #FFFFFF; }
+    .penalty-action-btn.is-ai:hover { background: #1B64DA; }
+    body.theme-white .penalty-action-btn.is-list { background: #FFFFFF !important; border-color: #E5E8EB; color: #191F28 !important; }
+    body.theme-white .penalty-action-btn.is-list * { color: #191F28 !important; }
+    body.theme-white .penalty-action-btn.is-ai,
+    body.theme-white .penalty-action-btn.is-ai * { color: #FFFFFF !important; }
+    body.theme-white .penalty-action-btn.is-ai { background: #3182F6 !important; }
+    /* 알림 탭 시 이동한 대상 강조 */
+    @keyframes notifTargetFlash { 0%, 100% { box-shadow: 0 0 0 0 rgba(49,130,246,0); } 30% { box-shadow: 0 0 0 4px rgba(49,130,246,0.55); } }
+    .notif-target-flash { animation: notifTargetFlash 1.2s ease 2; }
+    /* 🎟️ 페널티권 카드 (퀘스트 배너 캐러셀과 동일한 스와이프 프레임) */
+    .quest-banner.penalty-card { aspect-ratio: auto; min-height: 188px; padding: 16px 16px 14px; cursor: default; }
+    .penalty-card .qb-body { max-width: calc(100% - 78px); }
+    .penalty-card .qb-title { font-size: 17px; margin-top: 5px; }
+    .penalty-card .qb-sub { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .penalty-card .qb-icon { width: 64px; height: 64px; font-size: 36px; border-radius: 20px; top: 16px; transform: none; }
+    .penalty-card .qb-counter { top: 88px; bottom: auto; right: 16px; }
+    .penalty-card .pc-actions { margin-top: auto; padding-top: 12px; display: flex; align-items: center; gap: 6px; }
+    .pc-btn { padding: 7px 11px; border-radius: 12px; font-size: 11.5px; font-weight: 800; white-space: nowrap;
+      background: rgba(255,255,255,0.08); color: #E2E8F0; border: 1px solid rgba(255,255,255,0.1); transition: transform .15s ease; }
+    .pc-btn:active { transform: scale(0.95); }
+    .pc-btn.is-danger { color: #FB7185; }
+    .pc-btn.is-primary { margin-left: auto; background: #E11D48; border-color: #E11D48; color: #FFFFFF; padding: 8px 14px; font-weight: 900; }
+    .pc-btn.is-locked { margin-left: auto; background: rgba(255,255,255,0.05); color: #94A3B8; cursor: not-allowed; }
+    body.theme-white .pc-btn { background: rgba(255,255,255,0.85) !important; color: #333D4B !important; border-color: #E5E8EB; }
+    body.theme-white .pc-btn.is-danger { color: #E11D48 !important; }
+    body.theme-white .pc-btn.is-primary { background: #E11D48 !important; border-color: #E11D48; color: #FFFFFF !important; }
+    body.theme-white .pc-btn.is-locked { background: #F2F4F6 !important; color: #8B95A1 !important; }
+    /* 좁은 모달 안 캐러셀: 카드 폭 확대 + 요소 축소 */
+    .quest-carousel.is-compact { padding: 4px 5% 6px; gap: 8px; }
+    .quest-carousel.is-compact .quest-banner { flex-basis: 90%; }
+    .quest-carousel.is-compact .penalty-card { padding: 14px 13px 12px; min-height: 176px; }
+    .quest-carousel.is-compact .penalty-card .qb-title { font-size: 15.5px; }
+    .quest-carousel.is-compact .penalty-card .qb-body { max-width: calc(100% - 60px); }
+    .quest-carousel.is-compact .penalty-card .qb-icon { width: 50px; height: 50px; font-size: 28px; border-radius: 16px; top: 14px; right: 12px; }
+    .quest-carousel.is-compact .penalty-card .qb-counter { top: 70px; right: 12px; font-size: 10px; padding: 2px 8px; }
+    .quest-carousel.is-compact .pc-btn { padding: 6px 8px; font-size: 11px; }
+    .task-type-btn.is-amber { border-color: #F59E0B; color: #FCD34D; }
+    .task-type-btn.is-rose { border-color: #F43F5E; color: #FDA4AF; }
+    .task-type-btn.is-sky { border-color: #0EA5E9; color: #7DD3FC; }
+    body.theme-white .task-type-btn.is-amber { border-color: #F59E0B; color: #B45309; }
+    body.theme-white .task-type-btn.is-rose { border-color: #E11D48; color: #BE123C; }
+    body.theme-white .task-type-btn.is-sky { border-color: #0284C7; color: #0369A1; }
+    /* 화이트 테마: 밝은 배경 버튼 안의 연한 글자(흰색 계열)가 사라지는 문제 보정 */
+    body.theme-white :is(button.bg-slate-950, button.bg-slate-900, button.bg-slate-800) :is(.text-white, .text-slate-100, .text-slate-200),
+    body.theme-white :is(button.bg-slate-950, button.bg-slate-900, button.bg-slate-800):is(.text-white, .text-slate-100, .text-slate-200) { color: #333D4B !important; }
+    body.theme-white :is(button.bg-slate-950, button.bg-slate-900, button.bg-slate-800) :is(.text-slate-300, .text-slate-400, .text-slate-500) { color: #6B7684 !important; }
     /* 할 일 유형 선택 버튼: 선택 시 배경은 그대로 두고 테두리+글자색만 강조 */
     .task-type-btn { background: #020617; border-color: #334155; color: #94a3b8; }
     .task-type-btn.is-routine { border-color: #6366f1; color: #a5b4fc; }
@@ -1423,7 +1480,7 @@
         <div class="flex items-center justify-between mb-1.5">
           <div class="flex items-center gap-2">
             <span class="text-base">🔔</span>
-            <h3 class="text-xs font-black theme-text-primary">뱅크샐러드형 위트/팩폭 잔소리 알림</h3>
+            <h3 class="text-xs font-black theme-text-primary">위트/팩폭 잔소리 알림</h3>
           </div>
           <!-- ON/OFF Switch -->
           <label class="relative inline-flex items-center cursor-pointer">
@@ -1613,23 +1670,22 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="text-base md:text-lg font-black text-white">패널티권 관리 & AI 맞춤 추천</h2>
-            <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+            <h2 class="text-base md:text-lg font-black text-white pr-8">패널티권 관리</h2>
+            <span class="hidden md:inline-flex text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
               부부 협력 RPG
             </span>
           </div>
-          <p class="text-xs text-slate-400 mt-0.5">부부 합의로 패널티권을 추가/수정/삭제하거나, 오늘의 할 일을 AI가 분석한 추천 패널티를 바로 적용하세요.</p>
+          <p class="text-xs text-slate-400 mt-0.5">패널티권을 추가·수정하거나, 오늘 할 일 기반 AI 추천을 바로 적용하세요.</p>
         </div>
       </div>
 
       <!-- Mode Switcher Tabs -->
       <div class="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800 mb-4 shrink-0">
         <button id="penaltyTabBtn_list" onclick="switchPenaltyModalTab('list')" class="flex-1 py-2 rounded-xl font-bold text-xs bg-amber-500 text-slate-950 shadow transition flex items-center justify-center gap-1.5">
-          <span>📋 패널티권 목록 & 커스텀 관리</span>
+          <span>📋 목록 · 관리</span>
         </button>
         <button id="penaltyTabBtn_ai" onclick="switchPenaltyModalTab('ai')" class="flex-1 py-2 rounded-xl font-bold text-xs text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5">
-          <span>🤖 오늘의 할 일 기반 AI 맞춤 추천</span>
-          <span class="px-1.5 py-0.2 text-[9px] bg-pink-500/20 text-pink-300 border border-pink-500/40 rounded-full font-bold">SMART</span>
+          <span>🤖 AI 맞춤 추천</span>
         </button>
       </div>
 
@@ -1689,16 +1745,16 @@
 
         <!-- Inventory Filter & List -->
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-slate-200">현재 등록된 패널티권 목록</span>
-            <div class="flex items-center gap-1 text-[11px]">
+          <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+            <span class="font-bold text-slate-200 whitespace-nowrap">등록된 패널티권</span>
+            <div class="flex items-center gap-1 text-[11px] whitespace-nowrap">
               <button onclick="filterPenaltyList('all')" id="pFilter_all" class="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold transition">전체</button>
               <button onclick="filterPenaltyList('mom')" id="pFilter_mom" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 transition">👩 엄마 (${STATE.users.mom.penalties.length}장)</button>
               <button onclick="filterPenaltyList('dad')" id="pFilter_dad" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 transition">👨 아빠 (${STATE.users.dad.penalties.length}장)</button>
             </div>
           </div>
 
-          <div id="penaltyManageList" class="flex flex-col gap-2">
+          <div id="penaltyManageList">
             <!-- Rendered by JS -->
           </div>
         </div>
@@ -1713,7 +1769,7 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-black text-indigo-300">뽀마 AI 실시간 할 일 분석 추천 엔진</span>
+              <span class="font-black text-indigo-300 whitespace-nowrap">뽀마 AI 추천</span>
               <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
                 오늘의 할 일 <span id="aiTaskCountBadge">3건</span> 연동
               </span>
@@ -2191,12 +2247,12 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="text-base font-black text-white">협력 퀘스트 부부 맞춤 보상 설정</h2>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+            <h2 class="text-base font-black text-white pr-8">맞춤 보상 설정</h2>
+            <span class="hidden md:inline-flex text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
               부부 실물/약속 보상
             </span>
           </div>
-          <p class="text-[11px] text-slate-400">기본 보상(면제권, EXP) 외에 부부가 원하는 현실 보상을 자유롭게 등록하세요!</p>
+          <p class="text-[11px] text-slate-400">기본 보상 외에 부부가 원하는 현실 보상을 등록하세요!</p>
         </div>
       </div>
 
@@ -2211,9 +2267,9 @@
         </div>
 
         <!-- Base Reward Info (Read-only) -->
-        <div class="bg-slate-950/80 p-2.5 rounded-2xl border border-slate-800 flex items-center justify-between text-[11px]">
-          <span class="text-slate-400">⭐ 시스템 기본 보상 (고정 지급)</span>
-          <span id="rewardModal_baseRewardText" class="font-bold text-amber-300 font-mono">☕ 외식 쿠폰 1장 + ⭐ 100 EXP</span>
+        <div class="bg-slate-950/80 p-2.5 rounded-2xl border border-slate-800 flex flex-col gap-1 text-[11px]">
+          <span class="text-slate-400">⭐ 기본 보상 (고정 지급)</span>
+          <span id="rewardModal_baseRewardText" class="font-bold text-amber-300">☕ 외식 쿠폰 1장 + ⭐ 100 EXP</span>
         </div>
 
         <!-- Recipient Selector: Who receives the reward? -->
@@ -2222,7 +2278,7 @@
             👥 보상 수령 대상 <span class="text-slate-500 font-normal">(협력 퀘스트는 부부 함께 수령 추천)</span>
           </label>
           <div class="grid grid-cols-3 gap-2">
-            <button type="button" onclick="selectRewardRecipient('both')" id="recipBtn_both" class="py-2 px-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500/20 to-pink-500/20 border-amber-400 text-amber-200 shadow">
+            <button type="button" onclick="selectRewardRecipient('both')" id="recipBtn_both" class="py-2 px-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 task-type-btn is-active is-amber">
               <span>👥 부부 함께</span>
             </button>
             <button type="button" onclick="selectRewardRecipient('mom')" id="recipBtn_mom" class="py-2 px-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 bg-slate-950 border-slate-700 text-slate-400 hover:border-rose-500/50 hover:text-rose-300 transition">
@@ -3840,6 +3896,7 @@
 
     function filterPenaltyList(filter) {
       currentPenaltyFilter = filter;
+      questCarouselIndex.penaltyManageCarousel = 0;
       const bAll = document.getElementById('pFilter_all');
       const bMom = document.getElementById('pFilter_mom');
       const bDad = document.getElementById('pFilter_dad');
@@ -3882,47 +3939,12 @@
         return;
       }
 
-      container.innerHTML = items.map(p => {
-        const isMom = p.userKey === 'mom';
-        const user = STATE.users[p.userKey];
-        const cooldownRemaining = getPenaltyCooldownRemaining(p);
-        const isCooling = !!cooldownRemaining;
-
-        return `
-          <div class="bg-slate-950/90 border ${isCooling ? 'border-amber-500/50 ' : (isMom ? 'border-rose-900/60 hover:border-rose-500/60' : 'border-sky-900/60 hover:border-sky-500/60')} rounded-2xl p-3 shadow flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 transition">
-            <div class="flex items-center gap-3">
-              <span class="text-2xl p-2 rounded-xl bg-slate-900 border border-slate-800">${p.icon}</span>
-              <div>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="font-bold text-slate-100">${p.title}</span>
-                  <span class="text-[9px] px-2 py-0.5 rounded-full font-semibold ${isMom ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'}">
-                    ${user.avatar} ${user.name} 보유
-                  </span>
-                  ${isCooling ? `
-                    <span class="text-[9px] px-2 py-0.5 rounded-full font-black bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                      <span>⏳ 48시간 쿨타임 (${cooldownRemaining})</span>
-                    </span>
-                  ` : ''}
-                </div>
-                <p class="text-[11px] ${isCooling ? 'text-amber-300/80' : 'text-slate-400'} mt-0.5">${isCooling ? `🛡️ 상대방 방어권으로 튕겨남 (48시간 동안 사용 불가, 잔여: ${cooldownRemaining})` : p.desc}</p>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex items-center gap-1.5 self-end md:self-center shrink-0">
-              <button onclick="duplicatePenalty('${p.userKey}', '${p.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl font-bold text-[10px] border border-slate-700 transition flex items-center gap-1">
-                <span>+ 1장 복제</span>
-              </button>
-              <button onclick="editPenalty('${p.userKey}', '${p.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-[10px] border border-slate-700 transition flex items-center gap-1">
-                <span>✏️ 수정</span>
-              </button>
-              <button onclick="deletePenalty('${p.userKey}', '${p.id}')" class="px-2.5 py-1 bg-slate-950 tint-soft hover:bg-slate-800 text-rose-300 rounded-xl font-bold text-[10px] border border-rose-800/60 transition flex items-center gap-1">
-                <span>🗑️ 삭제</span>
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
+      container.innerHTML = `
+        <div class="quest-carousel is-compact" id="penaltyManageCarousel" style="--cx-bleed:0px;" onscroll="onQuestCarouselScroll(this)">
+          ${items.map((p, i) => renderPenaltySwipeCard(p, p.userKey, i, items.length, 'manage')).join('')}
+        </div>
+      `;
+      requestAnimationFrame(setupQuestCarousels);
     }
 
     function savePenaltyForm() {
@@ -4357,7 +4379,7 @@
         }
 
         return `
-          <div onclick="markNotificationAsRead('${currentNotifUser}', '${item.id}')" class="p-3 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-2.5 ${isUnread ? 'bg-slate-950/90 border-indigo-500/70 shadow-lg shadow-indigo-500/5' : 'bg-slate-950/40 border-slate-800/80 opacity-80 hover:opacity-100'}">
+          <div onclick="openNotificationTarget('${currentNotifUser}', '${item.id}')" class="p-3 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-2.5 ${isUnread ? 'bg-slate-950/90 border-indigo-500/70 shadow-lg shadow-indigo-500/5' : 'bg-slate-950/40 border-slate-800/80 opacity-80 hover:opacity-100'}">
             <div class="flex items-start gap-2.5 flex-1 min-w-0">
               <span class="text-xl p-1.5 rounded-xl bg-slate-900 border border-slate-800 shrink-0 mt-0.5">${item.icon || '🔔'}</span>
               <div class="flex-1 min-w-0">
@@ -4370,6 +4392,7 @@
                 <div class="text-[9px] text-slate-500 mt-1 flex items-center gap-1 font-mono">
                   <i data-lucide="clock" class="w-2.5 h-2.5"></i>
                   <span>${item.time}</span>
+                  <span class="ml-auto font-sans font-bold text-blue-500">${getNotificationRoute(currentNotifUser, item).label} ›</span>
                 </div>
               </div>
             </div>
@@ -4384,6 +4407,114 @@
 
       lucide.createIcons();
       updateNotifBadges();
+    }
+
+    // 텍스트 노드가 실제로 두 줄 이상으로 꺾였는지 (아이콘이 위아래로 쌓인 버튼과 구분)
+    function textWraps(el) {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      const range = document.createRange();
+      let node;
+      while ((node = walker.nextNode())) {
+        if (!node.textContent.trim()) continue;
+        range.selectNodeContents(node);
+        const tops = new Set([...range.getClientRects()].filter(r => r.width > 0).map(r => Math.round(r.top)));
+        if (tops.size > 1) return true;
+      }
+      return false;
+    }
+
+    // 🔤 자동 글자 맞춤: 짧은 버튼/칩 라벨이 두 줄로 꺾이면 글자를 최대 80%까지 줄여 한 줄로 맞춤
+    function autoFitLabels(root = document) {
+      const SCALES = [0.94, 0.88, 0.82, 0.8];
+      root.querySelectorAll('button, [data-fit]').forEach(el => {
+        if (!el.offsetParent) return;
+        const text = el.innerText.trim();
+        if (el.dataset.fitText === text) return;
+        // 원래 크기로 되돌린 뒤 다시 측정
+        if (el.dataset.fitText !== undefined) {
+          el.classList.remove('fit-one-line');
+          [el, ...el.querySelectorAll('*')].forEach(n => { if (n.dataset.fitOrig) { n.style.fontSize = ''; delete n.dataset.fitOrig; } });
+        }
+        el.dataset.fitText = text;
+        if (!text || text.length > 24 || text.includes('\n')) return;
+        if (!textWraps(el)) return; // 이미 한 줄
+        const nodes = [el, ...el.querySelectorAll('*')];
+        nodes.forEach(n => { n.dataset.fitOrig = parseFloat(getComputedStyle(n).fontSize); });
+        el.classList.add('fit-one-line');
+        const parent = el.parentElement;
+        for (const k of SCALES) {
+          nodes.forEach(n => { n.style.fontSize = (n.dataset.fitOrig * k) + 'px'; });
+          if (el.scrollWidth <= el.clientWidth + 1 && (!parent || parent.scrollWidth <= parent.clientWidth + 1)) return;
+        }
+        // 80%로도 안 들어가면 원래대로 (단어 단위 줄바꿈 유지)
+        el.classList.remove('fit-one-line');
+        nodes.forEach(n => { n.style.fontSize = ''; delete n.dataset.fitOrig; });
+      });
+    }
+
+    (function setupAutoFitLabels() {
+      let scheduled = false;
+      const run = () => { scheduled = false; try { autoFitLabels(); } catch (e) {} };
+      const schedule = () => { if (!scheduled) { scheduled = true; requestAnimationFrame(run); } };
+      const start = () => {
+        new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+        window.addEventListener('resize', () => {
+          document.querySelectorAll('[data-fit-text]').forEach(el => delete el.dataset.fitText);
+          schedule();
+        });
+        schedule();
+      };
+      if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+    })();
+
+    // 🔗 알림 탭 → 관련 화면으로 즉시 이동
+    function getNotificationRoute(userKey, item) {
+      const title = item.title || '';
+      const msg = item.message || '';
+      const user = STATE.users[userKey];
+      if (/공격|페널티권 사용|패널티권 사용/.test(title)) {
+        return { tab: 'point', pointSub: 'battle', focus: user && user.incomingPenalty ? 'incoming' : null, label: user && user.incomingPenalty ? '수락/방어하기' : '페널티 보기' };
+      }
+      if (/기프티콘/.test(title)) return { tab: 'point', pointSub: 'bank', label: '저금통 보기' };
+      if (/퀘스트|달성|완주|보상 설정/.test(title)) return { tab: 'quest', label: '퀘스트 보기' };
+      if (/쿠폰/.test(title)) return { tab: 'point', pointSub: 'battle', label: '쿠폰 보기' };
+      if (item.type === 'todo' || /할 일|과업|돕기|유예|마감/.test(title)) {
+        const m = msg.match(/\[([^\]]+)\]/);
+        const task = m && STATE.tasks.find(t => t.title === m[1]);
+        return { tab: 'home', taskId: task ? task.id : null, label: task ? '할 일 보기' : '할 일 목록' };
+      }
+      if (item.type === 'penalty' || /패널티|페널티/.test(title)) return { tab: 'point', pointSub: 'battle', label: '페널티 보기' };
+      return { tab: 'home', label: '홈으로' };
+    }
+
+    function openNotificationTarget(userKey, notifId) {
+      const user = STATE.users[userKey];
+      const item = (user.notifications || []).find(n => n.id === notifId);
+      if (!item) return;
+      item.read = true;
+      updateNotifBadges();
+      const route = getNotificationRoute(userKey, item);
+      closeNotificationModal();
+      triggerHaptic('light');
+      if (route.pointSub) user.pointSubTab = route.pointSub;
+      switchTab(userKey, route.tab);
+
+      const body = document.getElementById(`${userKey}AppBody`);
+      let target = null;
+      if (route.focus === 'incoming') {
+        target = body && body.querySelector('.animate-pink-glow');
+      } else if (route.taskId) {
+        target = body && body.querySelector(`[data-task-id="${route.taskId}"]`);
+      } else if (route.tab === 'home') {
+        target = body && body.querySelector('[data-task-id]');
+      }
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.add('notif-target-flash');
+        setTimeout(() => target.classList.remove('notif-target-flash'), 2600);
+      } else if (body) {
+        body.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
 
     function markNotificationAsRead(userKey, notifId) {
@@ -7252,10 +7383,10 @@
 
           <!-- Penalty Management & AI Recommend Action Bar -->
           <div class="grid grid-cols-2 gap-2.5">
-            <button type="button" onclick="openPenaltyManageModal('list')" class="p-3 rounded-2xl bg-[#16213E]/80 hover:bg-[#16213E] border border-white/[0.1] text-slate-200 font-bold text-xs shadow flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer">
+            <button type="button" onclick="openPenaltyManageModal('list')" class="penalty-action-btn is-list p-3 rounded-2xl border font-bold text-xs shadow flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer">
               <span>⚡ 패널티 목록/관리</span>
             </button>
-            <button type="button" onclick="openPenaltyManageModal('ai')" class="p-3 rounded-2xl bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-blue-200 font-bold text-xs shadow flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer">
+            <button type="button" onclick="openPenaltyManageModal('ai')" class="penalty-action-btn is-ai preserve-white p-3 rounded-2xl border font-bold text-xs shadow flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer">
               <span>🤖 AI 맞춤 추천</span>
             </button>
           </div>
@@ -7266,57 +7397,18 @@
             <span class="text-slate-400 text-[11px]">상대방에게 사용 가능</span>
           </div>
 
-          <div class="flex flex-col gap-2">
-            ${user.penalties.length === 0 ? `
-              <div class="bg-[#16213E]/50 border border-dashed border-white/[0.08] rounded-2xl p-6 text-center text-slate-400">
-                <p class="text-xs font-bold text-white mb-1">보유한 페널티권이 없습니다.</p>
-                <button type="button" onclick="openPenaltyManageModal('ai')" class="mt-2 px-3.5 py-2 bg-blue-500 hover:bg-blue-400 text-white rounded-xl font-bold text-xs shadow transition active:scale-95">
-                  🤖 오늘의 할 일 AI 추천으로 받기
-                </button>
-              </div>
-            ` : user.penalties.map(p => {
-              const cooldownRemaining = getPenaltyCooldownRemaining(p);
-              const isCooling = !!cooldownRemaining;
-
-              return `
-                <div class="bg-[#16213E]/70 border border-white/[0.08] backdrop-blur-md rounded-2xl p-3.5 shadow flex items-center justify-between gap-3">
-                  <div class="flex items-center gap-3 flex-1 min-w-0">
-                    <span class="text-2xl">${p.icon}</span>
-                    <div class="min-w-0 flex-1">
-                      <div class="font-bold text-white truncate flex items-center gap-1.5 flex-wrap text-xs">
-                        <span>${p.title}</span>
-                        ${isCooling ? `
-                          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                            ⏳ 쿨타임 (${cooldownRemaining})
-                          </span>
-                        ` : ''}
-                      </div>
-                      <div class="text-[11px] ${isCooling ? 'text-amber-300/80' : 'text-slate-400'} truncate mt-0.5">
-                        ${isCooling ? `🛡️ 방어권으로 튕겨남 (잔여: ${cooldownRemaining})` : p.desc}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-1.5 shrink-0">
-                    <button type="button" onclick="editPenalty('${userKey}', '${p.id}'); openPenaltyManageModal('list');" class="p-1.5 text-slate-400 hover:text-white text-xs transition" title="수정">
-                      ✏️
-                    </button>
-                    <button type="button" onclick="deletePenalty('${userKey}', '${p.id}')" class="p-1.5 text-rose-400 hover:text-rose-300 text-xs transition" title="삭제">
-                      🗑️
-                    </button>
-                    ${isCooling ? `
-                      <button type="button" onclick="showToast('⏳ 상대방의 방어권 사용으로 인해 48시간 동안 재사용이 잠금되었습니다. (잔여: ${cooldownRemaining})')" class="px-2.5 py-1.5 bg-slate-900 text-slate-500 font-bold rounded-xl border border-white/[0.06] text-xs whitespace-nowrap cursor-not-allowed">
-                        ⏳ 쿨타임
-                      </button>
-                    ` : `
-                      <button type="button" onclick="promptUsePenalty('${userKey}', '${p.id}')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-xl shadow transition text-xs whitespace-nowrap active:scale-95 cursor-pointer">
-                        사용하기 ⚡
-                      </button>
-                    `}
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
+          ${user.penalties.length === 0 ? `
+            <div class="bg-[#16213E]/50 border border-dashed border-white/[0.08] rounded-2xl p-6 text-center text-slate-400">
+              <p class="text-xs font-bold text-white mb-1">보유한 페널티권이 없습니다.</p>
+              <button type="button" onclick="openPenaltyManageModal('ai')" class="mt-2 px-3.5 py-2 bg-blue-500 hover:bg-blue-400 text-white rounded-xl font-bold text-xs shadow transition active:scale-95">
+                🤖 오늘의 할 일 AI 추천으로 받기
+              </button>
+            </div>
+          ` : `
+            <div class="quest-carousel" id="${userKey}MyPenaltyCarousel" onscroll="onQuestCarouselScroll(this)">
+              ${user.penalties.map((p, i) => renderPenaltySwipeCard(p, userKey, i, user.penalties.length, 'mine', userKey)).join('')}
+            </div>
+          `}
         </div>
       `;
     }
@@ -7337,7 +7429,7 @@
       q_streak:       { icon: '🔥', short: '7일 연속 루틴 완주',   light: 'linear-gradient(135deg,#FDF5E3,#FCFAF3)', dark: 'linear-gradient(135deg,rgba(245,158,11,0.22),#16213E 70%)', accent: '#E8453C', accentDark: '#FBBF24' },
       q_checklist:    { icon: '✨', short: '체크리스트 완벽 10회', light: 'linear-gradient(135deg,#EFEFFD,#F7F7FC)', dark: 'linear-gradient(135deg,rgba(99,102,241,0.24),#16213E 70%)', accent: '#4F46E5', accentDark: '#A5B4FC' }
     };
-    var questCarouselIndex = { mom: 0, dad: 0 };
+    var questCarouselIndex = {}; // key: 캐러셀 element id
 
     function getQuestCarouselList() {
       return STATE.quests.filter(q => {
@@ -7347,6 +7439,48 @@
         else if (q.id === 'q_streak') cat = 'event';
         return cat === currentQuestCategory;
       });
+    }
+
+    // --- 🎟️ 페널티권 스와이프 카드 (내가 가진 페널티권 / 등록된 패널티권 목록 공용) ---
+    function renderPenaltySwipeCard(p, ownerKey, idx, total, mode, viewerKey) {
+      const owner = STATE.users[ownerKey];
+      const cooldownRemaining = getPenaltyCooldownRemaining(p);
+      const isCooling = !!cooldownRemaining;
+      const isMom = ownerKey === 'mom';
+      const tone = isCooling
+        ? { light: 'linear-gradient(135deg,#FDF5E3,#FCFAF3)', dark: 'linear-gradient(135deg,rgba(245,158,11,0.22),#16213E 70%)', accent: '#B45309', accentDark: '#FBBF24' }
+        : isMom
+          ? { light: 'linear-gradient(135deg,#FDEEF3,#FCF7F9)', dark: 'linear-gradient(135deg,rgba(236,72,153,0.2),#16213E 70%)', accent: '#DB2777', accentDark: '#F472B6' }
+          : { light: 'linear-gradient(135deg,#EAF4FD,#F6F9FC)', dark: 'linear-gradient(135deg,rgba(14,165,233,0.2),#16213E 70%)', accent: '#0284C7', accentDark: '#38BDF8' };
+      const eyebrow = isCooling
+        ? `⏳ 쿨타임 ${cooldownRemaining}`
+        : (mode === 'mine' ? '⚡ 상대방에게 사용 가능' : `${owner.avatar} ${owner.name} 보유`);
+      const sub = isCooling ? `🛡️ 방어권으로 튕겨남 · 48시간 사용 불가` : (p.desc || '');
+      const actions = mode === 'mine'
+        ? `
+          <button type="button" class="pc-btn" onclick="editPenalty('${ownerKey}', '${p.id}'); openPenaltyManageModal('list');" title="수정">✏️</button>
+          <button type="button" class="pc-btn is-danger" onclick="deletePenalty('${ownerKey}', '${p.id}')" title="삭제">🗑️</button>
+          ${isCooling
+            ? `<button type="button" class="pc-btn is-locked" onclick="showToast('⏳ 상대방의 방어권 사용으로 인해 48시간 동안 재사용이 잠금되었습니다. (잔여: ${cooldownRemaining})')">⏳ 쿨타임</button>`
+            : `<button type="button" class="pc-btn is-primary preserve-white" onclick="promptUsePenalty('${viewerKey}', '${p.id}')">사용하기 ⚡</button>`}
+        `
+        : `
+          <button type="button" class="pc-btn" onclick="duplicatePenalty('${ownerKey}', '${p.id}')">+ 1장 복제</button>
+          <button type="button" class="pc-btn" onclick="editPenalty('${ownerKey}', '${p.id}')">✏️ 수정</button>
+          <button type="button" class="pc-btn is-danger" onclick="deletePenalty('${ownerKey}', '${p.id}')">🗑️ 삭제</button>
+        `;
+      return `
+        <div class="quest-banner penalty-card" style="--qb-light:${tone.light};--qb-dark:${tone.dark};--qb-accent:${tone.accent};--qb-accent-dark:${tone.accentDark};">
+          <div class="qb-body">
+            <div class="qb-eyebrow">${eyebrow}</div>
+            <div class="qb-title">${p.title}</div>
+            ${sub ? `<div class="qb-sub">${sub}</div>` : ''}
+          </div>
+          <div class="qb-icon">${p.icon || '⚡'}</div>
+          <div class="qb-counter">${idx + 1} | ${total}</div>
+          <div class="pc-actions">${actions}</div>
+        </div>
+      `;
     }
 
     function renderQuestCarousel(userKey) {
@@ -7404,10 +7538,10 @@
 
     // 카드가 넘어가는 순간(중앙 카드 변경) 가벼운 햅틱 1회
     function onQuestCarouselScroll(el) {
-      const userKey = el.dataset.userKey;
+      const key = el.id;
       const idx = getQuestCarouselCenterIndex(el);
-      if (idx !== questCarouselIndex[userKey]) {
-        questCarouselIndex[userKey] = idx;
+      if (idx !== (questCarouselIndex[key] || 0)) {
+        questCarouselIndex[key] = idx;
         updateQuestCarouselActive(el, idx);
         triggerHaptic('light');
       }
@@ -7416,11 +7550,11 @@
     // 재렌더링 후에도 보고 있던 카드 위치 유지 (햅틱 없이 즉시 복원)
     function setupQuestCarousels() {
       document.querySelectorAll('.quest-carousel').forEach(el => {
-        const userKey = el.dataset.userKey;
+        const key = el.id;
         const cards = el.querySelectorAll('.quest-banner');
         if (!cards.length) return;
-        const idx = Math.min(questCarouselIndex[userKey] || 0, cards.length - 1);
-        questCarouselIndex[userKey] = idx;
+        const idx = Math.min(questCarouselIndex[key] || 0, cards.length - 1);
+        questCarouselIndex[key] = idx;
         const card = cards[idx];
         el.style.scrollBehavior = 'auto';
         el.scrollLeft = card.offsetLeft + card.offsetWidth / 2 - el.clientWidth / 2;
@@ -7700,7 +7834,7 @@
                   colorBg: 'bg-indigo-500/15 border-indigo-500/30 text-indigo-400',
                   tag: '꼼꼼 체크',
                   tagColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
-                  title: '꼼꼼 육아왕 (체크리스트 완벽 10회)',
+                  title: '꼼꼼 육아왕 (체크리스트 10회)',
                   desc: '세부 체크리스트를 누락 없이 꼼꼼하게 완수하기'
                 }
               };
@@ -7743,25 +7877,22 @@
                       </p>
                     </div>
 
-                    <!-- Progress Numbers / Ratio -->
-                    <div class="text-right shrink-0">
-                      ${isCompleted ? `
-                        <span class="text-emerald-400 font-black text-sm font-mono">100%</span>
-                      ` : `
-                        <div class="flex flex-col items-end">
-                          <div class="flex items-baseline gap-0.5 font-mono">
-                            <span class="text-base font-black text-amber-400">${q.current}</span>
-                            <span class="text-xs text-slate-400 font-bold">/${q.target}${q.unit || ''}</span>
-                          </div>
-                          <span class="text-[11px] font-black text-sky-400 font-mono">${progressPct}%</span>
-                        </div>
-                      `}
-                    </div>
                   </div>
 
-                  <!-- 2. Progress Gauge Bar (도톰하고 선명한 8px 높이의 바) -->
-                  <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-white/[0.08] shadow-inner">
-                    <div class="h-full ${isCompleted ? 'bg-emerald-400' : 'bg-gradient-to-r from-blue-500 via-indigo-500 to-amber-400'} rounded-full transition-all duration-500" style="width: ${progressPct}%;"></div>
+                  <!-- 2. Progress: 게이지 바 + 수치 한 줄 (제목이 전체 폭을 쓰도록 우측 수치 칼럼 제거) -->
+                  <div class="flex items-center gap-2.5">
+                    <div class="flex-1 bg-slate-950 rounded-full h-2 overflow-hidden border border-white/[0.08] shadow-inner">
+                      <div class="h-full ${isCompleted ? 'bg-emerald-400' : 'bg-gradient-to-r from-blue-500 via-indigo-500 to-amber-400'} rounded-full transition-all duration-500" style="width: ${progressPct}%;"></div>
+                    </div>
+                    ${isCompleted ? `
+                      <span class="text-emerald-400 font-black text-sm font-mono shrink-0">100%</span>
+                    ` : `
+                      <div class="flex items-baseline gap-1 font-mono shrink-0 whitespace-nowrap">
+                        <span class="text-sm font-black text-amber-400">${q.current}</span>
+                        <span class="text-[11px] text-slate-400 font-bold">/${q.target}${q.unit || ''}</span>
+                        <span class="text-[11px] font-black text-sky-400 ml-0.5">${progressPct}%</span>
+                      </div>
+                    `}
                   </div>
 
                   <!-- 3. Bottom Row: Reward Pills & Actions -->
@@ -10089,11 +10220,11 @@
       });
 
       if (rec === 'both' && bBoth) {
-        bBoth.className = 'py-2 px-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-500/20 to-pink-500/20 border-amber-400 text-amber-200 shadow';
+        bBoth.className = 'py-2 px-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 task-type-btn is-active is-amber';
       } else if (rec === 'mom' && bMom) {
-        bMom.className = 'py-2 px-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 bg-slate-950 tint-soft border-rose-500 text-rose-200 shadow';
+        bMom.className = 'py-2 px-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 task-type-btn is-active is-rose';
       } else if (rec === 'dad' && bDad) {
-        bDad.className = 'py-2 px-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 bg-slate-950 tint-soft border-sky-500 text-sky-200 shadow';
+        bDad.className = 'py-2 px-2.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 task-type-btn is-active is-sky';
       }
     }
 
@@ -11003,7 +11134,7 @@
         },
         {
           step: 10,
-          title: '10. 뱅크샐러드풍 스마트 넛지 알림 💡',
+          title: '10. 스마트 넛지 알림 💡',
           icon: '💬',
           highlightId: null,
           tab: 'todo',
