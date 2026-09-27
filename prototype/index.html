@@ -485,6 +485,78 @@
     body.theme-white :is(button.bg-slate-950, button.bg-slate-900, button.bg-slate-800) :is(.text-white, .text-slate-100, .text-slate-200),
     body.theme-white :is(button.bg-slate-950, button.bg-slate-900, button.bg-slate-800):is(.text-white, .text-slate-100, .text-slate-200) { color: #333D4B !important; }
     body.theme-white :is(button.bg-slate-950, button.bg-slate-900, button.bg-slate-800) :is(.text-slate-300, .text-slate-400, .text-slate-500) { color: #6B7684 !important; }
+    /* 🏡 홈 상단 가족 히어로 (테두리 없는 일러스트 헤더) */
+    .family-hero { position: relative; padding: 6px 2px 2px; }
+    .family-hero .fh-top { display: flex; align-items: flex-start; gap: 10px; }
+    .family-hero .fh-text { flex: 1; min-width: 0; position: relative; z-index: 1; }
+    .family-hero .fh-greet { font-size: 12px; font-weight: 600; color: #8B95A1; }
+    .family-hero .fh-title { font-size: 21px; font-weight: 900; color: #F1F5F9; letter-spacing: -0.02em; margin-top: 2px; }
+    .family-hero .fh-level { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 11px; font-weight: 800; color: #3182F6; cursor: pointer; }
+    .family-hero .fh-exp { flex: 1; max-width: 88px; height: 5px; border-radius: 99px; background: rgba(255,255,255,0.12); overflow: hidden; }
+    .family-hero .fh-exp > div { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #3182F6, #22D3EE); }
+    .family-hero .fh-points { font-size: 11px; font-weight: 900; color: #F59E0B; cursor: pointer; white-space: nowrap; }
+    .family-hero .fh-label { font-size: 12px; font-weight: 700; color: #94A3B8; margin-top: 12px; }
+    .family-hero .fh-time { font-size: 15px; font-weight: 800; color: #F1F5F9; margin-top: 1px; white-space: nowrap; }
+    .family-hero .fh-time b { font-size: 28px; font-weight: 900; letter-spacing: -0.03em; }
+    .family-hero .fh-delta { font-size: 12px; font-weight: 700; color: #94A3B8; margin-top: 2px; }
+    .family-hero .fh-delta strong { color: #10B981; }
+    .family-hero .fh-illust { width: 40%; max-width: 150px; height: auto; margin: 14px 4px 0 0; flex-shrink: 0; cursor: pointer;
+      filter: drop-shadow(0 10px 14px rgba(15, 23, 42, 0.18)); animation: fhFloat 3.2s ease-in-out infinite; }
+    @keyframes fhFloat { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-7px) rotate(2deg); } }
+    .family-hero .fh-people { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .family-hero .fh-person { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 18px; }
+    .family-hero .fh-person.is-mom { background: rgba(240,68,82,0.12); }
+    .family-hero .fh-person.is-dad { background: rgba(49,130,246,0.12); }
+    .family-hero .fh-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
+    .family-hero .fh-person-name { font-size: 12px; font-weight: 700; color: #94A3B8; }
+    .family-hero .fh-person-min { font-size: 13px; font-weight: 700; color: #F1F5F9; white-space: nowrap; }
+    .family-hero .fh-person-min b { font-size: 18px; font-weight: 900; }
+    body.theme-white .family-hero .fh-title,
+    body.theme-white .family-hero .fh-time,
+    body.theme-white .family-hero .fh-person-min { color: #191F28 !important; }
+    body.theme-white .family-hero .fh-greet,
+    body.theme-white .family-hero .fh-label,
+    body.theme-white .family-hero .fh-delta,
+    body.theme-white .family-hero .fh-person-name { color: #6B7684 !important; }
+    body.theme-white .family-hero .fh-exp { background: #E5E8EB; }
+    body.theme-white .family-hero .fh-person.is-mom { background: #FDEEF0; }
+    body.theme-white .family-hero .fh-person.is-dad { background: #EAF3FE; }
+    body.theme-white .family-hero .fh-avatar { background: #FFFFFF; }
+
+    /* 📋 오늘의 할 일: 테두리 없는 리스트형 (사람별 그룹 + 행 구분선) */
+    .task-group { display: flex; flex-direction: column; }
+    .task-group + .task-group { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .task-group-head { display: flex; align-items: baseline; gap: 8px; padding: 0 2px 4px; }
+    .task-group-head .tg-name { position: relative; font-size: 16px; font-weight: 900; color: var(--tg-color); }
+    .task-group-head .tg-name::before { content: ''; position: absolute; left: -4px; top: 50%; width: 26px; height: 26px; border-radius: 50%; transform: translateY(-50%); background: var(--tg-color); opacity: 0.16; }
+    .task-group-head .tg-count { font-size: 15px; font-weight: 800; color: #8B95A1; }
+    .task-row { background: #0F172A; padding: 13px 2px; }
+    .task-swipe-wrapper + .task-swipe-wrapper .task-row { border-top: 1px solid rgba(255,255,255,0.07); }
+    .task-row .tr-title { font-size: 15px; font-weight: 800; color: #F1F5F9; }
+    .task-row.is-done .tr-title { color: #64748B; }
+    .task-row .tr-sub { font-size: 12.5px; font-weight: 500; color: #8B95A1; margin-top: 2px; }
+    .task-done-pill { padding: 5px 11px; border-radius: 10px; font-size: 12px; font-weight: 800; white-space: nowrap; color: var(--tg-color); background: rgba(240,68,82,0.12); }
+    .task-done-pill.is-dad { background: rgba(49,130,246,0.14); }
+    .task-help-pill { padding: 6px 11px; border-radius: 10px; font-size: 12px; font-weight: 800; white-space: nowrap; color: #93C5FD; border: 1px solid rgba(96,165,250,0.45); }
+    .task-row .tr-chevron { color: #64748B; font-size: 20px; font-weight: 400; padding: 0 4px; line-height: 1; }
+    .task-row .tr-subtasks { margin: 8px 0 0 2px; display: flex; flex-direction: column; gap: 2px; }
+    body.theme-white .task-group + .task-group { border-top-color: #E5E8EB; }
+    body.theme-white .task-row { background: #F2F4F6; }
+    body.theme-white .task-swipe-wrapper + .task-swipe-wrapper .task-row { border-top-color: #E5E8EB; }
+    body.theme-white .task-row .tr-title { color: #191F28 !important; }
+    body.theme-white .task-row.is-done .tr-title { color: #8B95A1 !important; }
+    body.theme-white .task-row .tr-sub { color: #8B95A1 !important; }
+    body.theme-white .task-done-pill { background: #FDEEF0; }
+    body.theme-white .task-done-pill.is-dad { background: #EAF3FE; }
+    body.theme-white .task-help-pill { color: #1D4ED8 !important; background: #FFFFFF; border-color: #BFDBFE; }
+    body.theme-white .task-row .tr-chevron { color: #B0B8C1; }
+    /* 예전 onclick 속성 기반 버튼 규칙(초록 체크 등)보다 우선 */
+    body.theme-white .task-row button.task-help-pill,
+    body.theme-white .task-row button.task-help-pill * { background: #FFFFFF !important; color: #1D4ED8 !important; border-color: #BFDBFE !important; box-shadow: none !important; }
+    .family-hero .fh-delta.is-down strong { color: #F04452; }
+    body.theme-white .task-row button.task-done-pill { background: #FDEEF0 !important; color: var(--tg-color) !important; border: none !important; box-shadow: none !important; }
+    body.theme-white .task-row button.task-done-pill.is-dad { background: #EAF3FE !important; }
+    .task-row button.task-done-pill { border: none; }
     /* 할 일 유형 선택 버튼: 선택 시 배경은 그대로 두고 테두리+글자색만 강조 */
     .task-type-btn { background: #020617; border-color: #334155; color: #94a3b8; }
     .task-type-btn.is-routine { border-color: #6366f1; color: #a5b4fc; }
@@ -7032,6 +7104,70 @@
       renderApp(userKey);
     }
 
+    // 📋 오늘의 할 일 리스트 행 (테두리 없는 리스트형: 체크 원 + 제목/부제 + 우측 액션)
+    function renderTodayTaskRow(task, userKey, selDate) {
+      const rec = getTaskDateRecord(task, selDate);
+      const isDone = !!rec.done;
+      const isMine = task.assignee === userKey;
+      const subtasks = task.subtasks || [];
+      const subDoneCount = subtasks.filter(s => !!rec.subtaskDone[s.id]).length;
+      const isExpanded = STATE.expandedTasks && !!STATE.expandedTasks[task.id];
+      const isDad = task.assignee === 'dad';
+
+      let action;
+      if (isDone) {
+        action = isMine
+          ? `<button type="button" class="task-done-pill ${isDad ? 'is-dad' : ''}" data-no-swipe="true" onclick="event.stopPropagation(); toggleTask('${task.id}', '${userKey}')" title="눌러서 완료 취소">완료</button>`
+          : `<span class="task-done-pill ${isDad ? 'is-dad' : ''}">완료</span>`;
+      } else if (!isMine) {
+        action = `<button type="button" onclick="event.stopPropagation(); helpSpouseTask('${userKey}', '${task.id}')" data-no-swipe="true" class="task-help-pill theme-help-spouse-btn active:scale-95 transition">🤝 대신 돕기</button>`;
+      } else if (!STATE.hasCompletedSwipeTutorial) {
+        action = `<span class="text-[11px] text-slate-400 font-medium whitespace-nowrap select-none">밀어서 완료 <span class="text-emerald-400 font-bold animate-pulse">‹</span></span>`;
+      } else {
+        action = `<span class="tr-chevron" onclick="event.stopPropagation(); openTaskDetailModal('${task.id}', '${userKey}')">›</span>`;
+      }
+
+      return `
+        <div class="task-swipe-wrapper relative overflow-hidden">
+          ${isMine && !isDone ? `
+            <div class="task-swipe-bg pointer-events-none select-none">
+              <span class="flex items-center gap-1 select-none pointer-events-none"><span>밀어서 완료</span><span>✓</span></span>
+            </div>
+          ` : ''}
+          <div class="${isMine && !isDone ? 'task-swipe-surface ' : ''}task-row ${isDone ? 'is-done' : ''} relative z-[2]" data-task-id="${task.id}" data-user-key="${userKey}" style="--tg-color:${isDad ? '#3182F6' : '#F04452'};">
+            <div class="flex items-center gap-3">
+              <div class="flex-1 min-w-0 cursor-pointer select-none" onclick="openTaskDetailModal('${task.id}', '${userKey}')">
+                <div class="flex items-center gap-1.5">
+                  <span class="tr-title truncate">${task.title}</span>
+                  ${task.isCoupangItem ? '<span class="text-[11px] shrink-0" title="쿠팡 2% 적립">🛒</span>' : ''}
+                </div>
+                <div class="tr-sub flex items-center gap-1 whitespace-nowrap overflow-hidden">
+                  <span class="shrink-0">${task.deadline ? task.deadline.slice(0, 5) : '10:00'} · ${isDad ? '아빠' : '엄마'}</span>
+                  ${subtasks.length > 0 ? `
+                    <span onclick="toggleTaskSubtasks('${task.id}', event, '${userKey}')" data-no-swipe="true" class="text-blue-500 font-bold cursor-pointer shrink-0">· 세부 ${subDoneCount}/${subtasks.length} ${isExpanded ? '▲' : '▾'}</span>
+                  ` : ''}
+                </div>
+              </div>
+              <div class="shrink-0 flex items-center">${action}</div>
+            </div>
+            ${subtasks.length > 0 && isExpanded ? `
+              <div class="tr-subtasks">
+                ${subtasks.map(st => {
+                  const isSubDone = !!rec.subtaskDone[st.id];
+                  return `
+                    <div onclick="${isMine ? `toggleSubtask('${task.id}', '${st.id}', event, '${userKey}')` : `tryToggleSpouseTask('${task.assignee}', '${userKey}')`}" data-no-swipe="true" class="flex items-center gap-2 py-1 cursor-pointer">
+                      <span class="w-4 h-4 rounded border ${isSubDone ? 'bg-[#10B981] border-[#10B981] text-white preserve-white' : 'border-slate-400'} flex items-center justify-center text-[10px] font-bold shrink-0">${isSubDone ? '✓' : ''}</span>
+                      <span class="tr-sub !mt-0 truncate ${isSubDone ? 'line-through opacity-60' : ''}">${st.text}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
     function renderTodoTab(userKey) {
       const user = STATE.users[userKey];
       const spouseKey = userKey === 'mom' ? 'dad' : 'mom';
@@ -7050,9 +7186,9 @@
       } else if (currentTodoFilter === 'dad') {
         displayTasks = allDateTasks.filter(t => t.assignee === 'dad');
       }
-      // 정렬: 내 미완료 → 상대 미완료 → 내 완료 → 상대 완료 (같은 그룹 내 기존 순서 유지)
+      // 정렬: 사람별 그룹(내 할 일 → 배우자 할 일) 안에서 미완료 → 완료 (같은 상태 내 기존 순서 유지)
       displayTasks = displayTasks
-        .map((t, i) => ({ t, i, rank: (getTaskDateRecord(t, selDate).done ? 2 : 0) + (t.assignee === userKey ? 0 : 1) }))
+        .map((t, i) => ({ t, i, rank: (t.assignee === userKey ? 0 : 2) + (getTaskDateRecord(t, selDate).done ? 1 : 0) }))
         .sort((a, b) => a.rank - b.rank || a.i - b.i)
         .map(x => x.t);
 
@@ -7064,40 +7200,48 @@
 
       const monthlyEarned = typeof getCoupangMonthlyEarned === 'function' ? getCoupangMonthlyEarned() : 0;
 
+      // 오늘/어제 부부 집중(함께한) 시간 (STATE.stats.daily: 마지막 = 오늘)
+      const daily = (STATE.stats && STATE.stats.daily) || [];
+      const today = daily[daily.length - 1] || { momFocus: 0, dadFocus: 0 };
+      const yesterday = daily[daily.length - 2] || { momFocus: 0, dadFocus: 0 };
+      const momTodayMin = Math.round((today.momFocus || 0) * 60);
+      const dadTodayMin = Math.round((today.dadFocus || 0) * 60);
+      const togetherMin = momTodayMin + dadTodayMin;
+      const fmtHeroMin = m => (m >= 60 ? `<b>${Math.floor(m / 60)}</b>시간 ` : '') + (m % 60 || m < 60 ? `<b>${m % 60}</b>분` : '');
+      const togetherDelta = togetherMin - Math.round(((yesterday.momFocus || 0) + (yesterday.dadFocus || 0)) * 60);
+
       return `
         <div class="flex flex-col gap-3.5 text-xs">
-          <!-- ① 가족 레벨 히어로 카드 (시안 100% 매칭: 미드나잇 다크 글래스모피즘) -->
-          <div class="w-full bg-[#16213E]/70 border border-white/[0.08] backdrop-blur-md rounded-2xl p-4 shadow-xl flex items-center justify-between theme-family-card">
-            <div class="flex items-center gap-3.5 flex-1 min-w-0">
-              <!-- Left: Cute Poma Mascot Container with Crown -->
-              <div onclick="triggerSmartNudge('${userKey}')" class="relative cursor-pointer shrink-0 animate-float" title="뽀마 수호요정">
-                <div class="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-2xl shadow-inner">
-                  ☁️
+          <!-- ① 가족 히어로 (테두리 없는 일러스트 헤더: 레벨·포인트·오늘 함께한 시간) -->
+          <div class="family-hero">
+            <div class="fh-top">
+              <div class="fh-text">
+                <div class="fh-greet">오늘도, 우리 잘하고 있어요 💗</div>
+                <div class="fh-title">우리 가족의 오늘</div>
+                <div class="fh-level" onclick="openUserProfileModal('${userKey}')">
+                  <span>Lv.${STATE.pet.level}</span>
+                  <div class="fh-exp"><div style="width: ${expPct}%"></div></div>
+                  <span class="fh-points" onclick="event.stopPropagation(); openGifticonShopModal();" title="포인트 저금통">🪙 <span class="couple-points-val">${STATE.couplePoints.toLocaleString()}P</span></span>
                 </div>
-                <span class="absolute -top-1 -right-1 text-xs">👑</span>
+                <div class="fh-label">함께한 시간</div>
+                <div class="fh-time">${fmtHeroMin(togetherMin)}</div>
+                <div class="fh-delta ${togetherDelta < 0 ? 'is-down' : ''}">어제보다 <strong>${togetherDelta >= 0 ? '+' : ''}${togetherDelta}분 ${togetherDelta >= 0 ? '↗' : '↘'}</strong></div>
               </div>
-
-              <!-- Center/Right: Family Level, Neon Exp Bar, Exp text -->
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between mb-1.5 cursor-pointer" onclick="openUserProfileModal('${userKey}')">
-                  <div class="flex items-center gap-1.5">
-                    <span class="font-bold text-sm text-white theme-text-primary">우리 가족</span>
-                    <span class="text-xs text-blue-500 font-extrabold flex items-center">▾ Lv.${STATE.pet.level}</span>
-                  </div>
-                  <div onclick="event.stopPropagation(); openGifticonShopModal();" class="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-black text-xs cursor-pointer hover:scale-105 transition" title="포인트 저금통">
-                    <span>🪙</span>
-                    <span class="font-mono couple-points-val">${STATE.couplePoints.toLocaleString()}P</span>
-                  </div>
+              <img class="fh-illust" src="assets/bboma_hero.png" alt="뽀마" onclick="triggerSmartNudge('${userKey}')" />
+            </div>
+            <div class="fh-people">
+              <div class="fh-person is-mom">
+                <div class="fh-avatar">${STATE.users.mom.avatar}</div>
+                <div class="min-w-0">
+                  <div class="fh-person-name">엄마</div>
+                  <div class="fh-person-min">${fmtHeroMin(momTodayMin)}</div>
                 </div>
-                <!-- Sleek Neon Exp bar -->
-                <div class="w-full h-2 bg-slate-900/80 rounded-full overflow-hidden my-1 border border-white/[0.05]">
-                  <div class="h-full bg-gradient-to-r from-blue-500 via-indigo-400 to-cyan-400 transition-all duration-300" style="width: ${expPct}%"></div>
-                </div>
-                <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                  <button onclick="openFocusModal('${userKey}')" class="text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 transition">
-                    <span>⚡ 집중 타이머</span>
-                  </button>
-                  <span>${STATE.pet.exp}/${STATE.pet.maxExp}</span>
+              </div>
+              <div class="fh-person is-dad">
+                <div class="fh-avatar">${STATE.users.dad.avatar}</div>
+                <div class="min-w-0">
+                  <div class="fh-person-name">아빠</div>
+                  <div class="fh-person-min">${fmtHeroMin(dadTodayMin)}</div>
                 </div>
               </div>
             </div>
@@ -7193,117 +7337,26 @@
               </button>
             </div>
 
-            <!-- Task List Items (추천이미지.png 단일 행 4단 정렬: 원형 아이콘 + 제목 + 부제 + 원형 체크) -->
-            <div class="flex flex-col gap-2">
+            <!-- Task List: 테두리 없는 리스트형, 사람별 그룹 (내 할 일 → 배우자 할 일) -->
+            <div class="flex flex-col">
               ${displayTasks.length === 0 ? `
-                <div class="p-8 text-center text-slate-400 bg-[#16213E]/40 rounded-2xl border border-dashed border-white/[0.08]">
+                <div class="p-8 text-center text-slate-400">
                   <span class="text-3xl block mb-2">🎉</span>
-                  <p class="font-bold text-xs text-white">등록된 할 일이 없습니다.</p>
+                  <p class="font-bold text-xs text-white theme-text-primary">등록된 할 일이 없습니다.</p>
                   <p class="text-[10px] text-slate-400 mt-0.5">[+ 추가] 버튼을 눌러 새 할 일을 등록해보세요!</p>
                 </div>
-              ` : displayTasks.map(task => {
-                const rec = getTaskDateRecord(task, selDate);
-                const isDone = !!rec.done;
-                const isMine = task.assignee === userKey;
-                const subtasks = task.subtasks || [];
-                const subDoneCount = subtasks.filter(s => !!rec.subtaskDone[s.id]).length;
-                const category = getTaskCategoryStyle(task.title);
-                const isExpanded = STATE.expandedTasks && !!STATE.expandedTasks[task.id];
-
+              ` : [userKey, spouseKey].map(ownerKey => {
+                const groupTasks = displayTasks.filter(t => t.assignee === ownerKey);
+                if (groupTasks.length === 0) return '';
+                const doneCount = groupTasks.filter(t => getTaskDateRecord(t, selDate).done).length;
+                const color = ownerKey === 'mom' ? '#F04452' : '#3182F6';
                 return `
-                  <div class="task-swipe-wrapper relative overflow-hidden rounded-2xl">
-                    <!-- Swipe Complete Action Background: ONLY for own uncompleted tasks -->
-                    ${isMine && !isDone ? `
-                      <div class="task-swipe-bg pointer-events-none select-none">
-                        <span class="flex items-center gap-1 select-none pointer-events-none">
-                          <span>밀어서 완료</span>
-                          <span>✓</span>
-                        </span>
-                      </div>
-                    ` : ''}
-
-                    <!-- Task Surface Card: Always relative z-[2] so it is cleanly above background -->
-                    <div class="${isMine && !isDone ? 'task-swipe-surface ' : ''}relative z-[2] bg-[#16213E]/70 border border-white/[0.08] backdrop-blur-md rounded-2xl px-3.5 py-3 shadow-sm transition hover:border-white/[0.15] theme-task-card flex flex-col gap-2" data-task-id="${task.id}" data-user-key="${userKey}">
-                      <div class="flex items-center justify-between gap-2.5">
-                        <!-- 1. Category Icon Circle (좌측 원형 컬러 이모지) -->
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0 ${category.bgClass} shadow-inner">
-                          ${category.icon}
-                        </div>
-
-                        <!-- 2 & 3. Task Title & Subtitle Info (중앙 제목 Bold 흰색 / 완료 시 취소선 + 부제) -->
-                        <div class="flex-1 min-w-0 cursor-pointer select-none" onclick="openTaskDetailModal('${task.id}', '${userKey}')">
-                          <div class="flex items-center gap-1.5">
-                            <h4 class="font-bold text-sm text-white theme-text-primary task-title-text truncate ${isDone ? 'line-through opacity-60' : ''}">
-                              ${task.title}
-                            </h4>
-                            ${task.isCoupangItem ? '<span class="text-[10px]" title="쿠팡 2% 적립">🛒</span>' : ''}
-                          </div>
-                          <div class="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5 whitespace-nowrap overflow-hidden">
-                            <span class="shrink-0">${task.deadline ? task.deadline.slice(0, 5) : '10:00'} · ${task.assignee === 'mom' ? '엄마' : '아빠'}</span>
-                            ${subtasks.length > 0 ? `
-                              <span onclick="toggleTaskSubtasks('${task.id}', event, '${userKey}')" data-no-swipe="true" class="text-[10px] text-blue-400 hover:text-blue-300 hover:underline cursor-pointer font-bold shrink-0">
-                                · 세부 ${subDoneCount}/${subtasks.length} ${isExpanded ? '▲' : '▾'}
-                              </span>
-                            ` : ''}
-                          </div>
-                        </div>
-
-                        <!-- 4. Action Area: 상대방 과업일 때 [🤝 대신 돕기] 버튼 / 내 과업일 때 완료 토글 또는 밀어서 완료 안내 텍스트 -->
-                        ${!isMine ? `
-                          ${isDone ? `
-                            <span class="shrink-0 px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold text-xs whitespace-nowrap">
-                              ✓ 완료됨
-                            </span>
-                          ` : `
-                            <button type="button" onclick="event.stopPropagation(); helpSpouseTask('${userKey}', '${task.id}')" data-no-swipe="true" class="theme-help-spouse-btn shrink-0 px-3 py-1.5 rounded-xl bg-blue-500/30 hover:bg-blue-500/50 border border-blue-400/50 text-blue-200 font-extrabold text-xs shadow-md transition active:scale-95 flex items-center gap-1.5 cursor-pointer whitespace-nowrap z-10">
-                              <span>🤝 대신 돕기</span>
-                            </button>
-                          `}
-                        ` : `
-                          ${isDone ? `
-                            <button type="button" onclick="event.stopPropagation(); toggleTask('${task.id}', '${userKey}')" data-no-swipe="true" class="shrink-0 transition active:scale-95 px-2.5 py-1 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-1 cursor-pointer whitespace-nowrap" title="완료 취소하기">
-                              <span class="text-xs">✓</span>
-                              <span class="text-[11px]">완료됨</span>
-                            </button>
-                          ` : `
-                            <div class="shrink-0 flex items-center gap-1.5" onclick="event.stopPropagation();">
-                              ${!STATE.hasCompletedSwipeTutorial ? `
-                                <div class="flex items-center gap-1 text-[11px] text-slate-400/80 font-medium select-none whitespace-nowrap pl-1 pr-0.5">
-                                  <span>밀어서 완료</span>
-                                  <span class="text-emerald-400 text-xs font-bold animate-pulse">‹</span>
-                                </div>
-                              ` : ''}
-                              <button type="button" onclick="event.stopPropagation(); completeTaskBySwipe('${task.id}', '${userKey}')" data-no-swipe="true" class="theme-task-circle-btn w-7 h-7 rounded-full border-2 border-emerald-400/40 hover:border-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/25 flex items-center justify-center text-emerald-400/80 hover:text-emerald-300 text-xs font-bold transition active:scale-90 cursor-pointer shadow-sm" title="터치하거나 왼쪽으로 밀어서 완료">
-                                ✓
-                              </button>
-                            </div>
-                          `}
-                        `}
-                      </div>
-
-                      <!-- Subtask Checklist Box (Collapsible) -->
-                      ${subtasks.length > 0 && isExpanded ? `
-                        <div class="bg-slate-950/70 border border-white/[0.06] rounded-xl p-2.5 mt-0.5 flex flex-col gap-1 text-xs theme-subtask-box">
-                          <div class="text-[10px] font-bold text-slate-400 flex items-center justify-between pb-0.5 border-b border-white/[0.08]">
-                            <span>세부 체크리스트 ${!isMine ? '<span class="font-normal">(조회 전용 🔒)</span>' : ''}</span>
-                            <span class="font-mono text-slate-300">${subDoneCount}/${subtasks.length} 완료</span>
-                          </div>
-                          ${subtasks.map(st => {
-                            const isSubDone = !!rec.subtaskDone[st.id];
-                            return `
-                              <div onclick="${isMine ? `toggleSubtask('${task.id}', '${st.id}', event, '${userKey}')` : `tryToggleSpouseTask('${task.assignee}', '${userKey}')`}" class="flex items-center gap-2 p-1.5 rounded-lg cursor-pointer hover:bg-white/[0.05] transition">
-                                <span class="w-4 h-4 rounded border ${isSubDone ? 'bg-[#10B981] border-[#10B981] text-white preserve-white' : 'border-slate-500'} flex items-center justify-center text-[10px] font-bold shrink-0">
-                                  ${isSubDone ? '✓' : ''}
-                                </span>
-                                <span class="font-medium text-slate-200 truncate flex-1 ${isSubDone ? 'line-through opacity-60' : ''}">
-                                  ${st.text}
-                                </span>
-                              </div>
-                            `;
-                          }).join('')}
-                        </div>
-                      ` : ''}
+                  <div class="task-group" style="--tg-color:${color};">
+                    <div class="task-group-head">
+                      <span class="tg-name">${ownerKey === 'mom' ? '엄마' : '아빠'}의 할 일</span>
+                      <span class="tg-count">${doneCount}/${groupTasks.length}</span>
                     </div>
+                    ${groupTasks.map(task => renderTodayTaskRow(task, userKey, selDate)).join('')}
                   </div>
                 `;
               }).join('')}
