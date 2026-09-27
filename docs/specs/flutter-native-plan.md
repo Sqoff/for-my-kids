@@ -8,7 +8,7 @@
 
 ## 🏗️ 1. 시스템 아키텍처 개요
 
-프로토타입에서 검증된 UI/UX 및 게이미피케이션 로직을 Android 네이티브 시스템 제어 기능과 완벽히 결합합니다.
+UI/UX 및 게이미피케이션 로직을 Android 네이티브 시스템 제어 기능과 완벽히 결합합니다.
 
 ```mermaid
 graph TD
@@ -26,18 +26,20 @@ graph TD
     end
 
     subgraph Platform Channel
-        MC[MethodChannel: com.weparent.app/system]
+        MC[MethodChannel: com.weparent.app/native_focus]
         EC[EventChannel: com.weparent.app/app_usage]
         State <--> MC
         EC --> State
     end
 
     subgraph Android Native Services
-        UsageService[UsageStatsManager / AccessibilityService]
-        OverlayService[System Alert Window - Floating Overlay]
-        LockEngine[App Blocking Activity / Dialog]
-        MC --> OverlayService
-        MC --> LockEngine
+        UsageService[UsageStatsManager / 앱 모니터링 루프]
+        MediaSessionService[MediaSessionCompat + NotificationCompat.MediaStyle]
+        ForegroundService[FocusForegroundService (포그라운드 서비스)]
+        LockEngine[전체화면 차단 안내 뷰 & 홈 이동]
+        MC --> ForegroundService
+        ForegroundService --> MediaSessionService
+        ForegroundService --> LockEngine
         UsageService --> EC
     end
 ```
@@ -46,16 +48,15 @@ graph TD
 
 ## 🔌 2. Flutter Platform Channel 인터페이스 규격
 
-### 2.1 MethodChannel (`com.weparent.app/system`)
+### 2.1 MethodChannel (`com.weparent.app/native_focus`)
 
 | 메서드명 (`method`) | 파라미터 (`arguments`) | 반환값 | 설명 |
 |---|---|---|---|
-| `startFocusMode` | `{ "endTime": 1727182800000, "blockedPackages": ["com.google.android.youtube", ...] }` | `bool` | 네이티브 백그라운드 집중 모드 및 앱 모니터링 가동 |
-| `stopFocusMode` | `{}` | `bool` | 집중 모드 해제 및 백그라운드 모니터링 중단 |
-| `checkPermissions` | `{}` | `Map<String, bool>` | 필수 권한(USAGE_STATS, OVERLAY, NOTIFICATION) 허용 여부 점검 |
-| `requestPermission` | `{ "permissionType": "USAGE_STATS" \| "OVERLAY" }` | `void` | 해당 시스템 설정 화면으로 Intent 이동 |
-| `showFloatingBadge` | `{ "message": "육아 집중 시간입니다!", "currentTask": "아기 목욕" }` | `bool` | 스마트폰 화면 상단 플로팅 오버레이 잔소리 뱃지 표출 |
-| `hideFloatingBadge` | `{}` | `bool` | 플로팅 오버레이 닫기 |
+| `startFocusMode` | `{ "secondsLeft": 1500, "totalSeconds": 1500, "userName": "지은", "userRole": "엄마", "blockedPackages": ["com.google.android.youtube", ...] }` | `bool` | 네이티브 포그라운드 서비스 가동 및 MediaSession 미디어 노티피케이션 활성화 |
+| `stopFocusMode` | `{}` | `bool` | 집중 모드 해제 및 미디어 세션 종료 |
+| `checkPermissions` | `{}` | `Map<String, bool>` | 필수 권한(`PACKAGE_USAGE_STATS`, `POST_NOTIFICATIONS`) 허용 여부 점검 |
+| `requestPermission` | `{ "permissionType": "USAGE_STATS" }` | `void` | 사용 정보 접근 설정 화면으로 Intent 이동 |
+| `updateBlockedList` | `{ "blockedPackages": ["com.google.android.youtube", ...] }` | `bool` | 차단 대상 패키지 목록 실시간 갱신 |
 
 ### 2.2 EventChannel (`com.weparent.app/app_usage`)
 
@@ -74,20 +75,22 @@ graph TD
 
 ## 🛡️ 3. Android Native 핵심 컴포넌트 설계
 
-### 3.1 딴짓 앱 감지 엔진 (`AppMonitoringService`)
-* **방식**: `UsageStatsManager` (폴링 주기 1초) + 보조 `AccessibilityService`.
+### 3.1 딴짓 앱 감지 엔진 (`UsageStatsManager`)
+* **방식**: `UsageStatsManager` (폴링 주기 500ms).
 * **동작**: 현재 Foreground에 위치한 앱의 Package Name이 `blockedPackages`에 포함되어 있을 경우:
-  1. 즉시 `WeParent Lock Screen Activity`를 `FLAG_ACTIVITY_NEW_TASK`로 최상단에 띄움.
-  2. 홈 화면(`Intent.ACTION_MAIN, Intent.CATEGORY_HOME`)으로 강제 이동.
-  3. 플로팅 잔소리 뱃지에 *"지금은 아이에게 집중할 시간이에요! 👼"* 메시지 출력.
+  1. 홈 화면(`Intent.ACTION_MAIN, Intent.CATEGORY_HOME`)으로 강제 이동.
+  2. 전체화면 차단 안내 뷰 표출 및 *"지금은 아이에게 집중할 시간이에요! 👶"* 알림.
 
-### 3.2 최상단 플로팅 잔소리 오버레이 (`FloatingNagOverlayService`)
-* **권한**: `android.permission.SYSTEM_ALERT_WINDOW`
-* **Window Type**: `WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY`
+### 3.2 안드로이드 공식 시스템 미디어 세션 파이프라인 (ADR 21)
+* **권한**: `android.permission.POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`
+* **표준 API**: `androidx.media:media`의 `MediaSessionCompat` & `NotificationCompat.MediaStyle`
 * **특징**:
-  * 드래그 가능한 작은 뽀마 요정 아이콘.
-  * 터치 시 현재 남은 육아 집중 시간 및 담당 할 일 카드 툴팁 표시.
-  * 백그라운드 터치 패스스루(`FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCH_MODAL`) 지원.
+  * 강제 오버레이 윈도우(`TYPE_APPLICATION_OVERLAY`)를 전면 배제하여 시스템 상태바 아이콘 충돌 원천 방지.
+  * 안드로이드 SystemUI의 표준 슬롯에 맞춰 상태바에 `ic_stat_bboma` (`👶`) 아이콘 단독 상주.
+  * 상단 알림 패널 및 잠금 화면(Lock Screen)에 3버튼 인터랙티브 미디어 컨트롤러 상시 제공:
+    * `⏸` 일시정지 / `▶` 계속하기 (`PlaybackStateCompat`)
+    * `⏩` +5분 즉시 연장
+    * `✕` 육아 집중 세션 종료
 
 ---
 
@@ -129,7 +132,7 @@ lib/
 2. **Step 2: Firestore & FCM 실시간 연동**
    * 부부 방 페어링, 실시간 할 일/패널티 CRUD 및 푸시 알림 리액티브 스트림 구축.
 3. **Step 3: Android Native MethodChannel & 서비스 구현**
-   * Kotlin 기반 `AccessibilityService` & `UsageStatsManager` 앱 감지 엔진 완성.
-   * `SYSTEM_ALERT_WINDOW` 기반 플로팅 뽀마 오버레이 뷰 탑재.
+   * `UsageStatsManager` 앱 감지 엔진 완성 및 백그라운드 포그라운드 서비스 탑재.
+   * `MediaSessionCompat` + `NotificationCompat.MediaStyle` 기반 3버튼 미디어 컨트롤러 탑재 (ADR 21).
 4. **Step 4: 온보딩 영상 & 공식 룰북 탑재**
    * 사용자가 제작한 프롤로그 애니메이션 동영상 플레이어 연동 및 [부부 평화 육아 룰북](file:///E:/%EA%B0%9C%EB%B0%9C/%EB%BD%80%EB%A7%88%ED%82%A4%EC%A6%88/docs/specs/couple-rulebook.md) 메뉴 통합.

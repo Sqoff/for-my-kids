@@ -3967,17 +3967,25 @@
         const user = STATE.users[editingUserKey];
         const p = user.penalties.find(item => item.id === editingPenaltyId);
         if (p) {
+          const prev = { title: p.title, desc: p.desc, icon: p.icon };
           p.title = title;
           p.desc = desc || '약속된 가사/육아 벌칙 수행';
           p.icon = selectedPenaltyIcon;
+          // 무엇이 바뀌었는지 상대방이 한눈에 알 수 있게 변경 내역 포함
+          const changes = [];
+          if (prev.title !== p.title) changes.push(`이름: ${prev.title} → ${p.title}`);
+          if (prev.desc !== p.desc) changes.push(`내용: ${p.desc}`);
+          if (prev.icon !== p.icon) changes.push(`아이콘: ${prev.icon} → ${p.icon}`);
           showToast(`✏️ [수정 완료] '${title}' 패널티권이 수정되었습니다.`);
           logEvent(`[패널티 수정] ${user.name} - '${title}' 수정됨`);
-          sendSpouseNotification(editingUserKey, {
-            type: 'penalty',
-            icon: '✏️',
-            title: '패널티권 수정',
-            message: `${user.name}님이 [${title}] 패널티 규칙을 수정했습니다.`
-          });
+          if (changes.length) {
+            sendSpouseNotification(editingUserKey, {
+              type: 'penalty',
+              icon: '✏️',
+              title: '패널티권 수정',
+              message: `${user.name}님이 보유한 [${p.title}] 페널티권을 수정했어요. (${changes.join(' / ')})`
+            });
+          }
         }
         cancelEditPenalty();
       } else {
