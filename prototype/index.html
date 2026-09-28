@@ -5838,11 +5838,13 @@
       const user = STATE.users[userKey] || STATE.users.mom;
       const userName = user.name || (userKey === 'mom' ? '엄마' : '아빠');
       
-      // 1) 미완료 할 일 탐색
-      const myTasks = (STATE.tasks || []).filter(t => t.assignee === userKey && !t.completed);
+      // 1) 오늘 할 일 (시간 기준): 여유 있는 일은 재촉하지 않음
+      const cls = classifyMyTasks(userKey);
+      const myTasks = [...cls.overdue, ...cls.anytime];
       const diaperTask = myTasks.find(t => (t.title || '').includes('기저귀'));
       const shoppingTask = myTasks.find(t => /장보기|생수|휴지|세제|반찬|식품|우유|물티슈|마트/.test(t.title || ''));
-      const otherUndone = myTasks[0];
+      const otherUndone = cls.overdue[0];
+      const soonTask = cls.soon[0];
 
       // 풀 구성
       const quotes = [];
@@ -5867,13 +5869,23 @@
         });
       }
 
-      // C: 일반 미완료 할 일
+      // C: 시간이 지난 할 일
       if (otherUndone && !diaperTask && !shoppingTask) {
         quotes.push({
           category: 'task_general',
           icon: '📝',
           title: `📝 등록해놓고 어디 가셨나요?!`,
-          body: `${userName}! 오늘 등록한 '${otherUndone.title}'(외 ${myTasks.length}건)가 기다리고 있어요. 설마 배우자 몰래 숏폼 보시는 중?! 👀`
+          body: `${userName}! ${(otherUndone.deadline || '').slice(0, 5)}에 하기로 한 '${otherUndone.title}'${cls.overdue.length > 1 ? `(외 ${cls.overdue.length - 1}건)` : ''} 시간이 지났어요. 설마 배우자 몰래 숏폼 보시는 중?! 👀`
+        });
+      }
+
+      // C2: 곧 할 시간인 할 일 (재촉 대신 미리 알림)
+      if (soonTask) {
+        quotes.push({
+          category: 'task_soon',
+          icon: '⏰',
+          title: `⏰ 곧 ${soonTask.title} 할 시간이에요`,
+          body: `${userName}! ${minsLabel(soonTask._minsLeft)}(${soonTask.deadline.slice(0, 5)})에 '${soonTask.title}' 하기로 했어요. 미리 준비해두면 뽀마가 칭찬해줄게요 🐣`
         });
       }
 
@@ -5911,6 +5923,8 @@
       });
 
       // 무작위 선택
+      const soonQuote = quotes.find(q => q.category === 'task_soon');
+      if (soonQuote) return soonQuote; // 곧 할 일이 있으면 그 안내가 우선
       const chosen = quotes[Math.floor(Math.random() * quotes.length)];
       return chosen;
     }
@@ -6479,6 +6493,31 @@
     // 🌟 Personalized Smart Welcome Interface (요구사항 ⑤: 토스어플3.jpg 디자인 1:1 반영 초개인화 가변형 인터페이스)
     let personalizedWelcomeShown = false;
 
+    // ⏰ 오늘 내 할 일을 시간 기준으로 분류 (스마트 알림 공통)
+    //  overdue: 마감 시간이 지났는데 미완료 / soon: 60분 안에 할 시간 / later: 아직 여유 / anytime: 시간 없음
+    function classifyMyTasks(userKey, soonMins = 60) {
+      const today = todayStr();
+      const now = new Date();
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const out = { overdue: [], soon: [], later: [], anytime: [] };
+      (STATE.tasks || []).forEach(t => {
+        if (t.assignee !== userKey || !isTaskActiveOnDate(t, today)) return;
+        if (getTaskDateRecord(t, today).done) return;
+        const m = /^(\d{1,2}):(\d{2})/.exec(t.deadline || '');
+        if (!m) { out.anytime.push(t); return; }
+        const dl = (+m[1]) * 60 + (+m[2]);
+        const diff = dl - nowMin;
+        const item = Object.assign({}, t, { _minsLeft: diff });
+        if (diff < 0) out.overdue.push(item);
+        else if (diff <= soonMins) out.soon.push(item);
+        else out.later.push(item);
+      });
+      out.soon.sort((a, b) => a._minsLeft - b._minsLeft);
+      out.overdue.sort((a, b) => b._minsLeft - a._minsLeft);
+      return out;
+    }
+    function minsLabel(n) { return n <= 0 ? '지금' : (n < 60 ? `${n}분 후` : `${Math.floor(n / 60)}시간${n % 60 ? ` ${n % 60}분` : ''} 후`); }
+
     function checkAndShowPersonalizedWelcome(force = false, modeOverride = null) {
       if (personalizedWelcomeShown && !force) return;
       personalizedWelcomeShown = true;
@@ -6489,22 +6528,24 @@
       const spouseUser = STATE.users[spouseKey];
       const selDate = STATE.selectedDate || todayStr();
 
-      // Check if user has incomplete tasks
-      const myIncompleteTasks = STATE.tasks.filter(t => {
-        if (t.assignee !== activeKey) return false;
-        const rec = getTaskDateRecord(t, selDate);
-        return !rec.done;
-      });
+      // 시간 기준 분류: 지난 할 일 → '시간이 지났어요', 곧 할 일 → '곧 ~할 시간', 아직 여유 있는 일은 알리지 않음
+      const cls = classifyMyTasks(activeKey);
+      const taskKind = cls.overdue.length ? 'overdue' : (cls.soon.length ? 'soon' : null);
+      const myIncompleteTasks = taskKind === 'overdue' ? cls.overdue : cls.soon;
 
       const modal = document.getElementById('personalizedWelcomeModal');
       const contentEl = document.getElementById('personalizedWelcomeContent');
       if (!modal || !contentEl) return;
 
-      const isTaskMode = modeOverride ? (modeOverride === 'task') : (myIncompleteTasks.length > 0);
+      const isTaskMode = modeOverride ? (modeOverride === 'task') : !!taskKind;
 
       let html = '';
       if (isTaskMode) {
-        const topTask = myIncompleteTasks[0] || { title: '아기 이유식 먹이기 & 식기 세척', deadline: '12:00' };
+        const topTask = myIncompleteTasks[0] || { title: '아기 이유식 먹이기', deadline: '12:00', _minsLeft: 20 };
+        const kind = taskKind || 'soon';
+        const headline = kind === 'overdue' ? '시간이 지난<br/>할 일이 있어요' : `곧 할 시간이에요<br/>(${minsLabel(topTask._minsLeft)})`;
+        const label = kind === 'overdue' ? `시간 지난 할 일 (${myIncompleteTasks.length || 1}건)` : `${(topTask.deadline || '').slice(0, 5)}에 할 일`;
+        const cta = kind === 'overdue' ? '지금 이어서 완료하기' : '할 일 보러 가기';
         html = `
           <!-- Top Close Bar -->
           <div class="flex items-center justify-between w-full mb-1">
@@ -6519,15 +6560,14 @@
           <!-- Top Headline (토스어플3 좌측 정렬 2줄 대형 볼드 타이틀) -->
           <div class="text-left w-full my-2">
             <h1 class="text-[25px] font-bold text-[#191F28] dark:text-white leading-[1.32] tracking-tight">
-              지난번 완료하지 못한<br/>
-              할 일이 남아있어요
+              ${headline}
             </h1>
           </div>
 
           <!-- Toss-style Giant Hero Card (토스어플3.jpg 형태 1:1) -->
           <div class="w-full bg-white dark:bg-[#16213E] rounded-[28px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-2xl border border-slate-100 dark:border-white/[0.08] flex flex-col items-center text-center my-auto">
             <!-- Label -->
-            <span class="text-[13px] text-[#8B95A1] font-semibold mb-1">남은 할 일 (${myIncompleteTasks.length || 1}건 중)</span>
+            <span class="text-[13px] text-[#8B95A1] font-semibold mb-1">${label}</span>
             
             <!-- Underlined Title (토스어플3 검정 두꺼운 밑줄 1:1) -->
             <div class="inline-block border-b-2 border-[#191F28] dark:border-white pb-0.5 mb-2 max-w-[95%]">
@@ -6543,7 +6583,7 @@
 
             <!-- Toss Signature Vivid Blue Button -->
             <button type="button" onclick="closePersonalizedWelcomeModal(); switchTab('${activeKey}', 'home');" class="w-full h-14 rounded-2xl bg-[#3182F6] hover:bg-[#2272EB] text-white font-bold text-[17px] shadow-lg transition active:scale-[0.98] flex items-center justify-center cursor-pointer">
-              <span>지금 이어서 완료하기</span>
+              <span>${cta}</span>
             </button>
 
             <!-- Toss Secondary Link with Chevron -->
@@ -6561,7 +6601,7 @@
               </div>
               <div class="flex flex-col text-left">
                 <span class="text-[11px] text-[#8B95A1] font-medium">배우자 협력 중</span>
-                <span class="text-xs font-bold text-[#191F28] dark:text-white">${spouseUser.name} (${spouseUser.role})</span>
+                <span class="text-xs font-bold text-[#191F28] dark:text-white">${spouseUser.nameSet ? `${spouseUser.name} (${spouseUser.role})` : spouseUser.role}</span>
               </div>
             </div>
             <button type="button" onclick="sendNudgeNotification('${spouseKey}', 'cheer'); closePersonalizedWelcomeModal();" class="px-3.5 py-1.5 rounded-xl bg-[#E8F3FF] text-[#3182F6] text-xs font-bold hover:bg-[#D4E8FF] transition active:scale-95 cursor-pointer">
