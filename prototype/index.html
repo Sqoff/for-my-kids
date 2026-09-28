@@ -4595,7 +4595,8 @@
         const takeAll = !FB.gotFirst && !FB.meta;
         if (!FB.meta) FB.meta = emptyMeta();
         FB.meta.code = getDevice() && getDevice().code;
-        const changed = applyRemote(data, takeAll);
+        let changed = applyRemote(data, takeAll);
+        if (!FB.gotFirst && recountBabyCareQuest()) changed = true;
         FB.gotFirst = true;
         FB.ready = true;
         if (FB.partnerJoined === undefined) FB.partnerJoined = (data.members || []).length >= 2;
@@ -8688,7 +8689,11 @@
         .map(x => x.t);
 
       // Quests for Hero card
-      const mainQuest = STATE.quests.find(q => q.id === 'q_healthy_baby') || STATE.quests[0];
+      // 배너: 진행 중인 퀘스트 1개의 실제 진행도 (기본은 '아이 밥·목욕·재우기', 달성하면 다음 열린 퀘스트)
+      const hb = STATE.quests.find(q => q.id === 'q_healthy_baby');
+      const mainQuest = (hb && !hb.locked && !hb.completed) ? hb : (STATE.quests.find(q => !q.locked && !q.completed) || hb || STATE.quests[0]);
+      const mainPct = mainQuest ? Math.min(100, Math.round((mainQuest.current / (mainQuest.target || 1)) * 100)) : 0;
+      const fmtQ = v => (Math.round(v * 10) / 10).toLocaleString();
       const openQuests = STATE.quests.filter(q => !q.locked);
       const questDoneCount = openQuests.filter(q => q.completed || q.current >= q.target).length;
       const questTotalCount = openQuests.length;
@@ -8773,8 +8778,7 @@
               <div class="flex-1 min-w-0 pr-1">
                 <div class="flex items-center gap-1.5 mb-1">
                   <span class="text-amber-400 text-xs">👑</span>
-                  <span class="text-xs font-black text-amber-400">오늘의 공동 퀘스트</span>
-                  <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold">Lv.3</span>
+                  <span class="text-xs font-black text-amber-400">진행 중인 공동 퀘스트</span>
                 </div>
                 <h3 class="text-sm font-black text-white theme-text-primary truncate">
                   ${mainQuest ? mainQuest.title : '우리 아이, 건강하게 자라기!'}
@@ -8786,12 +8790,12 @@
                 <div class="flex items-center gap-2.5 mt-2.5">
                   <div class="flex items-center gap-1.5">
                     <div class="w-20 h-2 bg-slate-900/80 rounded-full overflow-hidden border border-white/[0.05]">
-                      <div class="h-full bg-amber-500 transition-all duration-300" style="width: ${questProgressPct}%"></div>
+                      <div class="h-full bg-amber-500 transition-all duration-300" style="width: ${mainPct}%"></div>
                     </div>
-                    <span class="text-[10px] font-mono font-bold text-slate-400">${questDoneCount}/${questTotalCount}</span>
+                    <span class="text-[10px] font-mono font-bold text-slate-400">${mainQuest ? `${fmtQ(mainQuest.current)}/${mainQuest.target}${mainQuest.unit || ''}` : ''}</span>
                   </div>
                   <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-[10px] flex items-center gap-0.5">
-                    <span>🪙</span> +50P
+                    <span>🪙</span> +${((mainQuest && mainQuest.points) || 0).toLocaleString()}P
                   </span>
                 </div>
               </div>
@@ -8980,8 +8984,8 @@
     // 🧭 퀘스트 가이드: 제목만 봐도 무엇을 하면 되는지 알 수 있게 (flavor = 기존 감성 이름)
     var QUEST_GUIDE = {
       q_healthy_baby: { icon: '🥗', title: '아이 밥·목욕·재우기 4번 챙기기', flavor: '우리 아이, 건강하게 자라기', category: 'parenting', unit: '번',
-        howTo: '식사·이유식·목욕·재우기 할 일을 부부 합산 4번 완료하면 달성',
-        steps: ['할 일 제목에 식사·이유식·간식·분유·목욕·재우기·낮잠이 들어가면 대상이에요', '누가 완료하든 부부 합산으로 1번씩 올라가요', '배우자 할 일을 대신 해줘도 올라가요'] },
+        howTo: '밥 먹이기·목욕·재우기 할 일을 부부 합산 4번 완료하면 달성',
+        steps: ['할 일 제목에 밥·먹이기·식사·이유식·간식·분유·목욕·씻기기·재우기·낮잠이 들어가면 대상이에요 (약 먹이기는 제외)', '누가 완료하든 부부 합산으로 1번씩 올라가요', '배우자 할 일을 대신 해줘도 올라가요'] },
       q_focus: { icon: '📵', title: '노폰 육아 20시간 채우기', flavor: '주간 노폰 육아 집중', category: 'parenting',
         howTo: '육아 집중 타이머를 끝까지 마친 시간이 부부 합산 20시간이면 달성',
         steps: ['홈의 ⚡ 육아 집중 타이머로 시작하세요', '타이머를 끝까지 마친 시간만큼 올라가요', '엄마·아빠의 집중 시간이 합쳐져요'] },
@@ -9146,11 +9150,27 @@
     }
 
     // ⚙️ 할 일 완료 시 퀘스트 자동 집계 (ADR 16: 100% 앱 이벤트 기반)
+    // 🥗 '아이 밥·목욕·재우기' 대상 할 일 (실제로 쓰는 표현: 저녁먹이기·씻기기·재워주기 등, 약 먹이기는 제외)
+    var BABY_CARE_RE = /식사|이유식|밥|(?<!약\s?)먹이|(?<!약\s?)먹여|간식|분유|수유|목욕|씻기|씻겨|재우|재워|수면|낮잠|잠자리/;
+    // 🔁 규칙이 넓어지기 전에 완료한 할 일(예: '저녁먹이기')도 반영 — 완료 기록 수와 비교해 모자란 만큼만 올림 (두 폰이 돌려도 같은 값)
+    function recountBabyCareQuest() {
+      try { if (localStorage.getItem('bboma_quest_recount_v1')) return false; localStorage.setItem('bboma_quest_recount_v1', '1'); } catch (e) {}
+      const q = (STATE.quests || []).find(x => x.id === 'q_healthy_baby');
+      if (!q || q.locked || q.completed) return false;
+      let n = 0;
+      (STATE.tasks || []).forEach(t => {
+        if (!BABY_CARE_RE.test(t.title || '')) return;
+        Object.values(t.dateRecords || {}).forEach(r => { if (r && r.done) n++; });
+      });
+      if (n <= q.current) return false;
+      onQuestProgress('q_healthy_baby', n - q.current, null);
+      return true;
+    }
     function onTaskDoneForQuests(task, userKey, selDate) {
       selDate = selDate || STATE.selectedDate || todayStr();
-      if (/식사|이유식|밥|간식|분유|수유|목욕|재우|수면|낮잠/.test(task.title)) onQuestProgress('q_healthy_baby', 1, userKey);
+      if (BABY_CARE_RE.test(task.title || '')) onQuestProgress('q_healthy_baby', 1, userKey);
       if ((task.subtasks || []).length > 0) { onQuestProgress('q_checklist', 1, userKey); bumpBadgeStat('checklist'); }
-      if (/재우|낮잠|잠자리|수면/.test(task.title)) onQuestProgress('q_sleep', 1, userKey);
+      if (/재우|재워|낮잠|잠자리|수면/.test(task.title)) onQuestProgress('q_sleep', 1, userKey);
       if (/이유식/.test(task.title)) onQuestProgress('q_weaning', 1, userKey);
       const hh = parseInt((task.deadline || '12:00').slice(0, 2), 10);
       if (/수유|분유|모유/.test(task.title) && (hh >= 21 || hh < 5)) {
