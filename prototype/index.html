@@ -2379,7 +2379,18 @@
           </div>
           <div class="flex items-center justify-between gap-2 mt-2">
             <span class="text-slate-400 text-[10px] shrink-0">시작 날짜:</span>
-            <input type="date" id="taskInput_startDate" value="" class="min-w-0 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1 text-xs text-white outline-none focus:border-emerald-400" />
+            <input type="date" id="taskInput_startDate" value="" onchange="syncTaskEndDateMin()" class="min-w-0 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1 text-xs text-white outline-none focus:border-emerald-400" />
+          </div>
+          <div class="flex items-center justify-between gap-2 mt-2 min-h-[30px]">
+            <label class="flex items-center gap-2 cursor-pointer shrink-0">
+              <span class="relative inline-flex items-center">
+                <input type="checkbox" id="taskInput_useEndDate" class="sr-only peer" onchange="toggleTaskEndDate(this.checked)">
+                <span class="w-9 h-5 bg-slate-300 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-4 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></span>
+              </span>
+              <span class="text-slate-400 text-[10px]">종료 날짜</span>
+            </label>
+            <span id="taskEndDateNone" class="text-slate-500 text-[10px]">정하지 않음 · 계속 반복</span>
+            <input type="date" id="taskInput_endDate" value="" class="hidden min-w-0 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1 text-xs text-white outline-none focus:border-emerald-400" />
           </div>
         </div>
         <div id="onetimeDateSection" class="hidden flex items-center justify-between">
@@ -5527,6 +5538,28 @@
     let taskFormIsRoutine = true;
     let taskFormRoutineDays = [1, 2, 3, 4, 5, 6, 0];
 
+    // 📅 루틴 종료 날짜 (선택): 스위치를 켜면 날짜 입력, 끄면 계속 반복
+    function toggleTaskEndDate(on, value) {
+      const cb = document.getElementById('taskInput_useEndDate');
+      const input = document.getElementById('taskInput_endDate');
+      const none = document.getElementById('taskEndDateNone');
+      if (!input) return;
+      if (cb) cb.checked = !!on;
+      input.classList.toggle('hidden', !on);
+      if (none) none.classList.toggle('hidden', !!on);
+      if (on) {
+        const start = (document.getElementById('taskInput_startDate') || {}).value || todayStr();
+        input.value = value || (input.value && input.value >= start ? input.value : addDays(start, 6));
+      }
+      syncTaskEndDateMin();
+    }
+    function syncTaskEndDateMin() {
+      const start = (document.getElementById('taskInput_startDate') || {}).value;
+      const input = document.getElementById('taskInput_endDate');
+      if (!input || !start) return;
+      input.min = start;
+      if (input.value && input.value < start) input.value = start;
+    }
     function setTaskFormType(isRoutine) {
       taskFormIsRoutine = isRoutine;
       const btnRoutine = document.getElementById('taskTypeBtn_routine');
@@ -5618,6 +5651,7 @@
           if (dateInput && task.targetDate) dateInput.value = task.targetDate;
           const startInput = document.getElementById('taskInput_startDate');
           if (startInput) startInput.value = getTaskStartDate(task) || task.targetDate || todayStr();
+          toggleTaskEndDate(!!task.endDate, task.endDate || '');
         }
       } else {
         if (headerEl) headerEl.innerHTML = `<span>📋</span> <span>새 가사 & 육아 할 일 등록</span>`;
@@ -5632,6 +5666,9 @@
         if (dateInput) dateInput.value = STATE.selectedDate || todayStr();
         const startInput = document.getElementById('taskInput_startDate');
         if (startInput) startInput.value = STATE.selectedDate || todayStr();
+        const endInput = document.getElementById('taskInput_endDate');
+        if (endInput) endInput.value = '';
+        toggleTaskEndDate(false);
       }
 
       renderSubtaskInputs();
@@ -5763,6 +5800,12 @@
       const targetDate = (!taskFormIsRoutine && dateInput) ? dateInput.value : (STATE.selectedDate || todayStr());
       const startInput = document.getElementById('taskInput_startDate');
       const startDate = taskFormIsRoutine ? ((startInput && startInput.value) || STATE.selectedDate || todayStr()) : null;
+      const useEnd = taskFormIsRoutine && !!(document.getElementById('taskInput_useEndDate') || {}).checked;
+      const endDate = useEnd ? ((document.getElementById('taskInput_endDate') || {}).value || null) : null;
+      if (endDate && endDate < startDate) {
+        showToast('⚠️ 종료 날짜는 시작 날짜보다 빠를 수 없어요');
+        return;
+      }
 
       if (!title) {
         showToast('⚠️ 할 일 제목을 입력해주세요!');
@@ -5783,7 +5826,8 @@
       const actorKey = (typeof getDevice === 'function' && getDevice()) ? myRole() : assignee;
       const actor = STATE.users[actorKey];
 
-      const typeLabel = taskFormIsRoutine ? `🔄 루틴(${+startDate.slice(5, 7)}/${+startDate.slice(8)}부터)` : `📌 1회성(${targetDate})`;
+      const md = d => `${+d.slice(5, 7)}/${+d.slice(8)}`;
+      const typeLabel = taskFormIsRoutine ? (endDate ? `🔄 루틴(${md(startDate)}~${md(endDate)})` : `🔄 루틴(${md(startDate)}부터)`) : `📌 1회성(${targetDate})`;
 
       if (editingTaskId) {
         // Edit Task
@@ -5797,6 +5841,7 @@
           task.routineDays = taskFormIsRoutine ? taskFormRoutineDays : [];
           task.targetDate = targetDate;
           task.startDate = startDate;
+          task.endDate = endDate;
 
           showToast(`✏️ [수정 완료] '${title}' (${typeLabel}) 할 일이 수정되었습니다.`);
           logEvent(`[할 일 수정] ${actor.name} - '${title}' (${typeLabel}, ${cleanedSubtasks.length}개 세부항목)`);
@@ -5822,6 +5867,7 @@
           routineDays: taskFormIsRoutine ? taskFormRoutineDays : [],
           targetDate: targetDate,
           startDate: startDate,
+          endDate: endDate,
           subtasks: cleanedSubtasks,
           incompleteNotice: null
         };
@@ -8229,6 +8275,7 @@
       if (task.isRoutine !== false) {
         const start = getTaskStartDate(task);
         if (start && dateStr < start) return false;
+        if (task.endDate && dateStr > task.endDate) return false; // 종료 날짜(선택) 이후엔 안 보임
         // Routine task
         const days = task.routineDays || [1, 2, 3, 4, 5, 6, 0];
         return days.includes(dayOfWeek);
