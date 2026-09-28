@@ -6976,6 +6976,8 @@
         modal.classList.add('hidden');
         modal.style.display = 'none';
       }
+      // 앱 본문이 숨겨진 상태(예전 '홈으로 나가기' 동작)로 남아 있으면 복구
+      ['mom', 'dad'].forEach(k => { if (STATE.users[k] && STATE.users[k].minimized) restoreApp(k); });
     }
 
     function setPointSubTab(userKey, subTab) {
@@ -7013,19 +7015,14 @@
       renderApp(userKey);
     }
 
+    // 🏠 집중 중 '홈으로 나가기': 집중 창을 닫고 앱 홈 탭으로 (타이머·상단 알림은 계속)
+    //  (예전 시뮬레이터용 가짜 폰 홈화면으로 전환하던 동작은 실제 앱에서 본문·탭을 숨겨 화면이 깨지므로 폐기)
     function minimizeApp(userKey) {
       const user = STATE.users[userKey];
-      user.minimized = true;
-      const homeScreen = document.getElementById(userKey === 'mom' ? 'homeScreenMom' : 'homeScreenDad');
-      const appBody = document.getElementById(userKey === 'mom' ? 'momAppBody' : 'dadAppBody');
-      const bottomNav = document.getElementById(userKey === 'mom' ? 'momBottomNav' : 'dadBottomNav');
-
-      if (homeScreen) homeScreen.classList.remove('hidden');
-      if (appBody) appBody.classList.add('hidden');
-      if (bottomNav) bottomNav.classList.add('hidden');
-
-      showToast(`📱 ${user.name}의 앱을 닫고 홈 화면으로 전환했습니다. (상단 시계줄 아이콘 유지)`);
-      logEvent(`[백그라운드 전환] ${user.name} 홈 화면으로 이동 (상태바 👶 아이콘 상주 중)`);
+      closeFocusModal();
+      restoreApp(userKey);
+      switchTab(userKey, 'home');
+      showToast(user.focusActive ? `👶 집중 타이머는 계속 돌아가요 · 홈의 [타이머 열기]로 다시 볼 수 있어요` : '🏠 홈으로 돌아왔어요');
     }
 
     function restoreApp(userKey) {
@@ -8782,7 +8779,7 @@
                   </span>
                 </div>
                 <p class="text-[11px] text-slate-400 mt-0.5 truncate">
-                  ${user.focusActive ? `남은 시간: ${formatTimeRemaining(user.focusSecondsLeft)} (터치하여 제어)` : '딴짓 앱 차단 & 백그라운드 집중 기록'}
+                  ${user.focusActive ? `남은 시간: <span id="${userKey}HomeFocusLeft">${formatTimeRemaining(user.focusSecondsLeft)}</span> (터치하여 제어)` : '딴짓 앱 차단 & 백그라운드 집중 기록'}
                 </p>
               </div>
             </div>
@@ -9981,6 +9978,8 @@
 
           const liveTimer = document.getElementById(`${userKey}LiveFocusTimer`);
           if (liveTimer) liveTimer.innerText = str;
+          const homeLeft = document.getElementById(`${userKey}HomeFocusLeft`);
+          if (homeLeft) homeLeft.innerText = str;
 
           const liveProgress = document.getElementById(`${userKey}LiveFocusProgress`);
           if (liveProgress && user.focusTotalSeconds > 0) {
