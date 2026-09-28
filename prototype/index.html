@@ -2377,6 +2377,10 @@
             <button type="button" onclick="selectRoutinePreset('weekdays')" id="rPreset_weekdays" class="flex-1 py-1 rounded-lg bg-slate-900 text-slate-400 text-[10px] transition">평일 (월~금)</button>
             <button type="button" onclick="selectRoutinePreset('weekends')" id="rPreset_weekends" class="flex-1 py-1 rounded-lg bg-slate-900 text-slate-400 text-[10px] transition">주말 (토~일)</button>
           </div>
+          <div class="flex items-center justify-between gap-2 mt-2">
+            <span class="text-slate-400 text-[10px] shrink-0">시작 날짜:</span>
+            <input type="date" id="taskInput_startDate" value="" class="min-w-0 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1 text-xs text-white outline-none focus:border-emerald-400" />
+          </div>
         </div>
         <div id="onetimeDateSection" class="hidden flex items-center justify-between">
           <span class="text-slate-400 text-[10px]">수행 대상 날짜:</span>
@@ -5612,6 +5616,8 @@
           setTaskFormType(task.isRoutine !== false);
           const dateInput = document.getElementById('taskInput_targetDate');
           if (dateInput && task.targetDate) dateInput.value = task.targetDate;
+          const startInput = document.getElementById('taskInput_startDate');
+          if (startInput) startInput.value = getTaskStartDate(task) || task.targetDate || todayStr();
         }
       } else {
         if (headerEl) headerEl.innerHTML = `<span>📋</span> <span>새 가사 & 육아 할 일 등록</span>`;
@@ -5624,6 +5630,8 @@
         selectRoutinePreset('daily');
         const dateInput = document.getElementById('taskInput_targetDate');
         if (dateInput) dateInput.value = STATE.selectedDate || todayStr();
+        const startInput = document.getElementById('taskInput_startDate');
+        if (startInput) startInput.value = STATE.selectedDate || todayStr();
       }
 
       renderSubtaskInputs();
@@ -5683,9 +5691,9 @@
 
       container.innerHTML = currentSubtasks.map((st, idx) => `
         <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1">
-          <span class="text-xs text-slate-500">☑</span>
-          <input type="text" value="${st.text || ''}" oninput="updateSubtaskText(${idx}, this.value)" placeholder="세부 항목 입력 (예: 머리 말리기, 잠옷 입히기)" class="flex-1 bg-transparent text-xs text-slate-200 outline-none placeholder-slate-600" />
-          <button type="button" onclick="removeSubtaskInput(${idx})" class="text-slate-500 hover:text-rose-400 text-xs px-1" title="항목 삭제">✕</button>
+          <span class="shrink-0 text-xs text-slate-500">☑</span>
+          <input type="text" value="${st.text || ''}" oninput="updateSubtaskText(${idx}, this.value)" placeholder="세부 항목 (예: 머리 말리기)" class="flex-1 min-w-0 w-0 bg-transparent text-xs text-slate-200 outline-none placeholder-slate-600" />
+          <button type="button" onclick="removeSubtaskInput(${idx})" class="shrink-0 text-slate-500 hover:text-rose-400 text-xs px-1" title="항목 삭제">✕</button>
         </div>
       `).join('');
     }
@@ -5753,6 +5761,8 @@
       const assignee = assigneeSelect ? assigneeSelect.value : 'mom';
       const deadline = deadlineInput ? deadlineInput.value.trim() : '';
       const targetDate = (!taskFormIsRoutine && dateInput) ? dateInput.value : (STATE.selectedDate || todayStr());
+      const startInput = document.getElementById('taskInput_startDate');
+      const startDate = taskFormIsRoutine ? ((startInput && startInput.value) || STATE.selectedDate || todayStr()) : null;
 
       if (!title) {
         showToast('⚠️ 할 일 제목을 입력해주세요!');
@@ -5773,7 +5783,7 @@
       const actorKey = (typeof getDevice === 'function' && getDevice()) ? myRole() : assignee;
       const actor = STATE.users[actorKey];
 
-      const typeLabel = taskFormIsRoutine ? '🔄 매일 고정 루틴' : `📌 1회성(${targetDate})`;
+      const typeLabel = taskFormIsRoutine ? `🔄 루틴(${+startDate.slice(5, 7)}/${+startDate.slice(8)}부터)` : `📌 1회성(${targetDate})`;
 
       if (editingTaskId) {
         // Edit Task
@@ -5786,6 +5796,7 @@
           task.isRoutine = taskFormIsRoutine;
           task.routineDays = taskFormIsRoutine ? taskFormRoutineDays : [];
           task.targetDate = targetDate;
+          task.startDate = startDate;
 
           showToast(`✏️ [수정 완료] '${title}' (${typeLabel}) 할 일이 수정되었습니다.`);
           logEvent(`[할 일 수정] ${actor.name} - '${title}' (${typeLabel}, ${cleanedSubtasks.length}개 세부항목)`);
@@ -5810,6 +5821,7 @@
           isRoutine: taskFormIsRoutine,
           routineDays: taskFormIsRoutine ? taskFormRoutineDays : [],
           targetDate: targetDate,
+          startDate: startDate,
           subtasks: cleanedSubtasks,
           incompleteNotice: null
         };
@@ -8207,11 +8219,19 @@
       return task.dateRecords[dateStr];
     }
 
+    // 🔄 루틴 시작일: 저장된 startDate, 없으면(예전 할 일) 등록 시각(t_<ms> ID)의 날짜 → 등록 전 과거 날짜엔 안 보임
+    function getTaskStartDate(task) {
+      if (task.startDate) return task.startDate;
+      const m = /^t_(\d{12,})/.exec(task.id || '');
+      return m ? toDateStr(new Date(+m[1])) : null;
+    }
     function isTaskActiveOnDate(task, dateStr) {
       const dt = new Date(dateStr);
       const dayOfWeek = dt.getDay(); // 0(Sun) ~ 6(Sat)
 
       if (task.isRoutine !== false) {
+        const start = getTaskStartDate(task);
+        if (start && dateStr < start) return false;
         // Routine task
         const days = task.routineDays || [1, 2, 3, 4, 5, 6, 0];
         return days.includes(dayOfWeek);
