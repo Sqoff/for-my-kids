@@ -782,6 +782,13 @@
     .fs-input { font-size: 26px; font-weight: 900; letter-spacing: 3px; text-align: center; padding: 14px; border-radius: 16px; border: 1.5px solid #E5E8EB; background: #FFFFFF; color: #191F28; outline: none; user-select: text; -webkit-user-select: text; font-family: ui-monospace, monospace; }
     .fs-input:focus { border-color: #3182F6; }
     .fs-note { font-size: 12px; color: #8B95A1; }
+    /* ⏰ 할 일 시간 칩 */
+    .deadline-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .dl-chip { position: relative; padding: 8px 11px; border-radius: 12px; font-size: 12.5px; font-weight: 800; background: rgba(255,255,255,0.06); color: #94A3B8; border: 1.5px solid transparent; white-space: nowrap; cursor: pointer; }
+    .dl-chip.is-on { border-color: #3182F6; color: #60A5FA; }
+    .dl-picker { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    body.theme-white .dl-chip { background: #F2F4F6 !important; color: #4E5968 !important; }
+    body.theme-white .dl-chip.is-on { background: #FFFFFF !important; border-color: #3182F6; color: #1B64DA !important; }
     /* 할 일 유형 선택 버튼: 선택 시 배경은 그대로 두고 테두리+글자색만 강조 */
     .task-type-btn { background: #020617; border-color: #334155; color: #94a3b8; }
     .task-type-btn.is-routine { border-color: #6366f1; color: #a5b4fc; }
@@ -2359,12 +2366,12 @@
         </div>
         <div id="onetimeDateSection" class="hidden flex items-center justify-between">
           <span class="text-slate-400 text-[10px]">수행 대상 날짜:</span>
-          <input type="date" id="taskInput_targetDate" value=" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1 text-xs text-white outline-none focus:border-emerald-400" />
+          <input type="date" id="taskInput_targetDate" value="" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1 text-xs text-white outline-none focus:border-emerald-400" />
         </div>
       </div>
 
       <!-- Assignee & Deadline -->
-      <div class="grid grid-cols-2 gap-3">
+      <div class="flex flex-col gap-3">
         <div>
           <label class="block text-[11px] font-bold text-slate-300 mb-1">담당자</label>
           <select id="taskInput_assignee" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-emerald-400">
@@ -2373,8 +2380,9 @@
           </select>
         </div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-300 mb-1">수행 마감 시간</label>
-          <input type="text" id="taskInput_deadline" value="20:00" placeholder="예: 20:00" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500 text-xs font-mono focus:border-emerald-400 outline-none" />
+          <label class="block text-[11px] font-bold text-slate-300 mb-1">언제 할까요?</label>
+          <input type="hidden" id="taskInput_deadline" value="" />
+          <div id="deadlineChips" class="deadline-chips"></div>
         </div>
       </div>
 
@@ -3610,7 +3618,7 @@
             </div>
           </div>
           <span id="sideLevelBadge" class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 text-[10px]">
-            Lv.3 환상의 콤비
+            Lv.1
           </span>
         </div>
 
@@ -4188,6 +4196,9 @@
       STATE.streakCountedDates = {};
       STATE.boatBothCounted = {};
       STATE.lastNightFeedBy = null;
+      STATE.badgeStats = { checklist: 0, help: 0 };
+      STATE.familyStartDate = todayStr();
+      STATE.lastPenaltyDate = null;
       STATE.selectedDate = todayStr();
       [['mom', '엄마', '👩'], ['dad', '아빠', '👨']].forEach(([k, role, av]) => {
         Object.assign(STATE.users[k], { name: role, role, avatar: av, nameSet: false, penalties: [], shields: 0, coupons: [], incomingPenalty: null, notifications: [] });
@@ -4214,7 +4225,7 @@
       appId: '1:562770896827:web:d6c6e93347ab546d83469e'
     };
     var DATA_VERSION = 'beta1';
-    var SHARED_FIELDS = ['tasks', 'events', 'boats', 'quests', 'couplePoints', 'pointHistory', 'pet', 'activityLog', 'streakCountedDates', 'boatBothCounted', 'lastNightFeedBy', 'mode', 'settings', 'purchasedGifticons', 'coupangEarned'];
+    var SHARED_FIELDS = ['badgeStats', 'familyStartDate', 'lastPenaltyDate', 'tasks', 'events', 'boats', 'quests', 'couplePoints', 'pointHistory', 'pet', 'activityLog', 'streakCountedDates', 'boatBothCounted', 'lastNightFeedBy', 'mode', 'settings', 'purchasedGifticons', 'coupangEarned'];
     var USER_FIELDS = ['name', 'role', 'avatar', 'nameSet', 'penalties', 'shields', 'coupons', 'incomingPenalty', 'notifications'];
     var FB = { ready: false, db: null, uid: null, ref: null, unsub: null, lastSent: {}, timer: null };
 
@@ -4274,6 +4285,8 @@
       applyFreshState();
       loadLocalState();
       STATE.selectedDate = todayStr();
+      if (!STATE.familyStartDate) STATE.familyStartDate = todayStr();
+      if (!STATE.badgeStats) STATE.badgeStats = { checklist: 0, help: 0 };
       const d = getDevice();
       if (d && d.role) STATE.viewMode = d.role;
     }
@@ -5369,6 +5382,10 @@
       const assigneeSelect = document.getElementById('taskInput_assignee');
       const deadlineInput = document.getElementById('taskInput_deadline');
 
+      if (assigneeSelect) {
+        assigneeSelect.innerHTML = `<option value="mom">👩 ${getDisplayName('mom')}</option><option value="dad">👨 ${getDisplayName('dad')}</option>`;
+        if (typeof getDevice === 'function' && getDevice()) defaultAssignee = myRole();
+      }
       if (taskId) {
         const task = STATE.tasks.find(t => t.id === taskId);
         if (task) {
@@ -5376,7 +5393,7 @@
           if (saveBtnText) saveBtnText.innerText = '✨ 수정사항 저장';
           if (titleInput) titleInput.value = task.title;
           if (assigneeSelect) assigneeSelect.value = task.assignee;
-          if (deadlineInput) deadlineInput.value = task.deadline.split(' ')[0];
+          if (deadlineInput) deadlineInput.value = (task.deadline || '').split(' ')[0];
           currentSubtasks = (task.subtasks || []).map(st => ({ id: st.id, text: st.text, done: st.done }));
 
           setTaskFormType(task.isRoutine !== false);
@@ -5388,7 +5405,7 @@
         if (saveBtnText) saveBtnText.innerText = '+ 할 일 등록하기';
         if (titleInput) titleInput.value = '';
         if (assigneeSelect) assigneeSelect.value = defaultAssignee;
-        if (deadlineInput) deadlineInput.value = '20:00';
+        if (deadlineInput) deadlineInput.value = '';
         currentSubtasks = [];
         setTaskFormType(true); // 기본 루틴
         selectRoutinePreset('daily');
@@ -5397,6 +5414,7 @@
       }
 
       renderSubtaskInputs();
+      renderDeadlineChips();
 
       const modal = document.getElementById('taskManageModal');
       if (modal) {
@@ -5459,11 +5477,44 @@
       `).join('');
     }
 
+    // ⏰ 할 일 시간: 한 번 탭 칩 + 휴대폰 시계 선택 (직접 타이핑 X)
+    var DEADLINE_CHIPS = [['', '언제든'], ['08:00', '아침 8시'], ['12:00', '점심 12시'], ['15:00', '오후 3시'], ['19:00', '저녁 7시'], ['21:00', '밤 9시']];
+    function renderDeadlineChips() {
+      const box = document.getElementById('deadlineChips');
+      const input = document.getElementById('taskInput_deadline');
+      if (!box || !input) return;
+      const v = input.value || '';
+      const isPreset = DEADLINE_CHIPS.some(([t]) => t === v);
+      box.innerHTML = DEADLINE_CHIPS.map(([t, label]) => `<button type="button" class="dl-chip ${v === t ? 'is-on' : ''}" onclick="setTaskDeadline('${t}')">${label}</button>`).join('') +
+        `<button type="button" class="dl-chip dl-custom ${!isPreset ? 'is-on' : ''}" onclick="openDeadlinePicker()">🕒 ${!isPreset ? formatDeadline(v) : '직접'}</button>` +
+        `<input type="time" id="deadlinePicker" class="dl-picker" value="${!isPreset ? v : ''}" onchange="setTaskDeadline(this.value)" oninput="setTaskDeadline(this.value)" />`;
+    }
+    function openDeadlinePicker() {
+      const p = document.getElementById('deadlinePicker');
+      if (!p) return;
+      try { if (p.showPicker) { p.showPicker(); return; } } catch (e) {}
+      p.focus(); p.click();
+    }
+    function setTaskDeadline(v) {
+      const input = document.getElementById('taskInput_deadline');
+      if (input) input.value = v || '';
+      renderDeadlineChips();
+    }
+    function formatDeadline(v) {
+      if (!v) return '언제든';
+      const [h, m] = v.slice(0, 5).split(':').map(Number);
+      if (isNaN(h)) return v;
+      const ap = h < 12 ? '오전' : '오후';
+      const hh = h % 12 === 0 ? 12 : h % 12;
+      return `${ap} ${hh}시${m ? ` ${m}분` : ''}`;
+    }
+
     function selectTaskPreset(title, defaultDeadline) {
       const titleInput = document.getElementById('taskInput_title');
       const deadlineInput = document.getElementById('taskInput_deadline');
       if (titleInput) titleInput.value = title;
       if (deadlineInput) deadlineInput.value = defaultDeadline;
+      renderDeadlineChips();
 
       setTaskFormType(true); // 프리셋은 기본 고정 루틴
       selectRoutinePreset('daily');
@@ -5487,7 +5538,7 @@
 
       const title = titleInput ? titleInput.value.trim() : '';
       const assignee = assigneeSelect ? assigneeSelect.value : 'mom';
-      const deadline = deadlineInput ? deadlineInput.value.trim() : '20:00';
+      const deadline = deadlineInput ? deadlineInput.value.trim() : '';
       const targetDate = (!taskFormIsRoutine && dateInput) ? dateInput.value : (STATE.selectedDate || todayStr());
 
       if (!title) {
@@ -6966,7 +7017,7 @@
                   <span class="cal-icon">${cat.icon}</span>
                   <div class="flex-1 min-w-0">
                     <div class="cal-title truncate">${t.title}</div>
-                    <div class="cal-sub truncate">${(t.deadline || '10:00').slice(0, 5)} · ${getDisplayName(t.assignee)}</div>
+                    <div class="cal-sub truncate">${t.deadline ? t.deadline.slice(0, 5) : '언제든'} · ${getDisplayName(t.assignee)}</div>
                   </div>
                   <span class="cal-status ${isDone ? 'is-done' : ''}">${isDone ? '완료' : '대기'}</span>
                 </div>
@@ -7016,13 +7067,21 @@
       const momTasks = (STATE.stats && STATE.stats.daily && STATE.stats.daily[6]) ? STATE.stats.daily[6].momTasks : 4;
       const dadTasks = (STATE.stats && STATE.stats.daily && STATE.stats.daily[6]) ? STATE.stats.daily[6].dadTasks : 3;
 
+      // 🏅 배지: 실제 기록으로 계산 (예시 값 제거)
+      const bs = STATE.badgeStats || {};
+      const questDone = STATE.quests.filter(q => q.completed).length;
+      const weekFocus = (() => { const w = (STATE.stats && STATE.stats.weekly) || []; const t = w[w.length - 1] || {}; return +((t.momFocus || 0) + (t.dadFocus || 0)).toFixed(1); })();
+      const gifticonBuys = (STATE.purchasedGifticons || []).length;
+      const peaceStart = [STATE.familyStartDate, STATE.lastPenaltyDate].filter(Boolean).sort().pop() || todayStr();
+      const peaceDays = Math.max(0, Math.round((new Date(todayStr() + 'T00:00:00') - new Date(peaceStart + 'T00:00:00')) / 86400000));
+      const mk = (icon, title, desc, cur, goal) => ({ icon, title, desc, achieved: cur >= goal, progress: `${Math.min(cur, goal)}/${goal}` });
       const badges = [
-        { icon: '🤝', title: '환상의 콤비', desc: '협력 퀘스트 10회 완주', achieved: true, progress: '10/10' },
-        { icon: '⏱️', title: '집중 마스터', desc: '주간 집중 20시간 돌파', achieved: true, progress: '20/20' },
-        { icon: '🍗', title: '야식 수호대', desc: '치킨 저금통 첫 교환 성공', achieved: true, progress: '1/1' },
-        { icon: '✨', title: '꼼꼼 체크왕', desc: '세부 체크리스트 30회 완료', achieved: false, progress: '18/30' },
-        { icon: '👼', title: '천사 배우자', desc: '상대방 할 일 대신 돕기 5회', achieved: false, progress: '2/5' },
-        { icon: '🕊️', title: '평화 협약자', desc: '페널티 없이 7일 연속 달성', achieved: false, progress: '5/7' }
+        mk('🤝', '환상의 콤비', '협력 퀘스트 10개 완주', questDone, 10),
+        mk('⏱️', '집중 마스터', '이번 주 집중 20시간 돌파', Math.floor(weekFocus), 20),
+        mk('🍗', '야식 수호대', '치킨 저금통 첫 교환 (준비 중)', gifticonBuys, 1),
+        mk('✨', '꼼꼼 체크왕', '세부 체크리스트 30회 완료', bs.checklist || 0, 30),
+        mk('👼', '천사 배우자', '상대방 할 일 대신 돕기 5회', bs.help || 0, 5),
+        mk('🕊️', '평화 협약자', '페널티 없이 7일 연속', peaceDays, 7)
       ];
 
       return `
@@ -7046,22 +7105,14 @@
 
             <!-- 뽀마 성장 4단계 진화 로드맵 -->
             <div class="w-full grid grid-cols-4 gap-1.5 my-3 pt-2 border-t border-white/[0.06] text-center">
-              <div class="flex flex-col items-center opacity-60">
-                <span class="text-base">🥚</span>
-                <span class="text-[9px] text-slate-400 mt-0.5">1단계 알</span>
-              </div>
-              <div class="flex flex-col items-center font-bold text-amber-300 scale-105">
-                <span class="text-base">🐣</span>
-                <span class="text-[9px] text-amber-300 mt-0.5">2단계 아기 (현재)</span>
-              </div>
-              <div class="flex flex-col items-center opacity-40">
-                <span class="text-base">🐥</span>
-                <span class="text-[9px] text-slate-400 mt-0.5">3단계 어린이</span>
-              </div>
-              <div class="flex flex-col items-center opacity-40">
-                <span class="text-base">👑</span>
-                <span class="text-[9px] text-slate-400 mt-0.5">4단계 수호왕</span>
-              </div>
+              ${[['🥚', '1단계 알', 1], ['🐣', '2단계 아기', 3], ['🐥', '3단계 어린이', 6], ['👑', '4단계 수호왕', 10]].map(([ic, nm, from], i, arr) => {
+                const lv = STATE.pet.level, next = arr[i + 1] ? arr[i + 1][2] : 999;
+                const cur = lv >= from && lv < next, passed = lv >= next;
+                return `<div class="flex flex-col items-center ${cur ? 'font-bold text-amber-300 scale-105' : (passed ? 'opacity-60' : 'opacity-40')}">
+                  <span class="text-base">${ic}</span>
+                  <span class="text-[9px] ${cur ? 'text-amber-300' : 'text-slate-400'} mt-0.5">${nm}${cur ? ' (현재)' : ''}</span>
+                </div>`;
+              }).join('')}
             </div>
 
             <!-- EXP Bar -->
@@ -7105,7 +7156,7 @@
           <!-- 가족 칭호 & 업적 배지 그리드 (6대 배지 완성) -->
           <div class="flex items-center justify-between px-1">
             <span class="font-bold text-white text-xs">가족 업적 & 명예 칭호</span>
-            <span class="text-slate-400 text-xs font-mono font-bold">3 / 6개 달성</span>
+            <span class="text-slate-400 text-xs font-mono font-bold">${badges.filter(b => b.achieved).length} / ${badges.length}개 달성</span>
           </div>
 
           <div class="grid grid-cols-2 gap-2.5">
@@ -8283,7 +8334,7 @@
                   ${task.isCoupangItem ? '<span class="text-[11px] shrink-0" title="쿠팡 2% 적립">🛒</span>' : ''}
                 </div>
                 <div class="tr-sub flex items-center gap-1 whitespace-nowrap overflow-hidden">
-                  <span class="shrink-0">${task.deadline ? task.deadline.slice(0, 5) : '10:00'} · ${getDisplayName(task.assignee)}</span>
+                  <span class="shrink-0">${task.deadline ? task.deadline.slice(0, 5) : '언제든'} · ${getDisplayName(task.assignee)}</span>
                   ${helpRequested ? `<span class="tr-help-tag shrink-0">· 🙏 ${isMine ? '도움 요청 중' : '도움 요청'}</span>` : ''}
                   ${subtasks.length > 0 ? `
                     <span onclick="toggleTaskSubtasks('${task.id}', event, '${userKey}')" data-no-swipe="true" class="text-blue-500 font-bold cursor-pointer shrink-0">· 세부 ${subDoneCount}/${subtasks.length} ${isExpanded ? '▲' : '▾'}</span>
@@ -8787,11 +8838,16 @@
       el.classList.remove('hidden');
     }
 
+    function bumpBadgeStat(k) {
+      if (!STATE.badgeStats) STATE.badgeStats = {};
+      STATE.badgeStats[k] = (STATE.badgeStats[k] || 0) + 1;
+    }
+
     // ⚙️ 할 일 완료 시 퀘스트 자동 집계 (ADR 16: 100% 앱 이벤트 기반)
     function onTaskDoneForQuests(task, userKey, selDate) {
       selDate = selDate || STATE.selectedDate || todayStr();
       if (/식사|이유식|밥|간식|분유|수유|목욕|재우|수면|낮잠/.test(task.title)) onQuestProgress('q_healthy_baby', 1, userKey);
-      if ((task.subtasks || []).length > 0) onQuestProgress('q_checklist', 1, userKey);
+      if ((task.subtasks || []).length > 0) { onQuestProgress('q_checklist', 1, userKey); bumpBadgeStat('checklist'); }
       if (/재우|낮잠|잠자리|수면/.test(task.title)) onQuestProgress('q_sleep', 1, userKey);
       if (/이유식/.test(task.title)) onQuestProgress('q_weaning', 1, userKey);
       const hh = parseInt((task.deadline || '12:00').slice(0, 2), 10);
@@ -9773,6 +9829,7 @@
 
       // Trigger 100% App-Managed Quest Auto Progress
       onQuestProgress('q_help', 1, helperKey);
+      bumpBadgeStat('help');
 
       const qHelp = STATE.quests.find(q => q.id === 'q_help');
       showToast(`👼 천사 배우자! ${helper.name}님이 ${spouse.name}님의 '${task.title}'을(를) 대신 도와주었습니다! (퀘스트 ${qHelp ? qHelp.current : 1}/${qHelp ? qHelp.target : 5})`);
@@ -10243,6 +10300,7 @@
     function dispatchPenaltyAttack(fromKey, penaltyId, addToTodo = true) {
       const fromUser = STATE.users[fromKey];
       if (!fromUser) return;
+      STATE.lastPenaltyDate = todayStr();
       const pIdx = fromUser.penalties.findIndex(p => p.id === penaltyId);
       if (pIdx === -1) return;
       const penalty = fromUser.penalties[pIdx];
