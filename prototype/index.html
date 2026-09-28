@@ -789,6 +789,20 @@
     .dl-picker { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     body.theme-white .dl-chip { background: #F2F4F6 !important; color: #4E5968 !important; }
     body.theme-white .dl-chip.is-on { background: #FFFFFF !important; border-color: #3182F6; color: #1B64DA !important; }
+    /* 오늘 하루 보지 않기 */
+    .welcome-hide-today { display: block; margin: 14px auto 0; padding: 6px 10px; font-size: 12px; font-weight: 600; color: #8B95A1; text-decoration: underline; text-underline-offset: 3px; }
+    /* 🎌 공휴일 */
+    .cal-red-day { color: #F04452 !important; }
+    .cal-holiday-row { cursor: default; }
+    .cal-holiday-row .cal-title { color: #F04452 !important; }
+    /* 📜 모든 팝업: 화면 높이를 넘으면 팝업 안에서 스크롤 (버튼이 잘리지 않게, ADR 44) */
+    [id$="Modal"].fixed > div:first-child,
+    #eventManageModal > div:first-child {
+      max-height: calc(100dvh - 32px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
     /* 할 일 유형 선택 버튼: 선택 시 배경은 그대로 두고 테두리+글자색만 강조 */
     .task-type-btn { background: #020617; border-color: #334155; color: #94a3b8; }
     .task-type-btn.is-routine { border-color: #6366f1; color: #a5b4fc; }
@@ -6339,24 +6353,7 @@
       STATE.users[currentEditingProfileUser].avatar = finalAvatar;
 
       // Save to localStorage
-      try {
-        localStorage.setItem('bboma_user_profiles', JSON.stringify({
-          mom: {
-            name: STATE.users.mom.name,
-            role: STATE.users.mom.role,
-            avatar: STATE.users.mom.avatar,
-            nameSet: !!STATE.users.mom.nameSet
-          },
-          dad: {
-            name: STATE.users.dad.name,
-            role: STATE.users.dad.role,
-            avatar: STATE.users.dad.avatar,
-            nameSet: !!STATE.users.dad.nameSet
-          }
-        }));
-      } catch (e) {
-        console.error('Failed to save user profiles to localStorage', e);
-      }
+      scheduleSync(); // 이름은 공유 상태로 저장·동기화
 
       renderHeaderProfiles();
       renderApp('mom');
@@ -6445,7 +6442,9 @@
       } else {
         setViewMode('dual');
       }
-      loadSavedUserProfiles();
+      // 이름은 가족 공유 상태(서버 동기화)만 사용 — 예전 기기별 저장본은 폐기 (ADR 44)
+      try { localStorage.removeItem('bboma_user_profiles'); } catch (e) {}
+      renderHeaderProfiles();
       if (typeof NativeNotificationManager !== 'undefined') {
         NativeNotificationManager.init();
       }
@@ -6746,6 +6745,10 @@
       if (!modal || !contentEl) return;
 
       const isTaskMode = modeOverride ? (modeOverride === 'task') : !!taskKind;
+      // 육아집중 추천 화면은 '오늘 하루 보지 않기'를 누른 날엔 자동으로 띄우지 않음 (할 일 알림은 계속 표시)
+      if (!isTaskMode && !force) {
+        try { if (localStorage.getItem('bboma_focus_welcome_hidden') === todayStr()) return; } catch (e) {}
+      }
 
       let html = '';
       if (isTaskMode) {
@@ -6898,6 +6901,9 @@
             <button type="button" onclick="checkAndShowPersonalizedWelcome(true, 'focus')" class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-300">육아집중 추천</button>
             <button type="button" onclick="previewBoatNight()" class="px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-300">⛵ 밤 돛단배</button>
           </div>
+
+          <!-- 오늘 하루 보지 않기 (육아집중 추천만, ADR 45) -->
+          <button type="button" onclick="hideFocusWelcomeToday()" class="welcome-hide-today">오늘 하루 보지 않기</button>
         `;
       }
 
@@ -6905,6 +6911,12 @@
       modal.classList.remove('hidden');
       modal.style.display = 'flex';
       lucide.createIcons();
+    }
+
+    function hideFocusWelcomeToday() {
+      try { localStorage.setItem('bboma_focus_welcome_hidden', todayStr()); } catch (e) {}
+      closePersonalizedWelcomeModal();
+      showToast('오늘은 육아집중 추천을 띄우지 않을게요');
     }
 
     function closePersonalizedWelcomeModal() {
@@ -7040,6 +7052,38 @@
     var editingEventId = null;
     var eventModalUserKey = 'mom';
     var eventFormIcon = '📌';
+
+    // 🎌 대한민국 공휴일 (대체공휴일 포함, 2026~2027) — 매년 초 다음 해 추가 필요 (ADR 44)
+    var KR_HOLIDAYS = {
+      '2026-01-01': '신정',
+      '2026-02-16': '설날 연휴', '2026-02-17': '설날', '2026-02-18': '설날 연휴',
+      '2026-03-01': '삼일절', '2026-03-02': '대체공휴일 (삼일절)',
+      '2026-05-01': '노동절',
+      '2026-05-05': '어린이날',
+      '2026-05-24': '부처님오신날', '2026-05-25': '대체공휴일 (부처님오신날)',
+      '2026-06-03': '전국동시지방선거',
+      '2026-06-06': '현충일',
+      '2026-07-17': '제헌절',
+      '2026-08-15': '광복절', '2026-08-17': '대체공휴일 (광복절)',
+      '2026-09-24': '추석 연휴', '2026-09-25': '추석', '2026-09-26': '추석 연휴',
+      '2026-10-03': '개천절', '2026-10-05': '대체공휴일 (개천절)',
+      '2026-10-09': '한글날',
+      '2026-12-25': '성탄절',
+      '2027-01-01': '신정',
+      '2027-02-06': '설날 연휴', '2027-02-07': '설날', '2027-02-08': '설날 연휴', '2027-02-09': '대체공휴일 (설날)',
+      '2027-03-01': '삼일절',
+      '2027-05-01': '노동절', '2027-05-03': '대체공휴일 (노동절)',
+      '2027-05-05': '어린이날',
+      '2027-05-13': '부처님오신날',
+      '2027-06-06': '현충일',
+      '2027-07-17': '제헌절', '2027-07-19': '대체공휴일 (제헌절)',
+      '2027-08-15': '광복절', '2027-08-16': '대체공휴일 (광복절)',
+      '2027-09-14': '추석 연휴', '2027-09-15': '추석', '2027-09-16': '추석 연휴',
+      '2027-10-03': '개천절', '2027-10-04': '대체공휴일 (개천절)',
+      '2027-10-09': '한글날', '2027-10-11': '대체공휴일 (한글날)',
+      '2027-12-25': '성탄절', '2027-12-27': '대체공휴일 (성탄절)'
+    };
+    function getHoliday(dateStr) { return KR_HOLIDAYS[dateStr] || null; }
 
     function getEventsOnDate(dateStr) {
       return (STATE.events || []).filter(e => e.date === dateStr).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
@@ -7216,12 +7260,13 @@
             <!-- 주간 날짜 그리드 (선택 시 해당 날짜로 즉시 전환) -->
             <div class="grid grid-cols-7 gap-1 text-center py-1">
               ${days.map(d => `<div class="text-[11px] font-bold text-slate-400 py-1">${d}</div>`).join('')}
-              ${weekDates.map(dateStr => {
+              ${weekDates.map((dateStr, wi) => {
                 const isSelected = dateStr === selDate;
                 const d = +dateStr.slice(8);
+                const isRed = !!getHoliday(dateStr) || wi === 0; // 공휴일·일요일 빨간 날
                 return `
                   <button type="button" onclick="selectCalendarDate('${dateStr}')" class="flex flex-col items-center justify-center py-2 rounded-xl transition cursor-pointer active:scale-95 ${isSelected ? 'bg-blue-500 text-white font-black shadow-lg' : 'text-slate-300 hover:bg-white/[0.05]'}">
-                    <span class="text-xs font-mono font-bold">${d}</span>
+                    <span class="text-xs font-mono font-bold ${isRed && !isSelected ? 'cal-red-day' : ''}">${d}</span>
                     <span class="w-1.5 h-1.5 rounded-full mt-1 ${getEventsOnDate(dateStr).length ? (isSelected ? 'bg-amber-300' : 'bg-blue-400') : 'bg-transparent'}"></span>
                   </button>
                 `;
@@ -7235,8 +7280,17 @@
               <span class="cal-section-title">📅 일정 <span class="cal-count">${dateEvents.length}</span></span>
               <button type="button" onclick="openEventModal(null, '${userKey}')" class="cal-add-btn">+ 일정 추가</button>
             </div>
-            ${dateEvents.length === 0 ? `
-              <div class="cal-empty">이 날짜에 등록된 일정이 없어요</div>
+            ${getHoliday(selDate) ? `
+              <div class="cal-row cal-holiday-row">
+                <span class="cal-icon">🎌</span>
+                <div class="flex-1 min-w-0">
+                  <div class="cal-title truncate">${getHoliday(selDate)}</div>
+                  <div class="cal-sub">공휴일</div>
+                </div>
+              </div>
+            ` : ''}
+            ${dateEvents.length === 0 ? (getHoliday(selDate) ? '' : `
+              <div class="cal-empty">이 날짜에 등록된 일정이 없어요</div>`) + `
             ` : dateEvents.map(ev => `
               <div class="cal-row" onclick="openEventModal('${ev.id}', '${userKey}')">
                 <span class="cal-icon">${ev.icon || '📌'}</span>
