@@ -4184,7 +4184,7 @@
     // 🧹 신규 사용자 초기 상태 (예시 데이터 없음) — 실사용 베타 (ADR 39)
     function applyFreshState() {
       STATE.mode = 'easy';
-      STATE.pet.level = 1; STATE.pet.exp = 0; STATE.pet.maxExp = 200;
+      STATE.pet.level = 1; STATE.pet.exp = 0; STATE.pet.maxExp = 200; STATE.pet.totalExp = 0;
       STATE.pet.speech = '반가워요! 오늘부터 뽀마가 함께할게요 🐣';
       STATE.couplePoints = 0;
       STATE.pointHistory = [];
@@ -4225,46 +4225,124 @@
       appId: '1:562770896827:web:d6c6e93347ab546d83469e'
     };
     var DATA_VERSION = 'beta1';
-    var SHARED_FIELDS = ['badgeStats', 'familyStartDate', 'lastPenaltyDate', 'tasks', 'events', 'boats', 'quests', 'couplePoints', 'pointHistory', 'pet', 'activityLog', 'streakCountedDates', 'boatBothCounted', 'lastNightFeedBy', 'mode', 'settings', 'purchasedGifticons', 'coupangEarned'];
-    var USER_FIELDS = ['name', 'role', 'avatar', 'nameSet', 'penalties', 'shields', 'coupons', 'incomingPenalty', 'notifications'];
-    var FB = { ready: false, db: null, uid: null, ref: null, unsub: null, lastSent: {}, timer: null };
+    // ── 동기화 v2 (ADR 42): 항목 단위 병합 + 숫자는 증감으로 ──
+    //  · 목록(할 일·일정·알림 등)은 id별로 따로 저장 → 서로 다른 항목을 동시에 고쳐도 덮어쓰지 않음
+    //  · 포인트·통계 같은 숫자는 "+N" 증감으로 저장 → 동시에 더해도 합이 맞음
+    //  · 화면을 보기만 해서 생기는 빈 날짜 기록은 저장하지 않음 (불필요한 업로드 방지)
+    var SYNC_LISTS = { tasks: 'asc', events: 'asc', boats: 'asc', quests: 'asc', pointHistory: 'desc', purchasedGifticons: 'desc' };
+    var SYNC_USER_LISTS = { notifications: 'desc', penalties: 'asc', coupons: 'asc' };
+    var SYNC_KEYMAPS = ['streakCountedDates', 'boatBothCounted'];
+    var SYNC_COUNTERS = ['couplePoints', 'activityLog', 'badgeStats', 'coupangEarned'];
+    var SYNC_WHOLE = ['pet', 'mode', 'settings', 'lastNightFeedBy', 'familyStartDate', 'lastPenaltyDate'];
+    var SYNC_USER_WHOLE = ['name', 'role', 'avatar', 'nameSet', 'shields', 'incomingPenalty'];
+    var LIST_CAPS = { pointHistory: 200, notifications: 80 };
+    // 예전 이름 호환 (다른 코드에서 참조)
+    var SHARED_FIELDS = Object.keys(SYNC_LISTS).concat(SYNC_KEYMAPS, SYNC_COUNTERS, SYNC_WHOLE);
+    var USER_FIELDS = Object.keys(SYNC_USER_LISTS).concat(SYNC_USER_WHOLE);
+    var FB = { ready: false, db: null, uid: null, ref: null, unsub: null, timer: null, meta: null, gotFirst: false };
 
     function getDevice() { try { return JSON.parse(localStorage.getItem('bboma_device') || 'null'); } catch (e) { return null; } }
     function setDevice(d) { try { localStorage.setItem('bboma_device', JSON.stringify(d)); } catch (e) {} }
     function myRole() { const d = getDevice(); return d && d.role ? d.role : (STATE.viewMode === 'dad' ? 'dad' : 'mom'); }
 
-    function serializeShared() {
-      const out = {};
-      SHARED_FIELDS.forEach(f => { out[f] = JSON.stringify(STATE[f] === undefined ? null : STATE[f]); });
-      ['mom', 'dad'].forEach(k => {
-        const u = STATE.users[k], o = {};
-        USER_FIELDS.forEach(f => { o[f] = u[f] === undefined ? null : u[f]; });
-        if (Array.isArray(o.notifications)) o.notifications = o.notifications.slice(0, 80);
-        out['u_' + k] = JSON.stringify(o);
-      });
-      if (Array.isArray(STATE.pointHistory) && STATE.pointHistory.length > 200) STATE.pointHistory.length = 200;
+    function emptyMeta() { return { items: {}, whole: {}, counters: {}, code: (getDevice() || {}).code || null }; }
+    function syncMeta() { if (!FB.meta) FB.meta = emptyMeta(); return FB.meta; }
+
+    function allListColls() {
+      const out = Object.keys(SYNC_LISTS).map(c => ({ coll: c, dir: SYNC_LISTS[c], get: () => STATE[c] || [], set: v => { STATE[c] = v; } }));
+      ['mom', 'dad'].forEach(k => Object.keys(SYNC_USER_LISTS).forEach(n => out.push({ coll: `u_${k}_${n}`, dir: SYNC_USER_LISTS[n], cap: n, get: () => STATE.users[k][n] || [], set: v => { STATE.users[k][n] = v; } })));
       return out;
     }
-    function applySharedField(f, val) {
-      if (f.startsWith('u_')) {
-        const k = f.slice(2);
-        if (!STATE.users[k] || !val) return;
-        USER_FIELDS.forEach(uf => { if (val[uf] !== undefined) STATE.users[k][uf] = val[uf]; });
-      } else if (SHARED_FIELDS.includes(f)) {
-        STATE[f] = val;
-      }
+    function itemKey(it) { return String(it && it.id != null ? it.id : '').replace(/[^A-Za-z0-9_]/g, '_'); }
+    function isDefaultRec(r) {
+      return !r || !Object.keys(r).some(k => k === 'subtaskDone' ? Object.keys(r[k] || {}).some(x => r[k][x]) : !!r[k]);
     }
+    function itemJson(coll, it) {
+      if (coll === 'tasks' && it.dateRecords) {
+        const dr = {};
+        Object.keys(it.dateRecords).forEach(d => { if (!isDefaultRec(it.dateRecords[d])) dr[d] = it.dateRecords[d]; });
+        return JSON.stringify({ ...it, dateRecords: dr });
+      }
+      return JSON.stringify(it);
+    }
+    function ensureOrder(arr, dir) {
+      const base = Date.now();
+      arr.forEach((it, i) => { if (it && typeof it._o !== 'number') it._o = dir === 'desc' ? base - i / 1000 : base + i / 1000; });
+    }
+    function sortByOrder(arr, dir) { return arr.sort((a, b) => dir === 'desc' ? (b._o || 0) - (a._o || 0) : (a._o || 0) - (b._o || 0)); }
 
-    // 기기 로컬 저장 (오프라인에서도 유지)
-    function saveLocalState(ser) {
-      try { localStorage.setItem('bboma_shared_state', JSON.stringify(ser || serializeShared())); } catch (e) {}
+    function listLocalMap(L) {
+      let arr = L.get();
+      const cap = LIST_CAPS[L.cap || L.coll];
+      if (cap && arr.length > cap) { arr = arr.slice(0, cap); L.set(arr); }
+      ensureOrder(arr, L.dir);
+      const m = {};
+      arr.forEach(it => { const k = itemKey(it); if (k) m[k] = itemJson(L.coll, it); });
+      return m;
+    }
+    function flattenCounters() {
+      if (typeof STATE.pet.totalExp !== 'number') derivePet();
+      const out = { couplePoints: +STATE.couplePoints || 0, petExp: +STATE.pet.totalExp || 0 };
+      Object.entries(STATE.activityLog || {}).forEach(([d, row]) => Object.entries(row || {}).forEach(([f, v]) => { if (v) out[`activityLog.${d}.${f}`] = +v; }));
+      ['badgeStats', 'coupangEarned'].forEach(c => Object.entries(STATE[c] || {}).forEach(([k, v]) => { if (v) out[`${c}.${k}`] = +v; }));
+      return out;
+    }
+    function setCounterValue(path, v) {
+      const parts = path.split('.');
+      if (parts[0] === 'couplePoints') { STATE.couplePoints = v; return; }
+      if (parts[0] === 'petExp') { STATE.pet.totalExp = v; derivePet(); return; }
+      if (parts[0] === 'activityLog') {
+        if (!STATE.activityLog) STATE.activityLog = {};
+        const row = STATE.activityLog[parts[1]] || (STATE.activityLog[parts[1]] = { momFocus: 0, dadFocus: 0, momTasks: 0, dadTasks: 0, momQuests: 0, dadQuests: 0 });
+        row[parts[2]] = +(+v).toFixed(1); return;
+      }
+      if (!STATE[parts[0]]) STATE[parts[0]] = {};
+      STATE[parts[0]][parts.slice(1).join('.')] = v;
+    }
+    var PET_COUNTER_FIELDS = ['totalExp', 'exp', 'level', 'maxExp'];
+    function wholeJson(f) {
+      const v = STATE[f] === undefined ? null : STATE[f];
+      if (f === 'pet' && v) { const o = { ...v }; PET_COUNTER_FIELDS.forEach(k => delete o[k]); return JSON.stringify(o); }
+      return JSON.stringify(v);
+    }
+    function userWholeJson(k) { const o = {}; SYNC_USER_WHOLE.forEach(f => { o[f] = STATE.users[k][f] === undefined ? null : STATE.users[k][f]; }); return JSON.stringify(o); }
+
+    // 로컬 저장: 상태 + 동기화 기준점(재실행해도 아직 못 보낸 변경을 기억)
+    function saveLocalState() {
+      try {
+        const snap = {};
+        allListColls().forEach(L => { snap['L:' + L.coll] = JSON.stringify(L.get()); });
+        SYNC_KEYMAPS.concat(SYNC_COUNTERS, SYNC_WHOLE).forEach(f => { snap['F:' + f] = JSON.stringify(STATE[f] === undefined ? null : STATE[f]); });
+        ['mom', 'dad'].forEach(k => { snap['U:' + k] = userWholeJson(k); });
+        localStorage.setItem('bboma_state_v2', JSON.stringify(snap));
+        if (FB.meta) localStorage.setItem('bboma_sync_meta_v2', JSON.stringify(FB.meta));
+      } catch (e) {}
     }
     function loadLocalState() {
       try {
-        const raw = localStorage.getItem('bboma_shared_state');
-        if (!raw) return false;
-        const ser = JSON.parse(raw);
-        Object.keys(ser).forEach(f => { try { applySharedField(f, JSON.parse(ser[f])); } catch (e) {} });
+        const raw = localStorage.getItem('bboma_state_v2');
+        if (raw) {
+          const snap = JSON.parse(raw);
+          allListColls().forEach(L => { if (snap['L:' + L.coll]) L.set(JSON.parse(snap['L:' + L.coll]) || []); });
+          SYNC_KEYMAPS.concat(SYNC_COUNTERS, SYNC_WHOLE).forEach(f => { if (snap['F:' + f] !== undefined) { const v = JSON.parse(snap['F:' + f]); if (v !== null) STATE[f] = v; } });
+          ['mom', 'dad'].forEach(k => { if (snap['U:' + k]) Object.assign(STATE.users[k], JSON.parse(snap['U:' + k])); });
+        } else {
+          // v1 로컬 저장본 이관
+          const old = localStorage.getItem('bboma_shared_state');
+          if (old) {
+            const ser = JSON.parse(old);
+            Object.keys(ser).forEach(f => {
+              try {
+                const v = JSON.parse(ser[f]);
+                if (f.startsWith('u_')) { if (v) Object.keys(v).forEach(uf => { if (v[uf] !== undefined && v[uf] !== null) STATE.users[f.slice(2)][uf] = v[uf]; }); }
+                else if (v !== null) STATE[f] = v;
+              } catch (e) {}
+            });
+          }
+        }
+        const meta = JSON.parse(localStorage.getItem('bboma_sync_meta_v2') || 'null');
+        const dv = getDevice();
+        if (meta && dv && meta.code === dv.code) FB.meta = meta;
         return true;
       } catch (e) { return false; }
     }
@@ -4295,19 +4373,141 @@
       clearTimeout(FB.timer);
       FB.timer = setTimeout(flushSync, 400);
     }
+
+    // 보낼 변경 계산 (이전에 서버와 맞춰 둔 기준점과 비교)
+    function buildUpdate() {
+      const M = syncMeta();
+      const FV = firebase.firestore.FieldValue;
+      const upd = {}, after = { items: {}, whole: {}, counters: {} };
+      allListColls().forEach(L => {
+        const cur = listLocalMap(L), sent = M.items[L.coll] || {};
+        Object.keys(cur).forEach(k => { if (cur[k] !== sent[k]) upd[`items.${L.coll}.${k}`] = cur[k]; });
+        Object.keys(sent).forEach(k => { if (!(k in cur)) upd[`items.${L.coll}.${k}`] = FV.delete(); });
+        after.items[L.coll] = cur;
+      });
+      SYNC_KEYMAPS.forEach(f => {
+        const coll = 'k_' + f, cur = {}, sent = M.items[coll] || {};
+        Object.entries(STATE[f] || {}).forEach(([k, v]) => { cur[k.replace(/[^A-Za-z0-9_]/g, '_')] = JSON.stringify([k, v]); });
+        Object.keys(cur).forEach(k => { if (cur[k] !== sent[k]) upd[`items.${coll}.${k}`] = cur[k]; });
+        Object.keys(sent).forEach(k => { if (!(k in cur)) upd[`items.${coll}.${k}`] = FV.delete(); });
+        after.items[coll] = cur;
+      });
+      SYNC_WHOLE.forEach(f => {
+        const j = wholeJson(f);
+        if (M.whole[f] !== j) upd['state.' + f] = j;
+        after.whole[f] = j;
+      });
+      ['mom', 'dad'].forEach(k => {
+        const j = userWholeJson(k);
+        if (M.whole['u_' + k] !== j) upd['state.u_' + k] = j;
+        after.whole['u_' + k] = j;
+      });
+      const cur = flattenCounters();
+      Object.keys(cur).forEach(pth => {
+        const delta = +(cur[pth] - (M.counters[pth] || 0)).toFixed(1);
+        if (delta) upd['counters.' + pth] = FV.increment(delta);
+      });
+      after.counters = cur;
+      return { upd, after };
+    }
+
     function flushSync() {
-      const ser = serializeShared();
-      saveLocalState(ser);
-      if (!FB.ready || !FB.ref) return;
-      const upd = {};
-      Object.keys(ser).forEach(f => { if (FB.lastSent[f] !== ser[f]) upd['state.' + f] = ser[f]; });
+      saveLocalState();
+      if (!FB.ready || !FB.ref || !window.firebase) return;
+      const { upd, after } = buildUpdate();
       if (!Object.keys(upd).length) return;
       upd.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
       upd.updatedBy = myRole();
-      Object.keys(upd).forEach(k => { if (k.startsWith('state.')) FB.lastSent[k.slice(6)] = upd[k]; });
-      FB.ref.update(upd).catch(err => { console.warn('sync fail', err); FB.lastSent = {}; });
+      const prev = FB.meta;
+      FB.meta = { ...syncMeta(), items: after.items, whole: after.whole, counters: after.counters };
+      saveLocalState();
+      FB.ref.update(upd).catch(err => { console.warn('sync fail', err); FB.meta = prev; saveLocalState(); });
     }
     setInterval(() => { if (FB.ready) flushSync(); }, 5000);
+
+    // 서버 → 로컬 병합: 서버 값을 기준으로, 아직 못 보낸 내 변경만 덧씌움
+    function applyRemote(data, takeAll) {
+      const M = syncMeta();
+      const items = data.items || {}, counters = data.counters || {}, st = data.state || {};
+      let changed = false;
+      // 예전 형식(v1) 문서 호환: items가 없으면 state의 JSON 목록을 항목 지도로 변환
+      const legacy = !data.items;
+      const remoteListMap = (L) => {
+        if (!legacy) return items[L.coll] || {};
+        let arr = [];
+        try {
+          if (L.coll.startsWith('u_')) { const [, k, n] = L.coll.split('_'); arr = (JSON.parse(st['u_' + k] || 'null') || {})[n] || []; }
+          else arr = JSON.parse(st[L.coll] || '[]') || [];
+        } catch (e) {}
+        ensureOrder(arr, L.dir);
+        const m = {}; arr.forEach(it => { const k = itemKey(it); if (k) m[k] = itemJson(L.coll, it); }); return m;
+      };
+      allListColls().forEach(L => {
+        const remote = remoteListMap(L), sent = takeAll ? {} : (M.items[L.coll] || {});
+        const local = takeAll ? {} : listLocalMap(L);
+        const merged = { ...remote };
+        if (!takeAll) {
+          Object.keys(local).forEach(k => { if (local[k] !== sent[k]) merged[k] = local[k]; });     // 내가 고친/추가한 것
+          Object.keys(sent).forEach(k => { if (!(k in local)) delete merged[k]; });                 // 내가 지운 것
+        }
+        const before = JSON.stringify(L.get());
+        const arr = sortByOrder(Object.values(merged).map(j => JSON.parse(j)), L.dir);
+        if (JSON.stringify(arr) !== before) { L.set(arr); changed = true; }
+        M.items[L.coll] = remote;
+      });
+      SYNC_KEYMAPS.forEach(f => {
+        const coll = 'k_' + f;
+        let remote = items[coll] || {};
+        if (legacy) { remote = {}; try { Object.entries(JSON.parse(st[f] || '{}') || {}).forEach(([k, v]) => { remote[k.replace(/[^A-Za-z0-9_]/g, '_')] = JSON.stringify([k, v]); }); } catch (e) {} }
+        const sent = takeAll ? {} : (M.items[coll] || {});
+        const local = {}; if (!takeAll) Object.entries(STATE[f] || {}).forEach(([k, v]) => { local[k.replace(/[^A-Za-z0-9_]/g, '_')] = JSON.stringify([k, v]); });
+        const merged = { ...remote };
+        Object.keys(local).forEach(k => { if (local[k] !== sent[k]) merged[k] = local[k]; });
+        Object.keys(sent).forEach(k => { if (!(k in local)) delete merged[k]; });
+        const obj = {}; Object.values(merged).forEach(j => { const [k, v] = JSON.parse(j); obj[k] = v; });
+        if (JSON.stringify(obj) !== JSON.stringify(STATE[f] || {})) { STATE[f] = obj; changed = true; }
+        M.items[coll] = remote;
+      });
+      SYNC_WHOLE.concat(['u_mom', 'u_dad']).forEach(f => {
+        const r = st[f];
+        if (r === undefined) return;
+        const local = f.startsWith('u_') ? userWholeJson(f.slice(2)) : wholeJson(f);
+        const pending = !takeAll && M.whole[f] !== undefined && local !== M.whole[f];
+        if (!pending && r !== local) {
+          try {
+            const v = JSON.parse(r);
+            if (f.startsWith('u_')) { if (v) SYNC_USER_WHOLE.forEach(uf => { if (v[uf] !== undefined) STATE.users[f.slice(2)][uf] = v[uf]; }); }
+            else if (f === 'pet' && v) { const keep = {}; PET_COUNTER_FIELDS.forEach(k => { keep[k] = STATE.pet[k]; }); STATE.pet = { ...v, ...keep }; }
+            else if (v !== null) STATE[f] = v;
+            changed = true;
+          } catch (e) {}
+        }
+        M.whole[f] = r;
+      });
+      // 숫자: 서버 값 + 아직 못 보낸 내 증감
+      const remoteFlat = {};
+      if (legacy) {
+        try {
+          remoteFlat.couplePoints = +JSON.parse(st.couplePoints || '0') || 0;
+          try { const pv = JSON.parse(st.pet || 'null'); if (pv) { let t = pv.exp || 0, max = 200; for (let l = 1; l < (pv.level || 1); l++) { t += max; max += 200; } remoteFlat.petExp = t; } } catch (e) {}
+          Object.entries(JSON.parse(st.activityLog || '{}') || {}).forEach(([d, row]) => Object.entries(row || {}).forEach(([k, v]) => { if (v) remoteFlat[`activityLog.${d}.${k}`] = +v; }));
+          ['badgeStats', 'coupangEarned'].forEach(c => Object.entries(JSON.parse(st[c] || '{}') || {}).forEach(([k, v]) => { if (v) remoteFlat[`${c}.${k}`] = +v; }));
+        } catch (e) {}
+      } else {
+        const walk = (o, pre) => Object.entries(o || {}).forEach(([k, v]) => { const pth = pre ? `${pre}.${k}` : k; if (v && typeof v === 'object') walk(v, pth); else remoteFlat[pth] = +v || 0; });
+        walk(counters, '');
+      }
+      const localFlat = takeAll ? {} : flattenCounters();
+      const paths = new Set(Object.keys(remoteFlat).concat(Object.keys(localFlat)));
+      paths.forEach(pth => {
+        const pendingDelta = takeAll ? 0 : ((localFlat[pth] || 0) - (M.counters[pth] || 0));
+        const v = +((remoteFlat[pth] || 0) + pendingDelta).toFixed(1);
+        if (v !== (localFlat[pth] || 0) || takeAll) { setCounterValue(pth, v); changed = true; }
+      });
+      M.counters = remoteFlat;
+      if (legacy) FB.meta = { ...M, items: {}, whole: {}, counters: {} }; // 새 형식으로 전부 다시 올리기
+      return changed;
+    }
 
     async function fbStart() {
       if (!window.firebase) throw new Error('Firebase SDK를 불러오지 못했어요 (인터넷 연결 확인)');
@@ -4331,13 +4531,13 @@
     async function createFamily(role) {
       await fbStart();
       applyFreshState();
-      let code = makeFamilyCode();
-      const ser = serializeShared();
+      const code = makeFamilyCode();
       const ref = FB.db.collection('couples').doc(code);
-      await ref.set({ members: [FB.uid], roleUids: { [role]: FB.uid }, tokens: {}, createdAt: firebase.firestore.FieldValue.serverTimestamp(), state: ser });
-      FB.lastSent = { ...ser };
+      await ref.set({ members: [FB.uid], roleUids: { [role]: FB.uid }, tokens: {}, createdAt: firebase.firestore.FieldValue.serverTimestamp(), items: {}, counters: {}, state: {} });
       setDevice({ code, role });
       STATE.viewMode = role;
+      FB.meta = emptyMeta(); FB.ref = ref; FB.ready = true; FB.gotFirst = true;
+      flushSync();
       return code;
     }
 
@@ -4362,6 +4562,7 @@
       await ref.update({ ['roleUids.' + role]: FB.uid });
       setDevice({ code, role });
       STATE.viewMode = role;
+      FB.meta = null; FB.gotFirst = false; FB.ready = false;
       return { code, role };
     }
 
@@ -4373,27 +4574,25 @@
       if (FB.unsub) FB.unsub();
       FB.unsub = FB.ref.onSnapshot(snap => {
         if (!snap.exists) return;
-        // 서버 데이터를 한 번이라도 받은 뒤부터 업로드 허용 (참여 기기가 빈 상태로 덮어쓰는 것 방지)
-        if (snap.metadata.hasPendingWrites) { FB.ready = true; return; }
         const data = snap.data() || {};
-        const st = data.state || {};
         const me = myRole();
         const beforeIds = new Set((STATE.users[me].notifications || []).map(n => n.id));
-        let changed = false;
-        Object.keys(st).forEach(f => {
-          if (FB.lastSent[f] === st[f]) return;
-          try { applySharedField(f, JSON.parse(st[f])); FB.lastSent[f] = st[f]; changed = true; } catch (e) {}
-        });
+        // 처음 받는 서버 데이터: 이 기기에 저장된 기준점이 없으면 서버 것을 그대로 사용
+        const takeAll = !FB.gotFirst && !FB.meta;
+        if (!FB.meta) FB.meta = emptyMeta();
+        FB.meta.code = getDevice() && getDevice().code;
+        const changed = applyRemote(data, takeAll);
+        FB.gotFirst = true;
         FB.ready = true;
         if (FB.partnerJoined === undefined) FB.partnerJoined = (data.members || []).length >= 2;
         else if (!FB.partnerJoined && (data.members || []).length >= 2) { FB.partnerJoined = true; showToast('💞 배우자가 가족에 참여했어요! 이제 서로 알림이 가요'); }
         if (changed) {
           const fresh = (STATE.users[me].notifications || []).filter(n => !beforeIds.has(n.id) && !n.read);
-          if (fresh.length && beforeIds.size) { triggerHaptic('light'); showToast(`🔔 ${fresh[0].title}: ${fresh[0].message}`); }
-          saveLocalState();
+          if (fresh.length && beforeIds.size && !snap.metadata.hasPendingWrites) { triggerHaptic('light'); showToast(`🔔 ${fresh[0].title}: ${fresh[0].message}`); }
           renderApp('mom'); renderApp('dad'); updateNotifBadges(); updatePointsDisplay();
         }
-        flushSync();
+        saveLocalState();
+        scheduleSync();
       }, err => { console.warn('snapshot error', err); showToast('⚠️ 가족 데이터 연결이 끊겼어요. 인터넷을 확인해 주세요'); });
     }
 
@@ -4478,7 +4677,6 @@
       if (msg) msg.innerText = '연결하는 중…';
       try {
         const { role } = await joinFamily(val);
-        FB.lastSent = {};
         subscribeFamily(); registerPush();
         document.querySelector('#familySetup .fs-inner').innerHTML = `
           <div class="fs-title">연결됐어요 💞</div>
@@ -4665,15 +4863,15 @@
       } else {
         // Add Mode
         const newPenalty = {
-          id: 'p_' + Date.now(),
+          id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
           title: title,
           desc: desc || '부부 합의로 등록된 맞춤형 벌칙 쿠폰',
           icon: selectedPenaltyIcon
         };
 
         if (target === 'both') {
-          STATE.users.mom.penalties.push({ ...newPenalty, id: 'p_mom_' + Date.now() });
-          STATE.users.dad.penalties.push({ ...newPenalty, id: 'p_dad_' + Date.now() });
+          STATE.users.mom.penalties.push({ ...newPenalty, id: 'p_mom_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6) });
+          STATE.users.dad.penalties.push({ ...newPenalty, id: 'p_dad_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6) });
           showToast(`✨ 부부 모두에게 [${title}] 패널티권이 1장씩 등록되었습니다!`);
           logEvent(`[패널티 등록] 부부 공통 - '${title}'`);
           sendSpouseNotification('mom', {
@@ -4786,7 +4984,7 @@
       if (!p) return;
 
       const cloned = {
-        id: 'p_' + Date.now(),
+        id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         title: p.title,
         desc: p.desc,
         icon: p.icon
@@ -4943,7 +5141,7 @@
       const user = STATE.users[targetUserKey];
 
       user.penalties.push({
-        id: 'p_ai_' + Date.now(),
+        id: 'p_ai_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         title: preset.title,
         desc: preset.desc,
         icon: preset.icon
@@ -5587,7 +5785,7 @@
       } else {
         // Add New Task
         const newTask = {
-          id: 't_' + Date.now(),
+          id: 't_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
           title: title,
           assignee: assignee,
           deadline: deadline,
@@ -6949,7 +7147,7 @@
         showToast(`✏️ '${title}' 일정을 수정했어요.`);
         sendSpouseNotification(eventModalUserKey, { type: 'todo', icon: data.icon, title: '가족 일정 수정', message: `${actorName}님이 [${title}] 일정을 수정했어요. (${when})` });
       } else {
-        STATE.events.push({ id: 'ev_' + Date.now(), ...data });
+        STATE.events.push({ id: 'ev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), ...data });
         onQuestProgress('q_event', 1, eventModalUserKey);
         showToast(`📅 '${title}' 일정을 추가했어요.`);
         sendSpouseNotification(eventModalUserKey, { type: 'todo', icon: data.icon, title: '가족 일정 추가', message: `${actorName}님이 [${title}] 일정을 추가했어요. (${when})` });
@@ -8285,7 +8483,7 @@
       if (hasSentBoatTonight(me)) { showToast('⛵ 오늘 밤 돛단배는 이미 띄웠어요'); return; }
       const now = new Date();
       const night = getBoatNightKey(now);
-      STATE.boats.push({ id: 'boat_' + Date.now(), from: me, to: spouseKey, text, night, time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`, read: false });
+      STATE.boats.push({ id: 'boat_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), from: me, to: spouseKey, text, night, time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`, read: false });
       triggerHaptic('success');
       // 돛단배가 떠나가는 연출
       const slot = document.getElementById('bsBoatSlot');
@@ -10197,7 +10395,7 @@
 
       if (STATE.mode === 'hard') {
         const newPenalty = {
-          id: 'p_' + Date.now(),
+          id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
           title: `[마감초과] ${task.title} 페널티`,
           desc: `${user.name}의 할 일 마감 초과로 자동 발급된 페널티권`,
           icon: '⚡'
@@ -10254,7 +10452,7 @@
       rec.overdue = false;
       const claimer = STATE.users[claimerKey];
       claimer.penalties.push({
-        id: 'p_' + Date.now(),
+        id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         title: `[청구] ${task.title} 페널티`,
         desc: `미완료 건에 대해 정당하게 청구된 페널티권`,
         icon: '⚡'
@@ -10534,8 +10732,8 @@
 
         // Base system reward grants
         if (quest.id === 'q_focus') {
-          STATE.users.mom.coupons.push({ id: 'c_focus_' + Date.now(), title: '주말 데이트/외식 쿠폰 (20h 달성)', desc: '주간 노폰 20시간 달성 공식 보상', icon: '☕' });
-          STATE.users.dad.coupons.push({ id: 'c_focus_d_' + Date.now(), title: '주말 데이트/외식 쿠폰 (20h 달성)', desc: '주간 노폰 20시간 달성 공식 보상', icon: '☕' });
+          STATE.users.mom.coupons.push({ id: 'c_focus_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), title: '주말 데이트/외식 쿠폰 (20h 달성)', desc: '주간 노폰 20시간 달성 공식 보상', icon: '☕' });
+          STATE.users.dad.coupons.push({ id: 'c_focus_d_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), title: '주말 데이트/외식 쿠폰 (20h 달성)', desc: '주간 노폰 20시간 달성 공식 보상', icon: '☕' });
           grantExp(100);
           showToast(`🏆 [퀘스트 자동 달성] [${quest.title}] 부부 모두에게 ☕ 데이트 쿠폰 지급!`);
           logEvent(`[🏆 퀘스트 자동 달성] ${quest.title} (20시간 완주!) -> 부부 데이트/외식 쿠폰 지급`);
@@ -10578,7 +10776,7 @@
         // Grant Custom Couple Reward if Enabled
         if (quest.customReward && quest.customReward.enabled) {
           const cData = {
-            id: 'c_custom_' + Date.now(),
+            id: 'c_custom_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
             icon: quest.customReward.icon || '🎁',
             title: quest.customReward.title,
             desc: quest.customReward.desc || `${quest.title} 완주 기념 부부 맞춤 보상`
@@ -10629,7 +10827,7 @@
       } catch(e) {}
 
       const historyEntry = {
-        id: 'ph_' + Date.now(),
+        id: 'ph_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         type: type,
         title: reason,
         points: amount,
@@ -10899,7 +11097,7 @@
       const expiryStr = expiryDate.getFullYear() + '.' + String(expiryDate.getMonth() + 1).padStart(2, '0') + '.' + String(expiryDate.getDate()).padStart(2, '0');
 
       const newGifticon = {
-        id: 'purchased_' + Date.now(),
+        id: 'purchased_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         catalogId: item.id,
         brand: item.brand,
         title: item.title,
@@ -12099,12 +12297,24 @@
       renderApp('dad');
     }
 
+    // 🐣 가족 레벨: 누적 경험치(totalExp)에서 레벨/현재 경험치를 계산 (두 폰이 동시에 올려도 합산)
+    function derivePet() {
+      const pet = STATE.pet;
+      if (typeof pet.totalExp !== 'number') {
+        let t = pet.exp || 0, max = 200;
+        for (let l = 1; l < (pet.level || 1); l++) { t += max; max += 200; }
+        pet.totalExp = t;
+      }
+      let t = pet.totalExp, lvl = 1, max = 200;
+      while (t >= max) { t -= max; lvl++; max += 200; }
+      const up = lvl > (pet.level || 1);
+      pet.level = lvl; pet.exp = t; pet.maxExp = max;
+      return up;
+    }
     function grantExp(amount) {
-      STATE.pet.exp += amount;
-      if (STATE.pet.exp >= STATE.pet.maxExp) {
-        STATE.pet.level++;
-        STATE.pet.exp = STATE.pet.exp - STATE.pet.maxExp;
-        STATE.pet.maxExp += 200;
+      derivePet();
+      STATE.pet.totalExp += amount;
+      if (derivePet()) {
         confetti({ particleCount: 150, spread: 120, origin: { y: 0.4 } });
         showToast(`🌟 뽀마 레벨업! [Lv.${STATE.pet.level}] 달성 축하합니다! 부부 모두에게 보너스 면제권 지급!`);
         STATE.users.mom.shields++;
@@ -12155,7 +12365,7 @@
 
     function resetAllState() {
       showConfirmSheet({ icon: '🧹', title: '모든 기록을 처음 상태로 되돌릴까요?', message: '할 일·퀘스트·포인트·알림이 부부 모두에게서 지워져요.', confirmText: '초기화', danger: true,
-        onConfirm: () => { applyFreshState(); FB.lastSent = {}; renderApp('mom'); renderApp('dad'); updatePointsDisplay(); updateNotifBadges(); flushSync(); showToast('🧹 처음 상태로 되돌렸어요'); } });
+        onConfirm: () => { applyFreshState(); renderApp('mom'); renderApp('dad'); updatePointsDisplay(); updateNotifBadges(); flushSync(); showToast('🧹 처음 상태로 되돌렸어요'); } });
     }
 
     function showToast(msg) {

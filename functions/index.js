@@ -11,8 +11,11 @@ const crypto = require('crypto');
 initializeApp();
 const REGION = 'asia-northeast3';
 
-function parseNotifs(state, role) {
-  try { return (JSON.parse((state || {})['u_' + role] || 'null') || {}).notifications || []; } catch (e) { return []; }
+// v2(ADR 42): items.u_<role>_notifications.<id> = JSON 문자열 / v1: state.u_<role> 안의 notifications 배열
+function parseNotifs(doc, role) {
+  const m = ((doc || {}).items || {})['u_' + role + '_notifications'];
+  if (m) return Object.values(m).map(j => { try { return JSON.parse(j); } catch (e) { return null; } }).filter(Boolean);
+  try { return (JSON.parse(((doc || {}).state || {})['u_' + role] || 'null') || {}).notifications || []; } catch (e) { return []; }
 }
 
 exports.spousePush = onDocumentUpdated({ document: 'couples/{code}', region: REGION }, async (event) => {
@@ -25,8 +28,8 @@ exports.spousePush = onDocumentUpdated({ document: 'couples/{code}', region: REG
     if (!token) continue;
     // 보낸 사람이 자기 자신에게 알림을 쓰는 경우는 제외 (updatedBy === role)
     if (after.updatedBy === role) continue;
-    const oldIds = new Set(parseNotifs(before.state, role).map(n => n.id));
-    const fresh = parseNotifs(after.state, role).filter(n => n && !oldIds.has(n.id) && !n.read).slice(0, 3);
+    const oldIds = new Set(parseNotifs(before, role).map(n => n.id));
+    const fresh = parseNotifs(after, role).filter(n => n && !oldIds.has(n.id) && !n.read).slice(0, 3);
     for (const n of fresh) {
       jobs.push(getMessaging().send({
         token,

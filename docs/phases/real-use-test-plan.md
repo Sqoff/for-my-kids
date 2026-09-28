@@ -99,7 +99,7 @@ flowchart LR
 |---|---|
 | Firebase 프로젝트 | `bbomakids-beta-21071` (표시명 Bbomakids Beta, Blaze, 예산 알림 설정) |
 | 인증 | 익명 로그인 (기기별 uid) |
-| DB | Firestore `couples/{6자리코드}` — `members[]`, `roleUids{mom,dad}`, `tokens{mom,dad}`(FCM), `state{필드별 JSON 문자열}`, `updatedBy` |
+| DB | Firestore `couples/{6자리코드}` — `members[]`, `roleUids{mom,dad}`, `tokens{mom,dad}`(FCM), `items.{목록}.{id}`(항목별 JSON), `counters.*`(증감 숫자), `state.{필드}`(통째 값), `updatedBy` — v2 형식(ADR 42), v1 문서는 자동 이관 |
 | 보안 규칙 | `firestore.rules` — 멤버만 get/update, 목록 조회 금지, 참여는 members에 자기 uid 1개 추가만 허용(최대 4), 삭제 금지 |
 | 서버 함수 | `functions/index.js` (Node 22, asia-northeast3): `spousePush`(가족 문서 변경 시 새 알림을 상대 FCM 토큰으로 발송, 채널 `spouse`), `coupangLink`(Secret `COUPANG_ACCESS_KEY/SECRET_KEY`로 파트너스 딥링크, 값이 `NONE`이면 일반 검색) |
 | 앱 | 첫 화면 `새 가족 만들기 / 초대 코드로 참여하기`, 프로필에 가족 코드 + 공유 버튼, 연결 기기에서는 테스트용 화면 전환 버튼 숨김 |
@@ -123,5 +123,5 @@ Google Cloud 콘솔 → 보안 비밀 관리자(Secret Manager) → `COUPANG_ACC
 
 ## 9. 알려진 이슈 & 보류 (반드시 후속 처리)
 
-- [ ] **동시 수정 덮어쓰기** — 두 폰이 같은 항목(예: 할 일 목록)을 거의 동시에 고치면 나중에 저장한 쪽만 남는다. 해결: 항목 단위 서브컬렉션 또는 트랜잭션 병합으로 전환. *(사용자 요청: 반드시 다시 알릴 것)*
+- [x] **동시 수정 덮어쓰기** — v0.0.17(ADR 42)에서 해결: 목록은 항목 단위 병합, 숫자는 증감, 화면 보기만으로는 업로드 안 함, 할 일 ID 충돌 방지. 남은 한계: **같은 항목 하나**(예: 같은 할 일의 제목)를 두 폰이 동시에 고치면 여전히 나중 저장이 남음(드문 경우).
 - [ ] **쿠팡 파트너스 연결 보류** — Open API 키는 누적 판매 15만원 이상일 때 발급. 대안: 파트너스 "링크 생성" 단축링크를 앱에 연결. 현재는 일반 쿠팡 검색 + 결제 금액 입력 시 2% 적립.
