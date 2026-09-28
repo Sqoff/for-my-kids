@@ -790,6 +790,11 @@
     body.theme-white .dl-chip { background: #F2F4F6 !important; color: #4E5968 !important; }
     body.theme-white .dl-chip.is-on { background: #FFFFFF !important; border-color: #3182F6; color: #1B64DA !important; }
     /* 오늘 하루 보지 않기 */
+    .warn-sub { display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:11px 12px; border-radius:14px; border:1.5px solid #F59E0B; background:transparent; color:#B45309; font-weight:800; font-size:13px; }
+    .warn-sub .ws-box { width:20px; height:20px; border-radius:6px; border:2px solid #F59E0B; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; }
+    .warn-sub.is-done { border-color:#E5E8EB; color:#8B95A1; font-weight:600; text-decoration:line-through; }
+    .warn-sub.is-done .ws-box { background:#10B981; border-color:#10B981; }
+    body.theme-navy .warn-sub:not(.is-done) { color:#FBBF24; }
     .welcome-hide-today { display: block; margin: 14px auto 0; padding: 6px 10px; font-size: 12px; font-weight: 600; color: #8B95A1; text-decoration: underline; text-underline-offset: 3px; }
     /* 🎌 공휴일 */
     .cal-red-day { color: #F04452 !important; }
@@ -2450,28 +2455,27 @@
         ⚠️
       </div>
       <div class="text-center">
-        <h3 class="text-base font-black text-amber-300">세부 체크리스트가 완벽히 수행되지 않았어요!</h3>
+        <h3 class="text-base font-black text-amber-300">아직 안 한 항목이 있어요</h3>
         <p class="text-xs text-slate-300 mt-1">
-          <strong id="warningTaskTitle" class="text-white">아이 목욕</strong>의 항목 중 아직 체크하지 않은 항목이 있습니다:
+          <strong id="warningTaskTitle" class="text-white">아이 목욕</strong> · 한 항목은 눌러서 체크하세요
         </p>
       </div>
-      
-      <!-- Incomplete Items Box -->
-      <div id="warningIncompleteList" class="bg-slate-950 p-3 rounded-2xl border border-amber-500/30 flex flex-col gap-1.5 text-xs text-rose-300 max-h-36 overflow-y-auto">
+
+      <!-- 남은 세부 항목 (강조, 눌러서 체크) -->
+      <div id="warningIncompleteList" class="flex flex-col gap-1.5 text-xs max-h-48 overflow-y-auto">
         <!-- Rendered by JS -->
       </div>
 
-      <p class="text-[11px] text-slate-400 text-center leading-relaxed">
-        그래도 완료 처리하고 그냥 넘기시겠습니까?<br />
-        <span class="text-amber-400 font-semibold">※ 상대방에게 빼먹은 항목 내역이 알림으로 공유됩니다.</span>
+      <p id="warningPassNote" class="text-[11px] text-slate-400 text-center leading-relaxed">
+        빠진 채로 완료하면 <span class="text-amber-500 font-bold">배우자에게 빠진 항목이 알림</span>으로 가요
       </p>
 
       <div class="flex flex-col gap-2 pt-1">
-        <button onclick="confirmIncompleteTaskPass()" class="w-full py-2.5 bg-amber-500 hover:brightness-110 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center justify-center gap-1">
-          <span>⚠️ 그냥 넘기고 완료 처리하기</span>
+        <button id="warningPrimaryBtn" onclick="confirmIncompleteTaskPass()" class="w-full py-2.5 bg-amber-500 hover:brightness-110 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center justify-center gap-1 preserve-white">
+          <span>⚠️ 빠진 채로 완료</span>
         </button>
         <button onclick="closeSubtaskWarningModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-medium text-xs transition">
-          🔍 다시 확인하고 챙길게요
+          마저 할게요
         </button>
       </div>
     </div>
@@ -8033,10 +8037,12 @@
       const selDate = STATE.selectedDate || todayStr();
       const rec = getTaskDateRecord(task, selDate);
 
-      // Auto-complete subtasks as well when card is swiped
-      (task.subtasks || []).forEach(st => {
-        rec.subtaskDone[st.id] = true;
-      });
+      // 세부 항목이 남아 있으면 자동 체크하지 않고 확인창 (남은 항목 강조 → 체크 또는 빠진 채로 완료)
+      if ((task.subtasks || []).some(st => !rec.subtaskDone[st.id])) {
+        renderApp('mom'); renderApp('dad'); // 밀려 나간 카드 원위치
+        openSubtaskWarning(taskId, userKey);
+        return;
+      }
 
       rec.done = true;
       rec.overdue = false;
@@ -10305,25 +10311,7 @@
       const incompleteSubtasks = subtasks.filter(st => !rec.subtaskDone[st.id]);
 
       if (incompleteSubtasks.length > 0) {
-        // Trigger Warning Modal
-        pendingWarningTaskId = taskId;
-        pendingWarningUserKey = userKey;
-
-        const modal = document.getElementById('subtaskWarningModal');
-        const titleEl = document.getElementById('warningTaskTitle');
-        const listEl = document.getElementById('warningIncompleteList');
-
-        if (titleEl) titleEl.innerText = `'${task.title}'`;
-        if (listEl) {
-          listEl.innerHTML = incompleteSubtasks.map(st => `
-            <div class="flex items-center gap-2">
-              <span class="text-rose-400 font-black">✕</span>
-              <span class="text-slate-200">${st.text}</span>
-            </div>
-          `).join('');
-        }
-
-        if (modal) modal.classList.remove('hidden');
+        openSubtaskWarning(taskId, userKey);
         return;
       }
 
@@ -10367,9 +10355,62 @@
       renderApp('dad');
     }
 
+    // ⚠️ 세부 항목 미완료 확인창: 처음에 남아 있던 항목을 강조해서 보여주고, 누르면 체크/해제
+    var warningItemIds = [];
+    function openSubtaskWarning(taskId, userKey) {
+      const task = STATE.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      const rec = getTaskDateRecord(task, STATE.selectedDate || todayStr());
+      pendingWarningTaskId = taskId;
+      pendingWarningUserKey = userKey;
+      warningItemIds = (task.subtasks || []).filter(st => !rec.subtaskDone[st.id]).map(st => st.id);
+      const titleEl = document.getElementById('warningTaskTitle');
+      if (titleEl) titleEl.innerText = `'${task.title}'`;
+      renderSubtaskWarning();
+      triggerHaptic('light');
+      const modal = document.getElementById('subtaskWarningModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+    function renderSubtaskWarning() {
+      const task = STATE.tasks.find(t => t.id === pendingWarningTaskId);
+      const listEl = document.getElementById('warningIncompleteList');
+      if (!task || !listEl) return;
+      const rec = getTaskDateRecord(task, STATE.selectedDate || todayStr());
+      const items = (task.subtasks || []).filter(st => warningItemIds.includes(st.id));
+      listEl.innerHTML = items.map(st => {
+        const done = !!rec.subtaskDone[st.id];
+        return `<button type="button" class="warn-sub ${done ? 'is-done' : ''}" onclick="toggleWarningSubtask('${st.id}')"><span class="ws-box">${done ? '✓' : ''}</span><span>${st.text}</span></button>`;
+      }).join('');
+      const left = items.filter(st => !rec.subtaskDone[st.id]).length;
+      const btn = document.getElementById('warningPrimaryBtn');
+      const note = document.getElementById('warningPassNote');
+      if (btn) {
+        btn.className = `w-full py-2.5 ${left ? 'bg-amber-500' : 'bg-emerald-500'} hover:brightness-110 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center justify-center gap-1 preserve-white`;
+        btn.innerHTML = left ? `<span>⚠️ ${left}개 빠진 채로 완료</span>` : '<span>✅ 다 했어요 · 완료하기</span>';
+      }
+      if (note) note.classList.toggle('hidden', !left);
+    }
+    function toggleWarningSubtask(stId) {
+      const task = STATE.tasks.find(t => t.id === pendingWarningTaskId);
+      if (!task) return;
+      const rec = getTaskDateRecord(task, STATE.selectedDate || todayStr());
+      rec.subtaskDone[stId] = !rec.subtaskDone[stId];
+      triggerHaptic('light');
+      renderSubtaskWarning();
+      renderApp('mom'); renderApp('dad');
+    }
+
     function confirmIncompleteTaskPass() {
       const task = STATE.tasks.find(t => t.id === pendingWarningTaskId);
       if (!task) return;
+      // 창에서 남은 항목을 모두 체크했다면 정상 완료
+      const recNow = getTaskDateRecord(task, STATE.selectedDate || todayStr());
+      if ((task.subtasks || []).every(st => recNow.subtaskDone[st.id])) {
+        const id = task.id, uk = pendingWarningUserKey || task.assignee;
+        closeSubtaskWarningModal();
+        completeTaskBySwipe(id, uk);
+        return;
+      }
 
       const user = STATE.users[task.assignee];
       const selDate = STATE.selectedDate || todayStr();
@@ -10396,6 +10437,8 @@
 
       incrementTaskStat(task.assignee);
       grantExp(10); // Partial EXP
+      onTaskDoneForQuests(Object.assign({}, task, { subtasks: [] }), task.assignee, selDate); // 퀘스트는 인정, 체크리스트 퀘스트는 제외
+      triggerHaptic('success');
 
       showToast(`⚠️ [미흡 완료] '${task.title}' 완료 처리됨 (누락 항목 알림 발송)`);
       logEvent(`[할 일 미흡 완료] ${user.name} - '${task.title}' (누락: ${missingNames.join(', ')})`);
@@ -10404,7 +10447,7 @@
         type: 'todo',
         icon: '⚠️',
         title: '할 일 미흡 완료 알림',
-        message: `⚠️ ${user.name}님이 [${task.title}]을 완료했으나, [${missingNames.join(', ')}] 항목을 빼먹었습니다!`
+        message: `${user.name}님이 [${task.title}]을(를) 완료했지만 [${missingNames.join(', ')}] 항목은 못 했어요`
       });
 
       closeSubtaskWarningModal();
