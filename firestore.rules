@@ -1,0 +1,23 @@
+rules_version = '2';
+// 뽀마키즈 베타: 가족 문서는 등록된 멤버(최대 4개 기기 uid)만 읽고 쓸 수 있다. (ADR 39)
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /couples/{code} {
+      allow get: if request.auth != null && request.auth.uid in resource.data.members;
+      allow list: if false;
+      allow create: if request.auth != null
+        && request.resource.data.members == [request.auth.uid];
+      allow update: if request.auth != null && (
+        request.auth.uid in resource.data.members
+        || (
+          // 초대 코드를 아는 기기의 참여: members에 자기 uid 1개만 추가
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+          && request.resource.data.members.size() == resource.data.members.size() + 1
+          && request.auth.uid in request.resource.data.members
+          && request.resource.data.members.size() <= 4
+        )
+      );
+      allow delete: if false;
+    }
+  }
+}

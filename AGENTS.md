@@ -44,7 +44,8 @@ Flutter(클라이언트) + Kotlin Android Native(포그라운드 서비스) + Fi
 **현재 Phase 진행 상태 요약 (2026-09-27):**
 - **Phase 1~3** — Capacitor 프로토타입으로 부부 협력·네이티브 집중 알림·게이미피케이션 구현 완료 ✅ (단, 부부 연동은 한 기기 시뮬레이션)
 - **Phase 3.5 (디자인 폴리싱)** — 진행 중. 최신 배포 v0.0.11 (GitHub Releases APK)
-- **🔒 최종 연동 단계** — 디자인 완료 후 일괄 진행: Firebase 로그인 + 초대 코드 부부 연결 + Firestore 동기화 + FCM 푸시, 실제 앱 차단(UsageStats + 접근성 홈 이동) (ADR 32)
+- **🧪 실사용 베타 (ADR 39)** — Firebase `bbomakids-beta-21071`: 익명 로그인 + 초대 코드 부부 연결 + Firestore 동기화 + FCM 푸시 **구현 완료**. 계획·운영: [docs/phases/real-use-test-plan.md](docs/phases/real-use-test-plan.md)
+- **🔒 최종 연동 단계 (남은 것)** — 실제 앱 차단, 소셜 로그인, 기프티콘 실제 교환 (ADR 32)
 - **Phase 4** — Flutter 프로덕션 전환 (Next)
 
 ---
@@ -64,7 +65,7 @@ Flutter(클라이언트) + Kotlin Android Native(포그라운드 서비스) + Fi
 3. **수동 퀘스트 조작 금지**: 퀘스트 진행도는 앱 내 이벤트 트리거 기반 100% 자동 집계 방식만 허용합니다. (ADR 16)
 4. **테스트 방침 준수**: 에뮬레이터를 기본 환경으로 사용하지 마세요. USB 연결 실기기가 기본입니다.
 5. **ADR 추가**: 새로운 중요 설계 결정을 내릴 때는 [`decision-logs.md`](docs/history/decision-logs.md)에 기록을 추가하세요.
-6. **실기능 연동 보류 (ADR 32)**: 디자인 작업 중에는 Firebase 연동·실제 앱 차단을 끼워 넣지 마세요. 두 폰 간 전달이 필요한 기능은 "현재 한 기기 시뮬레이션"임을 명시하세요.
+6. **부부 연동 (ADR 39)**: 공유 데이터는 `SHARED_FIELDS`/`USER_FIELDS`에 등록해야 두 폰에 동기화됩니다. 알림은 `sendSpouseNotification`만 사용(연결 기기에서 자동으로 '나 → 배우자'). 비밀값은 코드에 넣지 말고 Secret Manager. 실제 앱 차단은 여전히 보류.
 7. **UI 원칙**: 선택 상태는 배경 변경 없이 테두리+글자만 강조, 어두운 반투명 색 배경 금지, 한글 `keep-all` 줄바꿈 (ADR 27, 30).
 
 ---
