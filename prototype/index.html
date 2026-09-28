@@ -1793,7 +1793,7 @@
           </label>
         </div>
         <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2 leading-relaxed">
-          앱을 안 켜도 낮 시간 미완료 할 일(기저귀, 장보기 등), 집중 모드 0분, 기저귀 지출 리포트를 분석해 <strong class="text-amber-600 dark:text-amber-300">"니 꿈이 폰중독 부모야?!"</strong> 식의 재치 있는 팩폭 푸시를 보내드려요.
+          앱을 안 켜도 낮 시간 미완료 할 일(기저귀, 장보기 등), 곧 할 일, 집중 모드 0분, 앱에 기록한 장보기 금액을 분석해 <strong class="text-amber-600 dark:text-amber-300">"니 꿈이 폰중독 부모야?!"</strong> 식의 재치 있는 팩폭 푸시를 보내드려요.
         </p>
 
         <!-- Preview Sample Banner -->
@@ -1802,7 +1802,7 @@
           <div class="text-[11px] text-amber-900 dark:text-amber-200 leading-snug">
             <strong class="text-amber-950 dark:text-amber-300 font-bold block mb-0.5">실제 발송되는 멘트 예시:</strong>
             "아빠! 오늘 기저귀 사기로 한 거 안 잊었죠? 기저귀 떨어지면 손빨래 각이에요!"<br/>
-            "엄마아빠! 이번 달 기저귀·생필품 148,000원 쓰셨네요! 그래도 쿠팡 2%로 2,960P 건져서 저금통에 쏙!"
+            "엄마! 30분 후(19:00)에 '아기 목욕' 하기로 했어요. 미리 준비해두면 뽀마가 칭찬해줄게요"
           </div>
         </div>
 
@@ -6088,7 +6088,8 @@
       }
 
       // D: 집중 모드 0분 팩폭 ("스마트폰이 아기인가요? 니 꿈이 폰중독 부모야?!")
-      const todayFocusMins = user.focusActive ? Math.floor((user.focusTotalSeconds - user.focusSecondsLeft) / 60) : 0;
+      const todayRow = (STATE.activityLog || {})[todayStr()] || {};
+      const todayFocusMins = Math.round(((todayRow[userKey + 'Focus'] || 0) * 60)) + (user.focusActive ? Math.floor((user.focusTotalSeconds - user.focusSecondsLeft) / 60) : 0);
       if (todayFocusMins === 0) {
         quotes.push({
           category: 'focus_zero',
@@ -6104,21 +6105,30 @@
         });
       }
 
-      // E: 한달 기저귀/생필품 지출 & 쿠팡 적립 브리핑
-      quotes.push({
-        category: 'expense_report',
-        icon: '💸',
-        title: `💸 이번 달 기저귀·생필품 가계부 브리핑`,
-        body: `${userName}! 이번 달 기저귀·분유·생필품으로 약 148,000원 쓰셨네요! 그래도 뽀마키즈 쿠팡 2%로 ${STATE.couplePoints.toLocaleString()}P 건져서 저금통에 쏙! 선방 인정! 👍`
-      });
+      // E: 이번 달 장보기 브리핑 — 앱에 실제로 기록한 쿠팡 구매 금액이 있을 때만
+      const monthKey = todayStr().slice(0, 7);
+      const buys = (STATE.pointHistory || []).filter(h => h.type === 'coupang' && h.amount && h.ymd && h.ymd.startsWith(monthKey));
+      if (buys.length) {
+        const spent = buys.reduce((a, h) => a + h.amount, 0), got = buys.reduce((a, h) => a + (h.points || 0), 0);
+        quotes.push({
+          category: 'expense_report',
+          icon: '💸',
+          title: `💸 이번 달 장보기 브리핑`,
+          body: `${userName}! 이번 달 앱으로 기록한 쿠팡 장보기는 ${buys.length}번, ${spent.toLocaleString()}원이에요. 2% 적립으로 ${got.toLocaleString()}P 모았어요 👍`
+        });
+      }
 
-      // F: 저금통 보너스 목표 독려
-      quotes.push({
-        category: 'bank_goal',
-        icon: '☕',
-        title: `☕ 치킨 & 커피가 코앞이에요!`,
-        body: `부부 공동 저금통에 ${STATE.couplePoints.toLocaleString()}P가 모였습니다! 조금만 더 모으면 스타벅스 아메리카노 무료 쿠폰 즉시 교환!`
-      });
+      // F: 저금통 목표 독려 — 포인트가 조금이라도 모였을 때만
+      const goal = STATE.pointTargetGoal || 4500;
+      if (STATE.couplePoints > 0) {
+        const left = Math.max(0, goal - STATE.couplePoints);
+        quotes.push({
+          category: 'bank_goal',
+          icon: '☕',
+          title: left ? `☕ 커피 쿠폰까지 ${left.toLocaleString()}P 남았어요` : `☕ 커피 쿠폰만큼 모였어요!`,
+          body: `부부 공동 저금통에 ${STATE.couplePoints.toLocaleString()}P가 모였어요! ${left ? `${left.toLocaleString()}P만 더 모으면 커피 한 잔 목표 달성!` : '목표 달성! 기프티콘 교환은 곧 열려요.'}`
+        });
+      }
 
       // 무작위 선택
       const soonQuote = quotes.find(q => q.category === 'task_soon');
@@ -10712,7 +10722,7 @@
     // --- ⚡ 100% App-Managed Quest Auto Progression Engine ---
     function onQuestProgress(questId, deltaAmount = 1, userKey = null) {
       const quest = STATE.quests.find(q => q.id === questId);
-      if (!quest || quest.completed) return;
+      if (!quest || quest.completed || quest.locked) return; // 잠긴 퀘스트는 열리기 전까지 집계·보상하지 않음
 
       quest.current = +(quest.current + deltaAmount).toFixed(1);
 
@@ -11290,6 +11300,7 @@
       onQuestProgress('q_shopping', 1, myRole());
       if (reward > 0) {
         addCouplePoints(reward, `🛒 쿠팡 장보기 (${query.slice(0, 14)}) ${amount.toLocaleString()}원`, 'coupang');
+        if (STATE.pointHistory && STATE.pointHistory[0]) Object.assign(STATE.pointHistory[0], { amount, ymd: todayStr() });
         addCoupangMonthlyEarned(reward);
         updateCoupangCapUI();
         showToast(`🛒 +${reward}P 적립! (결제 ${amount.toLocaleString()}원의 2%)`);
