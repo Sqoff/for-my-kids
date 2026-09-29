@@ -1,5 +1,7 @@
 # 날씨별 뽀마 이미지 생성 프롬프트 (ADR 54 후속)
 
+> ✅ 2026-09-29 적용 완료 (v0.0.29, ADR 55): 생성 원본 `bboma-weather-sheet.png` → 7장으로 잘라 `prototype/assets/bboma_wx_<날씨>.webp`(480×480, 원래 뽀마와 몸 중심·발끝 정렬). 다시 만들 때도 같은 프롬프트 사용.
+
 현재 앱은 원본 `prototype/assets/bboma_hero.png` 위에 SVG로 옷/효과를 덧입힌다(v0.0.28).
 같은 3D 질감을 원하면 아래 프롬프트로 날씨별 이미지를 새로 만들어 교체한다.
 

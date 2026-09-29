@@ -513,6 +513,9 @@
     .family-hero .fh-mascot .fh-illust { display: block; width: 100%; max-width: none; margin: 0; animation: none; position: relative; z-index: 1; transition: filter .6s ease; }
     .fh-skin { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
     .fh-skin.back { z-index: 0; } .fh-skin.front { z-index: 2; }
+    .family-hero .fh-mascot { aspect-ratio: 343 / 360; }
+    .family-hero .fh-mascot .fh-illust.fh-wx-img { position: absolute; left: -20.12%; top: -17.78%; width: 139.94%; max-width: none; }
+    .fh-mascot.has-img.wx-storm { animation: fhFloat 3.2s ease-in-out infinite; }
     .fh-skin-body { position: absolute; inset: 0; z-index: 2; pointer-events: none; -webkit-mask: url(assets/bboma_hero.png) center / 100% 100% no-repeat; mask: url(assets/bboma_hero.png) center / 100% 100% no-repeat; }
     .fh-skin-body svg { display: block; width: 100%; height: 100%; }
     .fh-mascot.wx-storm { animation: fhWobble 1.6s ease-in-out infinite; }
@@ -8527,7 +8530,8 @@
               <path d="M70 40 Q110 -18 168 -22" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".55" ${soft}/>
               ${[[92, 36], [140, 6], [214, 22], [262, 44], [196, 52], [120, 50]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.2" fill="#fff" opacity=".85"/><circle cx="${x + .8}" cy="${y + .8}" r="3.2" fill="none" stroke="#8FC0EE" stroke-width="1" opacity=".7"/>`).join('')}
               <circle cx="178" cy="-32" r="4" fill="#C9D2DC"/>
-            </g>` + streaks([[18, 60, 0], [34, 150, .35], [10, 230, .7], [330, 130, .2], [318, 220, .5], [338, 290, .8], [118, -80, .25], [236, -86, .6], [300, -40, .1]]) };
+            </g>` + streaks([[18, 60, 0], [34, 150, .35], [10, 230, .7], [330, 130, .2], [318, 220, .5], [338, 290, .8], [118, -80, .25], [236, -86, .6], [300, -40, .1]]),
+          fx: streaks([[6, 60, 0], [24, 170, .35], [0, 250, .7], [338, 120, .2], [330, 220, .5], [342, 300, .8], [60, -60, .25], [290, -70, .6]]) };
         case 'snow': return { defs, blend: 'multiply',
           back: '',
           body: `<rect x="0" y="0" width="343" height="360" fill="url(#wxCool)" opacity=".55"/>
@@ -8538,7 +8542,7 @@
             <path d="M226 276 Q236 300 232 338 L262 336 Q266 300 252 272 Z" fill="url(#wxScarf)"/>
             <path d="M226 276 Q236 300 232 338 L262 336 Q266 300 252 272 Z" fill="url(#wxKnit)"/>
             <path d="M230 334 L262 332" stroke="#9E2A31" stroke-width="3" opacity=".5"/>`,
-          front: flakes };
+          front: flakes, fx: flakes };
         case 'storm': return { defs, blend: 'multiply',
           back: puff(-40, -46, 1.05, 'wxCloudDark') + puff(214, -40, 1.1, 'wxCloudDark', 'd2'),
           body: `<rect x="0" y="0" width="343" height="360" fill="url(#wxStorm)" opacity=".45"/>
@@ -8554,14 +8558,25 @@
             <path d="M84 60 C 90 18, 150 0, 186 2" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" opacity=".45" ${soft}/>
             <path d="M66 74 Q180 62 296 72" stroke="#D99A00" stroke-width="1.6" stroke-dasharray="5 5" fill="none"/>`
             + streaks([[12, 60, 0], [44, 150, .2], [4, 230, .4], [322, 100, .1], [338, 200, .3], [304, 300, .5], [140, -70, .15], [262, -70, .35]], true)
-            + `<path class="wx-wind" d="M-70 120 Q-20 104 20 124 T70 118" stroke="#fff" stroke-opacity=".7" stroke-width="3" fill="none" stroke-linecap="round"/><path class="wx-wind" style="animation-delay:.6s" d="M200 344 Q250 330 290 348 T370 340" stroke="#fff" stroke-opacity=".7" stroke-width="3" fill="none" stroke-linecap="round"/>` };
+            + `<path class="wx-wind" d="M-70 120 Q-20 104 20 124 T70 118" stroke="#fff" stroke-opacity=".7" stroke-width="3" fill="none" stroke-linecap="round"/><path class="wx-wind" style="animation-delay:.6s" d="M200 344 Q250 330 290 348 T370 340" stroke="#fff" stroke-opacity=".7" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+          fx: streaks([[0, 60, 0], [20, 170, .2], [-6, 250, .4], [338, 100, .1], [346, 210, .3], [330, 300, .5], [120, -80, .15], [270, -80, .35]], true) + `<path class="wx-wind" d="M-80 150 Q-30 134 10 154 T60 148" stroke="#9FB3C8" stroke-opacity=".6" stroke-width="3" fill="none" stroke-linecap="round"/>` };
         default: return { defs: '', blend: 'normal', back: '', body: '', front: '' };
       }
     }
+    // 날씨별로 새로 그린 뽀마 이미지 (원래 뽀마와 몸 위치·크기를 맞춘 480×480 캔버스) — 없으면 SVG 스킨으로 대체
+    var WX_IMG_KINDS = ['sunny', 'hot', 'night', 'cloudy', 'rain', 'snow', 'storm'];
     function renderBbomaMascot(userKey) {
       const k = WX.kind;
       const L = wxSkinLayers(k);
       const lab = WX_LABEL[k];
+      const chip = lab ? `<button type="button" class="fh-wx-chip" onclick="event.stopPropagation(); showWeatherInfo()">${lab[0]} ${WX.temp != null ? WX.temp + '°' : lab[1]}</button>` : '';
+      if (WX_IMG_KINDS.includes(k)) {
+        return `<div class="fh-mascot wx-${k} has-img" data-user="${userKey}">
+          <img class="fh-illust fh-wx-img" src="assets/bboma_wx_${k}.webp" alt="뽀마" onclick="triggerSmartNudge('${userKey}')" onerror="this.onerror=null; this.classList.remove('fh-wx-img'); this.src='assets/bboma_hero.png';" />
+          ${L.fx ? `<svg class="fh-skin front" viewBox="0 0 343 360" aria-hidden="true">${L.defs}${L.fx}</svg>` : ''}
+          ${chip}
+        </div>`;
+      }
       return `<div class="fh-mascot ${k ? 'wx-' + k : ''}" data-user="${userKey}">
         <svg class="fh-skin back" viewBox="0 0 343 360" aria-hidden="true">${L.defs}${L.back}</svg>
         <img class="fh-illust" src="assets/bboma_hero.png" alt="뽀마" onclick="triggerSmartNudge('${userKey}')" />
