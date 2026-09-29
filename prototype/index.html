@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <script>if (window.Capacitor || /[?&]native=1/.test(location.search)) document.documentElement.classList.add('native-app');</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WeParent (우리아이 타임) - Interactive Prototype</title>
@@ -98,6 +99,51 @@
         box-shadow: none !important;
       }
     }
+    /* 📱 실제 앱(Capacitor) 안에서는 화면 폭과 상관없이 항상 전체 화면 — 폴드 펼침·태블릿 포함 (ADR 56) */
+    html.native-app body {
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 100vw !important;
+      height: 100dvh !important;
+      height: 100vh;
+      overflow: hidden !important;
+      background: #090d16 !important;
+    }
+    html.native-app #desktopHeader, html.native-app #desktopFooter {
+      display: none !important;
+    }
+    html.native-app .mockup-status-bar {
+      display: none !important;
+    }
+    html.native-app .mobile-app-header {
+      padding-top: max(8px, env(safe-area-inset-top, 0px)) !important;
+      height: calc(48px + max(8px, env(safe-area-inset-top, 0px))) !important;
+    }
+    html.native-app main {
+      max-width: 100% !important;
+      width: 100% !important;
+      height: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      gap: 0 !important;
+    }
+    html.native-app .phone-container {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+    }
+    html.native-app .phone-top-label {
+      display: none !important;
+    }
+    html.native-app .phone-screen {
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 100dvh !important;
+      border-radius: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    
     @keyframes float-gentle {
       0%, 100% { transform: translateY(0px) rotate(0deg); }
       50% { transform: translateY(-5px) rotate(2deg); }
