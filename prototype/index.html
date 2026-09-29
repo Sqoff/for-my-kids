@@ -4697,8 +4697,19 @@
         if (perm.receive !== 'granted') perm = await P.requestPermissions();
         if (perm.receive !== 'granted') return;
         try { await P.createChannel({ id: 'spouse', name: '배우자 알림', importance: 4, visibility: 1 }); } catch (e) {}
+        try { await P.createChannel({ id: 'events', name: '가족 일정 알림', description: '아침 8시 오늘의 일정 · 일정 30분 전', importance: 4, visibility: 1 }); } catch (e) {}
         P.addListener('registration', t => { FB.ref.update({ ['tokens.' + myRole()]: t.value }).catch(() => {}); });
-        P.addListener('pushNotificationActionPerformed', () => { openNotificationModal(myRole()); });
+        P.addListener('pushNotificationActionPerformed', a => {
+          const d = (a && a.notification && a.notification.data) || {};
+          if (d.type === 'event') openEventDay(d.date); else openNotificationModal(myRole());
+        });
+        // 앱을 보고 있을 때 온 일정 알림은 화면 안내로 (배우자 알림은 동기화 토스트가 따로 뜸)
+        P.addListener('pushNotificationReceived', n => {
+          const d = (n && n.data) || {};
+          if (d.type !== 'event') return;
+          triggerHaptic('light');
+          showToast(`${n.title || '📅 일정 알림'} · ${n.body || ''}`);
+        });
         await P.register();
       } catch (e) { console.warn('push', e); }
     }
@@ -7197,6 +7208,13 @@
     };
     function getHoliday(dateStr) { return KR_HOLIDAYS[dateStr] || null; }
 
+    // 📅 일정 알림을 누르면: 가족캘린더에서 그 날짜 열기
+    function openEventDay(dateStr) {
+      const me = (typeof getDevice === 'function' && getDevice()) ? myRole() : 'mom';
+      STATE.selectedDate = dateStr || todayStr();
+      switchTab(me, 'calendar');
+    }
+
     function getEventsOnDate(dateStr) {
       return (STATE.events || []).filter(e => e.date === dateStr).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
     }
@@ -7229,6 +7247,7 @@
               <input id="eventInput_time" type="time" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm outline-none focus:border-blue-500" />
             </div>
           </div>
+          <p class="text-[11px] text-slate-400 -mt-1">🔔 그날 아침 8시 '오늘의 일정'으로, 시간이 있으면 30분 전에도 알려드려요</p>
           <div>
             <label class="block text-[11px] font-bold text-slate-300 mb-1.5">함께하는 사람</label>
             <select id="eventInput_who" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm outline-none focus:border-blue-500"></select>
