@@ -915,6 +915,26 @@
     body.theme-white .dl-chip { background: #F2F4F6 !important; color: #4E5968 !important; }
     body.theme-white .dl-chip.is-on { background: #FFFFFF !important; border-color: #3182F6; color: #1B64DA !important; }
     /* 오늘 하루 보지 않기 */
+    .rule-mode-card { display:flex; flex-direction:column; align-items:center; gap:3px; padding:12px 8px; border-radius:16px; border:2px solid #E5E8EB; background:transparent; }
+    .rule-mode-card b { font-size:13px; font-weight:900; color:#4E5968; } .rule-mode-card span { font-size:10.5px; font-weight:600; color:#8B95A1; }
+    .rule-mode-card.is-on { border-color:#3182F6; } .rule-mode-card.is-on b { color:#3182F6; }
+    body.theme-navy .rule-mode-card { border-color:#334155; } body.theme-navy .rule-mode-card b { color:#CBD5E1; } body.theme-navy .rule-mode-card.is-on { border-color:#60A5FA; } body.theme-navy .rule-mode-card.is-on b { color:#60A5FA; }
+    .grant-sheet { position:fixed; inset:0; z-index:5800; background:rgba(15,23,42,.45); display:flex; align-items:flex-end; justify-content:center; }
+    .grant-sheet .gs-box { width:100%; max-width:480px; max-height:86dvh; overflow-y:auto; background:#fff; border-radius:24px 24px 0 0; padding:20px 18px calc(env(safe-area-inset-bottom,0px) + 18px); animation: gsUp .28s ease; }
+    @keyframes gsUp { from { transform: translateY(40px); opacity:0; } to { transform:none; opacity:1; } }
+    .grant-sheet .gs-title { font-size:18px; font-weight:900; color:#191F28; }
+    .grant-sheet .gs-sub { font-size:12.5px; font-weight:600; color:#6B7684; margin-top:4px; word-break:keep-all; }
+    .grant-sheet .gs-label { font-size:12px; font-weight:800; color:#8B95A1; margin:16px 2px 6px; }
+    .grant-sheet .gs-opt { display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:12px; border-radius:14px; border:1.5px solid #E5E8EB; margin-bottom:6px; background:#fff; }
+    .grant-sheet .gs-opt:active { border-color:#3182F6; }
+    .grant-sheet .gs-opt i { font-style:normal; font-size:22px; flex-shrink:0; }
+    .grant-sheet .gs-opt b { display:block; font-size:13.5px; font-weight:800; color:#191F28; word-break:keep-all; }
+    .grant-sheet .gs-opt small { display:block; font-size:11px; font-weight:600; color:#8B95A1; margin-top:1px; word-break:keep-all; }
+    .grant-sheet .gs-input { width:100%; border:1.5px solid #E5E8EB; border-radius:14px; padding:12px; font-size:14px; outline:none; color:#191F28; }
+    .grant-sheet .gs-input:focus { border-color:#3182F6; }
+    .grant-sheet .gs-row { display:flex; gap:8px; margin-top:8px; }
+    .grant-sheet .gs-btn { flex:1; height:48px; border-radius:14px; font-size:14.5px; font-weight:800; }
+    .grant-sheet .gs-btn.is-ghost { background:#F2F4F6; color:#4E5968; } .grant-sheet .gs-btn.is-primary { background:#3182F6; color:#fff; }
     .warn-sub { display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:11px 12px; border-radius:14px; border:1.5px solid #F59E0B; background:transparent; color:#B45309; font-weight:800; font-size:13px; }
     .warn-sub .ws-box { width:20px; height:20px; border-radius:6px; border:2px solid #F59E0B; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; }
     .warn-sub.is-done { border-color:#E5E8EB; color:#8B95A1; font-weight:600; text-decoration:line-through; }
@@ -1894,6 +1914,19 @@
         <button type="button" onclick="closeRuleSettingsModal(); openUserProfileModal(STATE.viewMode === 'dad' ? 'dad' : 'mom');" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:brightness-110 text-slate-950 font-black text-xs shadow transition flex items-center gap-1 shrink-0 active:scale-95">
           <span>✏️ 이름 변경</span>
         </button>
+      </div>
+
+      <!-- ⚖️ 마감을 넘겼을 때 (육아 규칙 모드, ADR 59) -->
+      <div class="border-t border-slate-800 pt-3">
+        <div class="flex items-center gap-2 mb-1.5">
+          <span class="text-base">⚖️</span>
+          <h3 class="text-xs font-black text-slate-200">마감을 넘겼을 때 (육아 규칙 모드)</h3>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" id="ruleMode_easy" onclick="setAppMode('easy', true)" class="rule-mode-card"><b>🟢 이지 모드</b><span>마감 후 30분 여유</span></button>
+          <button type="button" id="ruleMode_hard" onclick="setAppMode('hard', true)" class="rule-mode-card"><b>🔴 하드 모드</b><span>1분만 지나도 바로</span></button>
+        </div>
+        <p id="ruleModeDesc" class="text-[11px] text-slate-400 mt-2 leading-relaxed"></p>
       </div>
 
       <!-- 🎨 Theme Preference Section (White Tone vs Navy Tone) -->
@@ -4760,7 +4793,7 @@
     async function connectFamilyOnLaunch() {
       const d = getDevice();
       if (!d || d.offline) return;
-      try { await fbStart(); subscribeFamily(); registerPush(); }
+      try { await fbStart(); subscribeFamily(); registerPush(); if (FB.ref) FB.ref.update({ 'features.overdueGrant': true }).catch(() => {}); }
       catch (e) { console.warn(e); showToast('⚠️ 서버 연결 실패 — 오프라인으로 사용 중이에요'); }
     }
 
@@ -6133,6 +6166,7 @@
     let tempThreshold = 5;
 
     function openRuleSettingsModal() {
+      setTimeout(renderRuleModeCards, 0);
       tempThreshold = STATE.settings.angelThreshold;
       updateRuleSettingsModalUI();
       const modal = document.getElementById('ruleSettingsModal');
@@ -6677,22 +6711,105 @@
       }
     }
 
-    function setAppMode(mode) {
-      STATE.mode = mode;
+    // ⚖️ 육아 규칙 모드 (ADR 59): 마감을 넘기면 배우자에게 🎫 페널티 부여권 — 이지는 30분 여유, 하드는 1분
+    var RULE_MODE_DESC = {
+      easy: '마감이 지나면 먼저 본인에게 “30분 안에 끝내면 괜찮아요” 알림이 가요. 30분이 지나도 못 끝내면 배우자에게 알림과 🎫 페널티 부여권 1장이 생겨요.',
+      hard: '마감이 1분만 지나도 바로 배우자에게 알림과 🎫 페널티 부여권 1장이 생겨요. 여유 시간은 없어요.'
+    };
+    function renderRuleModeCards() {
+      const m = STATE.mode === 'hard' ? 'hard' : 'easy';
+      ['easy', 'hard'].forEach(k => { const el = document.getElementById('ruleMode_' + k); if (el) el.classList.toggle('is-on', k === m); });
+      const d = document.getElementById('ruleModeDesc');
+      if (d) d.innerHTML = RULE_MODE_DESC[m] + '<br/>부여권을 받은 사람은 벌칙을 골라 보내거나, 이번엔 넘어갈 수 있어요. 시간을 “언제든”으로 둔 할 일과 벌칙 할 일은 해당되지 않아요.';
       const easyBtn = document.getElementById('modeEasyBtn');
       const hardBtn = document.getElementById('modeHardBtn');
-
-      if (mode === 'easy') {
-        easyBtn.className = 'px-3 py-1.5 rounded-lg font-medium transition-all bg-emerald-500 text-white shadow';
-        hardBtn.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition-all';
-        showToast('⚙️ 모드 변경: 이지 모드 (배려/유예 기능 활성화)');
-        logEvent('모드 전환: [이지 모드] 설정됨 - 마감 초과 시 상대방 확인 후 처리');
-      } else {
-        hardBtn.className = 'px-3 py-1.5 rounded-lg font-medium transition-all bg-rose-600 text-white shadow';
-        easyBtn.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition-all';
-        showToast('⚙️ 모드 변경: 하드 모드 (1분 초과 시 자동 페널티 발급)');
-        logEvent('모드 전환: [하드 모드] 설정됨 - 마감 초과 시 시스템이 즉시 페널티권 발급');
+      if (easyBtn && hardBtn) {
+        easyBtn.className = m === 'easy' ? 'px-3 py-1.5 rounded-lg font-medium transition-all bg-emerald-500 text-white shadow' : 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition-all';
+        hardBtn.className = m === 'hard' ? 'px-3 py-1.5 rounded-lg font-medium transition-all bg-rose-600 text-white shadow' : 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition-all';
       }
+    }
+    function setAppMode(mode, fromUser) {
+      if (mode !== 'easy' && mode !== 'hard') return;
+      const changed = STATE.mode !== mode;
+      STATE.mode = mode;
+      renderRuleModeCards();
+      const label = mode === 'easy' ? '🟢 이지 모드' : '🔴 하드 모드';
+      if (changed) {
+        showToast(`⚖️ ${label}로 바꿨어요 · ${mode === 'easy' ? '마감 후 30분 여유' : '1분만 지나도 바로 부여권'}`);
+        logEvent(`모드 전환: [${label}]`);
+        if (fromUser) {
+          const me = (typeof getDevice === 'function' && getDevice()) ? myRole() : (STATE.viewMode === 'dad' ? 'dad' : 'mom');
+          sendSpouseNotification(me, { type: 'system', icon: '⚖️', title: '육아 규칙 모드 변경', message: `${getDisplayName(me)}님이 ${label}로 바꿨어요. ${RULE_MODE_DESC[mode]}` });
+        }
+      }
+      if (typeof scheduleSync === 'function') scheduleSync();
+      renderApp('mom');
+      renderApp('dad');
+    }
+
+    // 🎫 페널티 부여권: 서버가 마감 초과 때 배우자 인벤토리에 넣어 줌(kind: 'grant') → 받은 사람이 벌칙을 골라 보내거나 넘어감
+    var GRANT_BASIC = [
+      { icon: '🧺', title: '가사 넘기기', desc: '오늘 내 할 일 1개를 대신 맡아줘요' },
+      { icon: '🛁', title: '다음 목욕·재우기 전담', desc: '다음 목욕이나 재우기 1번을 혼자 맡아요' },
+      { icon: '💆', title: '15분 어깨 안마', desc: '육아로 뭉친 어깨를 15분 풀어줘요' },
+      { icon: '☕', title: '커피·간식 사오기', desc: '원하는 커피나 간식을 사다 줘요' },
+      { icon: '📵', title: '폰 1시간 내려놓기', desc: '딴짓 앱 없이 1시간 아이에게 집중해요' }
+    ];
+    function openGrantPicker(viewerKey, grantId) {
+      const me = STATE.users[viewerKey];
+      const g = (me.penalties || []).find(x => x.id === grantId);
+      if (!g) return;
+      const seen = new Set();
+      const mine = ['mom', 'dad'].flatMap(k => STATE.users[k].penalties || []).filter(x => x.kind !== 'grant' && x.title && !seen.has(x.title) && seen.add(x.title)).slice(0, 8);
+      const esc = t => String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      const opt = (o, i, src) => `<button type="button" class="gs-opt" onclick="pickGrantPenalty('${viewerKey}', '${grantId}', '${src}', ${i})"><i>${o.icon || '⚡'}</i><span><b>${esc(o.title)}</b>${o.desc ? `<small>${esc(o.desc)}</small>` : ''}</span></button>`;
+      window._grantMine = mine;
+      closeGrantPicker();
+      const el = document.createElement('div');
+      el.id = 'grantPicker';
+      el.className = 'grant-sheet';
+      el.innerHTML = `<div class="gs-box">
+        <div class="gs-title">🎫 어떤 벌칙을 보낼까요?</div>
+        <div class="gs-sub">${esc(g.desc || '')}</div>
+        ${mine.length ? `<div class="gs-label">우리가 등록한 벌칙</div>${mine.map((o, i) => opt(o, i, 'mine')).join('')}` : ''}
+        <div class="gs-label">기본 벌칙</div>${GRANT_BASIC.map((o, i) => opt(o, i, 'basic')).join('')}
+        <div class="gs-label">직접 쓰기</div>
+        <input id="grantCustomInput" class="gs-input" maxlength="30" placeholder="예: 주말 아침 늦잠 보장해주기" />
+        <div class="gs-row"><button type="button" class="gs-btn is-ghost" onclick="closeGrantPicker()">닫기</button><button type="button" class="gs-btn is-primary" onclick="pickGrantPenalty('${viewerKey}', '${grantId}', 'custom')">이 벌칙 보내기</button></div>
+      </div>`;
+      el.addEventListener('click', e => { if (e.target === el) closeGrantPicker(); });
+      document.body.appendChild(el);
+    }
+    function closeGrantPicker() { const el = document.getElementById('grantPicker'); if (el) el.remove(); }
+    function pickGrantPenalty(viewerKey, grantId, src, idx) {
+      const me = STATE.users[viewerKey];
+      const g = (me.penalties || []).find(x => x.id === grantId);
+      if (!g) { closeGrantPicker(); return; }
+      let pick = null;
+      if (src === 'mine') pick = (window._grantMine || [])[idx];
+      else if (src === 'basic') pick = GRANT_BASIC[idx];
+      else {
+        const v = ((document.getElementById('grantCustomInput') || {}).value || '').trim();
+        if (!v) { showToast('✍️ 보낼 벌칙을 적어주세요'); return; }
+        pick = { icon: '⚡', title: v, desc: '' };
+      }
+      if (!pick) return;
+      const from = { taskTitle: g.taskTitle, date: g.date, lateName: g.lateName };
+      delete g.kind;
+      Object.assign(g, { title: pick.title, desc: pick.desc || `${g.lateName || '배우자'}님이 [${g.taskTitle || '할 일'}] 마감을 넘겨서 보내는 벌칙`, icon: pick.icon || '⚡', fromGrant: from });
+      closeGrantPicker();
+      renderApp(viewerKey);
+      promptUsePenalty(viewerKey, grantId);
+    }
+    function skipPenaltyGrant(viewerKey, grantId) {
+      const me = STATE.users[viewerKey];
+      const idx = (me.penalties || []).findIndex(x => x.id === grantId);
+      if (idx === -1) return;
+      const [g] = me.penalties.splice(idx, 1);
+      grantExp(10);
+      triggerHaptic('light');
+      showToast('💚 이번엔 넘어가 줬어요 (+10 EXP)');
+      sendSpouseNotification(viewerKey, { type: 'penalty', icon: '💚', title: '이번엔 넘어가 줬어요', message: `${getDisplayName(viewerKey)}님이 [${g.taskTitle || '할 일'}] 마감 넘긴 건 이번엔 넘어가 줬어요. 다음엔 꼭 챙겨요!` });
       renderApp('mom');
       renderApp('dad');
     }
@@ -9788,6 +9905,23 @@
     // --- 🎟️ 페널티권 스와이프 카드 (내가 가진 페널티권 / 등록된 패널티권 목록 공용) ---
     function renderPenaltySwipeCard(p, ownerKey, idx, total, mode, viewerKey) {
       const owner = STATE.users[ownerKey];
+      if (p.kind === 'grant') {
+        const md = d => d ? `${+d.slice(5, 7)}/${+d.slice(8)}` : '';
+        return `
+          <div class="quest-banner penalty-card" style="--qb-light:#FFF4E0;--qb-dark:#3D3222;--qb-accent:#D97706;--qb-accent-dark:#FBBF24;">
+            <div class="qb-body">
+              <div class="qb-eyebrow">🎫 페널티 부여권${mode === 'mine' ? '' : ` · ${owner.avatar} ${getDisplayName(ownerKey)} 보유`}</div>
+              <div class="qb-title">${p.lateName || '배우자'}님이 [${p.taskTitle || '할 일'}] 마감을 넘겼어요</div>
+              <div class="qb-sub">${md(p.date)} ${p.deadline || ''} 마감 · 벌칙을 골라 보내거나 넘어갈 수 있어요</div>
+            </div>
+            <div class="qb-icon">🎫</div>
+            <div class="qb-counter">${idx + 1} | ${total}</div>
+            <div class="pc-actions">${mode === 'mine' ? `
+              <button type="button" class="pc-btn" onclick="skipPenaltyGrant('${viewerKey}', '${p.id}')">이번엔 넘어가기</button>
+              <button type="button" class="pc-btn is-primary preserve-white" onclick="openGrantPicker('${viewerKey}', '${p.id}')">벌칙 골라 보내기 ⚡</button>` : ''}
+            </div>
+          </div>`;
+      }
       const cooldownRemaining = getPenaltyCooldownRemaining(p);
       const isCooling = !!cooldownRemaining;
       const isMom = ownerKey === 'mom';
@@ -11088,95 +11222,7 @@
       if (overlay) overlay.classList.add('hidden');
     }
 
-    function triggerTaskOverdue(taskId) {
-      const task = STATE.tasks.find(t => t.id === taskId);
-      if (!task) return;
-      const selDate = STATE.selectedDate || todayStr();
-      const rec = getTaskDateRecord(task, selDate);
-      rec.overdue = true;
-
-      const user = STATE.users[task.assignee];
-      const spouseKey = task.assignee === 'mom' ? 'dad' : 'mom';
-      const spouse = STATE.users[spouseKey];
-
-      if (STATE.mode === 'hard') {
-        const newPenalty = {
-          id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-          title: `[마감초과] ${task.title} 페널티`,
-          desc: `${user.name}의 할 일 마감 초과로 자동 발급된 페널티권`,
-          icon: '⚡'
-        };
-        spouse.penalties.push(newPenalty);
-        showToast(`🚨 [하드모드] 마감 초과! ${spouse.name}에게 페널티권이 자동 발급되었습니다.`);
-        logEvent(`[마감 초과 - 하드모드] ${user.name} 마감 초과 -> ${spouse.name}에게 페널티권 자동 발급`);
-        sendSpouseNotification(task.assignee, {
-          type: 'penalty',
-          icon: '🚨',
-          title: '마감 초과 페널티 발급',
-          message: `🚨 [하드모드] ${user.name}님의 [${task.title}] 마감 초과로 ${spouse.name}님에게 페널티권이 자동 발급되었습니다.`
-        });
-      } else {
-        showToast(`⏰ [이지모드] ${user.name}의 마감이 초과되었습니다. ${spouse.name}의 확인을 대기합니다.`);
-        logEvent(`[마감 초과 - 이지모드] ${user.name} 마감 초과 -> ${spouse.name}에게 확인 요청 푸시`);
-        sendSpouseNotification(task.assignee, {
-          type: 'todo',
-          icon: '⏰',
-          title: '할 일 마감 초과 확인 요청',
-          message: `⏰ [이지모드] ${user.name}님의 [${task.title}] 마감이 초과되었습니다. (유예 또는 청구 가능)`
-        });
-      }
-
-      renderApp('mom');
-      renderApp('dad');
-    }
-
-    function pardonOverdue(taskId) {
-      const task = STATE.tasks.find(t => t.id === taskId);
-      if (!task) return;
-      const selDate = STATE.selectedDate || todayStr();
-      const rec = getTaskDateRecord(task, selDate);
-      rec.overdue = false;
-      task.deadline = '22:30 (30분 연장)';
-      grantExp(15);
-      showToast('💚 30분 유예를 승인했습니다. "여보 힘내!" 알림이 발송되었습니다. (+15 EXP)');
-      logEvent(`[배려/봐주기] 상대방 할 일 30분 연장 승인됨`);
-      sendSpouseNotification(task.assignee === 'mom' ? 'dad' : 'mom', {
-        type: 'todo',
-        icon: '💚',
-        title: '30분 유예 승인',
-        message: `💚 배우자가 [${task.title}] 마감을 30분 연장해 주었습니다. "여보 힘내!"`
-      });
-      renderApp('mom');
-      renderApp('dad');
-    }
-
-    function claimPenaltyFromOverdue(taskId, claimerKey) {
-      const task = STATE.tasks.find(t => t.id === taskId);
-      if (!task) return;
-      const selDate = STATE.selectedDate || todayStr();
-      const rec = getTaskDateRecord(task, selDate);
-      rec.overdue = false;
-      const claimer = STATE.users[claimerKey];
-      claimer.penalties.push({
-        id: 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-        title: `[청구] ${task.title} 페널티`,
-        desc: `미완료 건에 대해 정당하게 청구된 페널티권`,
-        icon: '⚡'
-      });
-      showToast(`⚡ 페널티권을 청구하여 인벤토리에 추가했습니다.`);
-      logEvent(`[페널티 청구] ${claimer.name}님이 페널티권을 획득했습니다.`);
-      sendSpouseNotification(claimerKey, {
-        type: 'penalty',
-        icon: '⚡',
-        title: '미완료 페널티 청구',
-        message: `⚡ ${claimer.name}님이 [${task.title}] 미완료 건에 대해 페널티권을 청구했습니다.`
-      });
-      renderApp('mom');
-      renderApp('dad');
-    }
-
-    let pendingPenaltyPrompt = null;
-
+    // (ADR 59) 마감 초과 처리는 서버(eventReminders)가 담당 — 예전 프로토타입의 봐주기(30분 연장)·청구 버튼 코드는 제거
     function getPenaltyCooldownRemaining(p) {
       if (!p || !p.cooldownUntil) return null;
       const remainingMs = p.cooldownUntil - Date.now();
@@ -11195,6 +11241,7 @@
       if (!fromUser) return;
       const penalty = fromUser.penalties.find(p => p.id === penaltyId);
       if (!penalty) return;
+      if (penalty.kind === 'grant') { openGrantPicker(fromKey, penaltyId); return; } // 부여권은 벌칙부터 고르기
 
       const remaining = getPenaltyCooldownRemaining(penalty);
       if (remaining) {
@@ -13126,7 +13173,7 @@
       currentStep: 0,
       steps: [
         { chapter: '시작', title: '뽀마키즈를 소개할게요 👋', desc: '부부가 함께 육아하고, 서로 고마움을 나누는 앱이에요.<br/>실제 화면을 보면서 <b>1분</b>이면 다 알 수 있어요.', tab: 'home', center: true,
-          extra: `<div class="gd-chapters">${['🏠 홈', '👑 퀘스트', '📅 캘린더', '🎁 포인트', '🌙 밤 편지'].map(c => `<span>${c}</span>`).join('')}</div>` },
+          extra: `<div class="gd-chapters">${['🏠 홈', '👑 퀘스트', '📅 캘린더', '⚖️ 규칙', '🎁 포인트', '🌙 밤 편지'].map(c => `<span>${c}</span>`).join('')}</div>` },
         { chapter: '홈', title: '우리 가족의 오늘', desc: '가족 레벨, 모은 포인트, 오늘 부부가 <b>함께한 집중 육아 시간</b>이 보여요. 뽀마를 누르면 한마디 해줘요.', tab: 'home', target: '.family-hero' },
         { chapter: '홈', title: '육아 집중 타이머', desc: '폰을 내려놓고 아이에게 집중하는 시간이에요. 끝까지 마치면 시간이 쌓이고 <b>노폰 퀘스트</b>가 올라가요.', tab: 'home', target: '[onclick^="openFocusModal"]' },
         { chapter: '홈', title: '밀어서 완료', desc: '내 할 일을 <b>왼쪽으로 밀면</b> 완료돼요. 실수했으면 오른쪽 <b>완료</b>를 눌러 취소할 수 있어요.', tab: 'home', target: '.task-swipe-surface', wrap: true, demo: 'left' },
@@ -13140,6 +13187,9 @@
         { chapter: '퀘스트', title: '숨겨진 퀘스트', desc: '퀘스트를 하나 달성할 때마다 <b>새 퀘스트가 1개씩</b> 열려요. 포인트로 바로 열 수도 있어요.', tab: 'quest', target: '.quest-locked-card' },
         { chapter: '캘린더', title: '가족 일정과 할 일', desc: '병원·외출 같은 <b>일정</b>과 가사·육아 <b>할 일</b>이 나뉘어 있어요. 일정을 누르면 바로 수정해요.', tab: 'calendar', target: '.cal-section-head', parent: 1 },
         { chapter: '포인트', title: '부부 기프티콘 저금통', desc: '퀘스트와 할 일로 모은 포인트로 <b>치킨·커피 기프티콘</b>을 받을 수 있어요.', tab: 'point', sub: 'bank', target: '.bank-shortcut-title', parent: 2 },
+        { chapter: '규칙', title: '⚖️ 마감을 넘기면? 이지·하드 모드', desc: '시간을 정한 할 일의 마감이 지나면 배우자에게 <b>🎫 페널티 부여권</b>이 생겨요.<br/>🟢 <b>이지 모드</b>(기본) — 마감 후 <b>30분 여유</b>가 있어요. 먼저 나에게 “30분 안에 끝내면 괜찮아요” 알림이 오고, 그 안에 끝내면 부여권이 생기지 않아요.<br/>🔴 <b>하드 모드</b> — 마감이 <b>1분</b>만 지나도 바로 배우자에게 가요.', tab: 'point', sub: 'battle', center: true },
+        { chapter: '규칙', title: '🎫 부여권은 이렇게 써요', desc: '부여권을 받은 사람이 <b>벌칙을 골라</b> 보내요 — 우리가 등록한 벌칙, 기본 벌칙(가사 넘기기·안마 등), 직접 쓰기 중에서요. 봐주고 싶으면 <b>이번엔 넘어가기</b>를 누르면 돼요.<br/>시간을 “언제든”으로 둔 할 일과 벌칙 할 일은 해당되지 않아요.', tab: 'point', sub: 'battle', center: true },
+        { chapter: '규칙', title: '모드는 설정에서 함께 정해요', desc: '프로필 → <b>⚙️ 설정</b>의 <b>“마감을 넘겼을 때”</b>에서 이지·하드를 고를 수 있어요. 바꾸면 배우자에게도 알림이 가요.', tab: 'home', center: true },
         { chapter: '포인트', title: '페널티권 카드', desc: '약속을 어기면 쓰는 페널티권이에요. 카드를 넘겨보고 <b>사용하기</b>로 보내요. 상대는 방어권으로 막을 수 있어요.', tab: 'point', sub: 'battle', target: '.quest-carousel', demo: 'carousel' },
         { chapter: '포인트', title: '🛡️ 방어권(페널티 면제권)', desc: '배우자가 보낸 페널티를 <b>한 번 막아주는 방패</b>예요. <b>배우자 할 일 5번 대신 해주기</b>, <b>7일 연속 루틴</b> 같은 퀘스트를 달성하면 받아요.', tab: 'point', sub: 'battle', target: '.shield-card' },
         { chapter: '포인트', title: '페널티가 날아오면?', desc: '홈 맨 위에 페널티 알림이 떠요. 둘 중 하나를 골라요.', tab: 'home', center: true,

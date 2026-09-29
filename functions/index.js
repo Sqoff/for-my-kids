@@ -2,6 +2,7 @@
 // 1) spousePush: 가족 문서에서 배우자 알림함에 새 알림이 생기면 그 사람 폰으로 FCM 푸시
 // 2) coupangLink: 사용자 쿠팡 파트너스 키(Secret Manager)로 검색 딥링크 생성
 // 3) eventReminders: 가족 일정 알림 (5분마다) — 아침 8시 '오늘의 일정' 요약 + 시간 있는 일정 30분 전 (ADR 52)
+//    + 할 일 마감 초과 → 배우자에게 🎫 페널티 부여권 (이지: 30분 여유 / 하드: 1분) (ADR 59)
 const { onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
@@ -108,6 +109,8 @@ exports.eventReminders = onSchedule({ schedule: 'every 5 minutes', timeZone: 'As
   for (const doc of snap.docs) {
     const data = doc.data() || {};
     const tokens = data.tokens || {};
+    // 할 일 마감 초과 → 페널티 부여권 (새 버전 앱이 켠 가족만)
+    if (data.features && data.features.overdueGrant) jobs.push(checkOverdue(db, doc, data, date, min, once));
     if (!tokens.mom && !tokens.dad) continue;
     const today = parseList(data, 'events').filter(e => e && e.date === date)
       .sort((a, b) => (a.time || '99').localeCompare(b.time || '99'));
@@ -128,3 +131,71 @@ exports.eventReminders = onSchedule({ schedule: 'every 5 minutes', timeZone: 'As
   }
   await Promise.all(jobs);
 });
+
+// ---------- ⚖️ 할 일 마감 초과 → 🎫 페널티 부여권 (ADR 59) ----------
+const EASY_GRACE = 30;      // 이지 모드: 마감 후 30분 여유 (그 전엔 본인에게만 알림)
+const HARD_GRACE = 1;       // 하드 모드: 1분
+const ISSUE_WINDOW = 120;   // 여유가 끝난 뒤 이 시간 안에서만 발급 (배포 직후 지난 일까지 몰아서 발급하지 않도록)
+function parseWhole(data, key, def) { try { const v = JSON.parse(((data || {}).state || {})[key] || 'null'); return v == null ? def : v; } catch (e) { return def; } }
+function displayName(data, role) {
+  const u = parseWhole(data, 'u_' + role, {}) || {};
+  return u.nameSet && u.name ? u.name : (role === 'mom' ? '엄마' : '아빠');
+}
+function kstDateOfMs(ms) { return new Date(ms + 9 * 3600e3).toISOString().slice(0, 10); }
+// 앱의 isTaskActiveOnDate와 같은 규칙 (루틴: 요일·시작일·종료일 / 1회성: 대상 날짜)
+function taskActiveOn(t, date) {
+  if (t.isRoutine !== false) {
+    const dow = new Date(date + 'T00:00:00Z').getUTCDay();
+    const days = t.routineDays || [1, 2, 3, 4, 5, 6, 0];
+    if (!days.includes(dow)) return false;
+    let start = t.startDate;
+    if (!start) { const m = /^t_(\d{12,})/.exec(t.id || ''); if (m) start = kstDateOfMs(+m[1]); }
+    if (start && date < start) return false;
+    if (t.endDate && date > t.endDate) return false;
+    return true;
+  }
+  return t.targetDate === date;
+}
+function makeNotif(type, icon, title, message) {
+  const now = Date.now();
+  const d = new Date(now + 9 * 3600e3);
+  return { id: `notif_${now}_${Math.random().toString(36).slice(2, 6)}`, type, icon, title, message, time: `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`, read: false, timestamp: now, _o: now };
+}
+async function checkOverdue(db, doc, data, date, min, once) {
+  const mode = parseWhole(data, 'mode', 'easy') === 'hard' ? 'hard' : 'easy';
+  const grace = mode === 'hard' ? HARD_GRACE : EASY_GRACE;
+  const tasks = parseList(data, 'tasks');
+  const writes = [];
+  for (const t of tasks) {
+    if (!t || t.isPenaltyTask || (t.assignee !== 'mom' && t.assignee !== 'dad')) continue;
+    const m = /^(\d{1,2}):(\d{2})/.exec(t.deadline || '');
+    if (!m || !taskActiveOn(t, date)) continue;
+    const rec = (t.dateRecords || {})[date];
+    if (rec && rec.done) continue;
+    const late = min - ((+m[1]) * 60 + (+m[2]));
+    const who = t.assignee, spouse = who === 'mom' ? 'dad' : 'mom';
+    const whoName = displayName(data, who), spName = displayName(data, spouse);
+    const hhmm = `${m[1].padStart(2, '0')}:${m[2]}`;
+    if (mode === 'easy' && late >= 0 && late < grace) {
+      writes.push(once(doc.id, `${date}_${t.id}_warn`, () => {
+        const n = makeNotif('todo', '⏰', '마감 시간이 지났어요', `[${t.title}] 마감(${hhmm})이 지났어요. 30분 안에 끝내면 괜찮아요!`);
+        return [doc.ref.update({ [`items.u_${who}_notifications.${n.id}`]: JSON.stringify(n), updatedBy: 'server' })];
+      }));
+    }
+    if (late >= grace && late <= grace + ISSUE_WINDOW) {
+      writes.push(once(doc.id, `${date}_${t.id}_grant`, () => {
+        const now = Date.now();
+        const g = { id: `pg_${now}_${Math.random().toString(36).slice(2, 6)}`, kind: 'grant', title: '페널티 부여권', icon: '🎫', desc: `${whoName}님이 [${t.title}] 마감(${hhmm})을 넘겼어요`, taskId: t.id, taskTitle: t.title, date, deadline: hhmm, lateName: whoName, mode, createdAt: now, _o: now };
+        const toSpouse = makeNotif('penalty', '🎫', '페널티 부여권이 생겼어요', `${whoName}님이 [${t.title}] 마감(${hhmm})을 넘겼어요. 벌칙을 골라 보내거나 이번엔 넘어갈 수 있어요.`);
+        const toLate = makeNotif('penalty', '⌛', '마감을 넘겼어요', `[${t.title}] 마감(${hhmm})이 지나 ${spName}님에게 🎫 페널티 부여권이 생겼어요.`);
+        return [doc.ref.update({
+          [`items.u_${spouse}_penalties.${g.id}`]: JSON.stringify(g),
+          [`items.u_${spouse}_notifications.${toSpouse.id}`]: JSON.stringify(toSpouse),
+          [`items.u_${who}_notifications.${toLate.id}`]: JSON.stringify(toLate),
+          updatedBy: 'server'
+        })];
+      }));
+    }
+  }
+  await Promise.all(writes);
+}
