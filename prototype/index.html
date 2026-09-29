@@ -652,6 +652,57 @@
     .drifting-boat.has-letter .db-letter { display: block; }
     @keyframes boatDrift { 0% { transform: translateX(0); } 100% { transform: translateX(calc(100vw + 140px)); } }
     @keyframes boatBob { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-8px) rotate(6deg); } }
+    /* 🏃 주간 육아 리포트: 나란히 달리는 부부 + 말풍선 */
+    .wr { position: fixed; inset: 0; z-index: 72; background: #EAF4FF; overflow: hidden; display: flex; flex-direction: column; opacity: 0; transition: opacity .3s ease; user-select: none; -webkit-user-select: none; }
+    .wr.is-open { opacity: 1; }
+    .wr-top { display: flex; align-items: center; gap: 6px; padding: calc(env(safe-area-inset-top, 0px) + 14px) 14px 6px; position: relative; z-index: 3; }
+    .wr-icon { width: 38px; height: 38px; border-radius: 12px; background: #fff; color: #333D4B; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .wr-icon:disabled { opacity: .35; }
+    .wr-period { flex: 1; min-width: 0; text-align: center; line-height: 1.25; }
+    .wr-period b { display: block; font-size: 17px; font-weight: 900; color: #191F28; }
+    .wr-period span { font-size: 12px; font-weight: 600; color: #6B7684; }
+    .wr-dots { display: flex; justify-content: center; gap: 5px; padding: 4px 0 2px; position: relative; z-index: 3; }
+    .wr-dots i { width: 6px; height: 6px; border-radius: 99px; background: #C9D6E3; transition: all .25s; }
+    .wr-dots i.on { width: 16px; background: #3182F6; }
+    .wr-bubbles { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; padding: 10px 18px 14px; position: relative; z-index: 3; overflow: hidden; }
+    .wr-bubble { max-width: 88%; background: #fff; border-radius: 18px; padding: 12px 15px; font-size: 15px; font-weight: 800; color: #191F28; line-height: 1.45; word-break: keep-all; box-shadow: 0 6px 18px rgba(25,31,40,.08); animation: wrPop .38s cubic-bezier(.2,1.3,.4,1) both; transition: opacity .3s, transform .3s; }
+    .wr-bubble .wr-plus { color: #3182F6; margin-right: 4px; }
+    .wr-bubble.is-mom { align-self: flex-start; border-left: 4px solid #F2668B; }
+    .wr-bubble.is-mom .wr-plus { color: #F2668B; }
+    .wr-bubble.is-dad { align-self: flex-end; border-right: 4px solid #3182F6; }
+    .wr-bubble.is-both { align-self: center; text-align: center; }
+    .wr-bubble.is-final { background: #191F28; color: #fff; }
+    .wr-bubble .wr-sub { display: block; margin-top: 3px; font-size: 12.5px; font-weight: 600; color: #6B7684; }
+    .wr-bubble.is-final .wr-sub { color: #B0B8C1; }
+    .wr-bubble.is-old { animation: none; opacity: .45; transform: scale(.97); }
+    @keyframes wrPop { from { opacity: 0; transform: translateY(14px) scale(.9); } to { opacity: 1; transform: none; } }
+    .wr-scene { position: relative; height: 40vh; min-height: 250px; flex-shrink: 0; }
+    .wr-cloud { position: absolute; left: 0; width: 86px; height: 28px; background: #fff; border-radius: 99px; opacity: .9; animation: wrPass 16s linear infinite; }
+    .wr-cloud::before { content: ''; position: absolute; left: 18px; top: -14px; width: 40px; height: 32px; background: #fff; border-radius: 99px; }
+    .wr-cloud.c1 { top: 6%; } .wr-cloud.c2 { top: 22%; transform: scale(.7); animation-duration: 22s; animation-delay: -9s; }
+    .wr-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; background: #BFE3B4; }
+    .wr-track { position: absolute; left: 0; right: 0; bottom: 12%; height: 34%; background: #F2CDA0; border-top: 3px solid #E8B77E; border-bottom: 3px solid #E8B77E; overflow: hidden; }
+    .wr-lane { position: absolute; left: 0; top: 50%; display: flex; gap: 26px; width: 200%; transform: translateY(-50%); animation: wrLane .7s linear infinite; }
+    .wr-lane span { width: 30px; height: 5px; border-radius: 3px; background: #fff; opacity: .85; flex-shrink: 0; }
+    @keyframes wrLane { from { transform: translate(0, -50%); } to { transform: translate(-56px, -50%); } }
+    .wr-tree { position: absolute; left: 0; bottom: 45%; font-size: 34px; animation: wrPass 4.2s linear infinite; }
+    .wr-tree.t2 { animation-delay: -1.4s; font-size: 28px; } .wr-tree.t3 { animation-delay: -2.8s; }
+    @keyframes wrPass { from { transform: translateX(110vw); } to { transform: translateX(-30vw); } }
+    .wr-runner { position: absolute; bottom: 20%; display: flex; flex-direction: column; align-items: center; z-index: 2; animation: wrBob .36s ease-in-out infinite alternate; }
+    .wr-runner.mom { left: 22%; } .wr-runner.dad { left: 52%; animation-delay: -.18s; }
+    .wr-body { display: inline-block; font-size: 62px; line-height: 1; transform: scaleX(-1); }
+    .wr-name { margin-top: 2px; padding: 2px 10px; border-radius: 99px; background: #fff; font-size: 12px; font-weight: 800; color: #333D4B; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+    .wr-runner.mom .wr-name { color: #D6336C; } .wr-runner.dad .wr-name { color: #1B64DA; }
+    @keyframes wrBob { from { transform: translateY(0); } to { transform: translateY(-7px); } }
+    .wr-flag { position: absolute; bottom: 18%; right: -60px; font-size: 54px; z-index: 1; transition: right 1.2s cubic-bezier(.2,.8,.3,1); }
+    .wr.is-finish .wr-flag { right: 8%; }
+    .wr-foot { padding: 10px 18px calc(env(safe-area-inset-bottom, 0px) + 16px); background: #BFE3B4; position: relative; z-index: 3; text-align: center; }
+    .wr-hint { font-size: 12.5px; font-weight: 700; color: #3F6B36; }
+    .wr-actions { display: flex; gap: 8px; }
+    .wr-actions button { flex: 1; height: 48px; border-radius: 14px; font-size: 15px; font-weight: 800; }
+    .wr-actions .is-ghost { background: #fff; color: #333D4B; }
+    .wr-actions .is-primary { background: #3182F6; color: #fff; }
+    .weekly-report-btn { width: 100%; margin-top: 12px; padding: 14px; border-radius: 16px; background: #3182F6; color: #fff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .boat-sea { position: fixed; inset: 0; z-index: 70; background: #0B1530; overflow: hidden; opacity: 0; transition: opacity .35s ease; display: flex; flex-direction: column; }
     .boat-sea.is-open { opacity: 1; }
     .bs-stars span { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #E8EEFF; animation: bsTwinkle 2.8s ease-in-out infinite; }
@@ -6520,6 +6571,7 @@
       logEvent('시스템 준비 완료 (수호 요정 뽀마 세션 활성화)');
       setTimeout(() => {
         if (typeof checkAndShowPersonalizedWelcome === 'function' && getDevice()) {
+          if (maybeShowWeeklyReport()) return; // 새 주 첫 실행: 지난주 리포트 먼저
           checkAndShowPersonalizedWelcome();
         }
       }, 600);
@@ -7488,8 +7540,13 @@
               </div>
             </div>
 
+            <!-- 🏃 주간 육아 리포트 -->
+            <button type="button" onclick="openWeeklyReport(0)" class="weekly-report-btn preserve-white">
+              <span>🏃</span><span>이번 주 육아 리포트 보기</span>
+            </button>
+
             <!-- 부부 리포트 모달 열기 버튼 -->
-            <button type="button" onclick="openParentingReportModal()" class="w-full mt-4 py-3 rounded-2xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/40 text-blue-200 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer">
+            <button type="button" onclick="openParentingReportModal()" class="w-full mt-2 py-3 rounded-2xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/40 text-blue-200 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer">
               <span>📊</span>
               <span>부부 육아 통계 & 밸런스 비교 리포트 보기 ➔</span>
             </button>
@@ -8517,6 +8574,178 @@
       if (seaAudio) stopSeaSound(); else startSeaSound();
       const b = document.getElementById('boatSoundBtn');
       if (b) b.innerText = seaAudio ? '🔊' : '🔈';
+    }
+
+    // 🏃 주간 육아 리포트 (ADR 51): 한 주 동안 누가 어떤 일을 주로 했는지 '횟수'로 (시간은 실제 잰 육아 집중 시간만)
+    var TASK_CATS = [
+      ['medicine', /약\s?(먹|챙|바르|복용)|해열제|감기약|영양제|유산균/],
+      ['dish', /설거지|식기|젖병/],
+      ['bath', /목욕|씻기|씻겨|샤워/],
+      ['sleep', /재우|재워|낮잠|잠자리|수면/],
+      ['diaper', /기저귀\s?(갈|교체)/],
+      ['meal', /이유식|밥|식사|먹이|먹여|간식|분유|수유|아침|점심|저녁/],
+      ['laundry', /빨래|세탁|건조기/],
+      ['clean', /청소|정리|분리수거|쓰레기|기저귀/],
+      ['shop', /장보기|주문|쿠팡|마트|구매/],
+      ['pickup', /등원|하원|픽업|어린이집|유치원|데려/]
+    ];
+    var CAT_PHRASE = {
+      medicine: n => `아이 약을 ${n}번 챙겼어요`, dish: n => `설거지를 ${n}번 했어요`, bath: n => `아이 목욕을 ${n}번 시켰어요`,
+      sleep: n => `아이를 ${n}번 재웠어요`, diaper: n => `기저귀를 ${n}번 갈았어요`, laundry: n => `빨래를 ${n}번 했어요`,
+      clean: n => `청소·정리를 ${n}번 했어요`, shop: n => `장보기를 ${n}번 했어요`, pickup: n => `등하원을 ${n}번 챙겼어요`
+    };
+    function categorizeTask(title) {
+      const t = title || '';
+      const hit = TASK_CATS.find(([, re]) => re.test(t));
+      return hit ? hit[0] : 'etc';
+    }
+    function mondayOf(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      return addDays(dateStr, -((d.getDay() + 6) % 7));
+    }
+    function buildWeeklyReport(offset) {
+      const start = addDays(mondayOf(todayStr()), offset * 7);
+      const end = addDays(start, 6);
+      const last = offset === 0 ? todayStr() : end;
+      const mk = () => ({ total: 0, cats: {}, meals: {}, help: 0, focus: 0 });
+      const R = { offset, start, end, total: 0, per: { mom: mk(), dad: mk() }, missed: {} };
+      (STATE.tasks || []).forEach(t => {
+        Object.entries(t.dateRecords || {}).forEach(([d, r]) => {
+          if (!r || !r.done || d < start || d > last) return;
+          const who = (r.helper === 'mom' || r.helper === 'dad') ? r.helper : t.assignee;
+          const P = R.per[who];
+          if (!P) return;
+          R.total++; P.total++;
+          if (r.helper && r.helper !== t.assignee) P.help++;
+          const c = categorizeTask(t.title);
+          const key = c === 'etc' ? 'etc:' + (t.title || '').trim() : c;
+          P.cats[key] = (P.cats[key] || 0) + 1;
+          if (c === 'meal') { const m = /아침|점심|저녁|이유식|간식/.exec(t.title || ''); const w = m ? m[0] : '밥'; P.meals[w] = (P.meals[w] || 0) + 1; }
+          const miss = (r.incompleteNotice && r.incompleteNotice.missingSubtasks) || [];
+          miss.forEach(x => { R.missed[x] = (R.missed[x] || 0) + 1; });
+        });
+      });
+      for (let d = start; d <= last; d = addDays(d, 1)) {
+        const row = (STATE.activityLog || {})[d];
+        if (row) { R.per.mom.focus += row.momFocus || 0; R.per.dad.focus += row.dadFocus || 0; }
+      }
+      return R;
+    }
+    function weeklyReportLines(R) {
+      const period = R.offset === 0 ? '이번 주' : (R.offset === -1 ? '지난주' : '이 주');
+      const nm = k => `${getDisplayName(k)}님`;
+      const sp = k => getDisplayName(k === 'mom' ? 'dad' : 'mom');
+      const L = [];
+      const focusAny = R.per.mom.focus + R.per.dad.focus >= 0.05;
+      if (!R.total && !focusAny) {
+        L.push({ who: 'both', text: `${period}는 아직 기록이 없어요`, sub: '할 일을 완료하면 여기에 차곡차곡 쌓여요', final: true });
+        return L;
+      }
+      L.push({ who: 'both', text: `${period} 우리 가족은 할 일 ${R.total}개를 함께 해냈어요` });
+      const phrase = (P, key, n) => {
+        if (key.startsWith('etc:')) return `'${key.slice(4)}' ${n}번 했어요`;
+        if (key === 'meal') {
+          const top = Object.entries(P.meals).sort((a, b) => b[1] - a[1])[0];
+          const word = top && top[1] === n && top[0] !== '밥' ? top[0] : '밥';
+          return `아이 ${word}${word === '밥' ? '을' : '을'} ${n}번 챙겼어요`;
+        }
+        return CAT_PHRASE[key](n);
+      };
+      const tops = k => Object.entries(R.per[k].cats).sort((a, b) => b[1] - a[1]).slice(0, 2);
+      const mt = tops('mom'), dt = tops('dad');
+      for (let i = 0; i < 2; i++) {
+        if (mt[i]) L.push({ who: 'mom', text: `${nm('mom')}은 ${period} ${phrase(R.per.mom, mt[i][0], mt[i][1])}` });
+        if (dt[i]) L.push({ who: 'dad', text: `${nm('dad')}은 ${period} ${phrase(R.per.dad, dt[i][0], dt[i][1])}` });
+      }
+      ['mom', 'dad'].forEach(k => { if (R.per[k].help) L.push({ who: k, text: `${nm(k)}이 ${sp(k)}님 일을 ${R.per[k].help}번 대신 해줬어요` }); });
+      const fmtH = h => { const m = Math.round(h * 60); return m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ''}` : `${m}분`; };
+      ['mom', 'dad'].forEach(k => { if (R.per[k].focus >= 0.05) L.push({ who: k, text: `${nm(k)}은 폰을 내려놓고 아이에게 ${fmtH(R.per[k].focus)} 집중했어요` }); });
+      const missed = Object.entries(R.missed).sort((a, b) => b[1] - a[1]);
+      if (missed.length) {
+        const list = missed.slice(0, 3).map(([x, n]) => `'${x}'${n > 1 ? ` ${n}번` : ''}`).join(', ');
+        L.push({ who: 'both', text: `${period} 놓친 세부 항목은 ${list}${missed.length > 3 ? ` 외 ${missed.length - 3}개` : ''}예요`, sub: '다음 주엔 서로 챙겨줘요' });
+      }
+      L.push({ who: 'both', text: `${period}도 함께 완주했어요 🏁`, sub: '서로에게 수고했다고 한마디 건네 보세요', final: true });
+      return L;
+    }
+
+    var WR = { offset: 0, lines: [], step: 0 };
+    function openWeeklyReport(offset) {
+      closeWeeklyReport(true);
+      WR.offset = Math.min(0, offset || 0);
+      const R = buildWeeklyReport(WR.offset);
+      WR.lines = weeklyReportLines(R);
+      WR.step = 0;
+      const md = d => `${+d.slice(5, 7)}/${+d.slice(8)}`;
+      const el = document.createElement('div');
+      el.id = 'weeklyReport';
+      el.className = 'wr';
+      el.innerHTML = `
+        <div class="wr-top">
+          <button type="button" class="wr-icon" onclick="openWeeklyReport(${WR.offset - 1})" ${WR.offset <= -8 ? 'disabled' : ''} aria-label="이전 주">‹</button>
+          <div class="wr-period"><b>${WR.offset === 0 ? '이번 주' : (WR.offset === -1 ? '지난주' : `${-WR.offset}주 전`)} 육아 리포트</b><span>${md(R.start)} ~ ${md(R.end)}</span></div>
+          <button type="button" class="wr-icon" onclick="openWeeklyReport(${WR.offset + 1})" ${WR.offset >= 0 ? 'disabled' : ''} aria-label="다음 주">›</button>
+          <button type="button" class="wr-icon" onclick="closeWeeklyReport()" aria-label="닫기">✕</button>
+        </div>
+        <div class="wr-dots">${WR.lines.map((_, i) => `<i class="${i === 0 ? 'on' : ''}"></i>`).join('')}</div>
+        <div id="wrBubbles" class="wr-bubbles"></div>
+        <div class="wr-scene">
+          <div class="wr-cloud c1"></div><div class="wr-cloud c2"></div>
+          <div class="wr-ground"></div>
+          <div class="wr-tree">🌳</div><div class="wr-tree t2">🌲</div><div class="wr-tree t3">🌳</div>
+          <div class="wr-track"><div class="wr-lane">${'<span></span>'.repeat(24)}</div></div>
+          <div class="wr-flag">🏁</div>
+          <div class="wr-runner mom"><span class="wr-body">🏃‍♀️</span><span class="wr-name">${getDisplayName('mom')}</span></div>
+          <div class="wr-runner dad"><span class="wr-body">🏃‍♂️</span><span class="wr-name">${getDisplayName('dad')}</span></div>
+        </div>
+        <div id="wrFoot" class="wr-foot"><div class="wr-hint">화면을 누르면 다음 이야기가 나와요</div></div>
+      `;
+      el.addEventListener('click', e => { if (e.target.closest('button')) return; nextWeeklyLine(); });
+      document.body.appendChild(el);
+      requestAnimationFrame(() => el.classList.add('is-open'));
+      setTimeout(() => showWeeklyLine(0), 350);
+    }
+    function showWeeklyLine(i) {
+      const box = document.getElementById('wrBubbles');
+      const line = WR.lines[i];
+      if (!box || !line) return;
+      box.querySelectorAll('.wr-bubble').forEach(b => b.classList.add('is-old'));
+      const old = box.querySelectorAll('.wr-bubble');
+      for (let k = 0; k <= old.length - 3; k++) old[k].remove(); // 최근 3개만
+      const b = document.createElement('div');
+      b.className = `wr-bubble is-${line.who}${line.final ? ' is-final' : ''}`;
+      b.innerHTML = `${line.final ? '' : '<b class="wr-plus">+</b>'}${line.text}${line.sub ? `<span class="wr-sub">${line.sub}</span>` : ''}`;
+      box.appendChild(b);
+      document.querySelectorAll('#weeklyReport .wr-dots i').forEach((d, k) => d.classList.toggle('on', k === i));
+      triggerHaptic('light');
+      if (i === WR.lines.length - 1) {
+        const el = document.getElementById('weeklyReport');
+        if (el) el.classList.add('is-finish');
+        if (WR.lines.length > 1) setTimeout(() => { try { confetti({ particleCount: 90, spread: 80, origin: { y: 0.55 }, zIndex: 9999 }); } catch (e) {} }, 700);
+        const foot = document.getElementById('wrFoot');
+        if (foot) foot.innerHTML = `<div class="wr-actions"><button type="button" class="is-ghost" onclick="openWeeklyReport(${WR.offset})">처음부터</button><button type="button" class="is-primary" onclick="closeWeeklyReport()">닫기</button></div>`;
+      }
+    }
+    function nextWeeklyLine() {
+      if (WR.step >= WR.lines.length - 1) return;
+      WR.step++;
+      showWeeklyLine(WR.step);
+    }
+    function closeWeeklyReport(instant) {
+      const el = document.getElementById('weeklyReport');
+      if (!el) return;
+      if (instant) { el.remove(); return; }
+      el.classList.remove('is-open');
+      setTimeout(() => el.remove(), 300);
+    }
+    // 새 주 첫 실행 때 지난주 리포트를 한 번 띄움 (기록이 있을 때만)
+    function maybeShowWeeklyReport() {
+      const wk = mondayOf(todayStr());
+      try { if (localStorage.getItem('bboma_weekly_seen') === wk) return false; localStorage.setItem('bboma_weekly_seen', wk); } catch (e) { return false; }
+      const R = buildWeeklyReport(-1);
+      if (!R.total && R.per.mom.focus + R.per.dad.focus < 0.05) return false;
+      openWeeklyReport(-1);
+      return true;
     }
 
     function openBoatSea() {
