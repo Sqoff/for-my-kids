@@ -307,14 +307,14 @@
     /* 🎠 퀘스트 광고형 배너 캐러셀 (좌우 스와이프 + scroll-snap + 햅틱) */
     .quest-carousel {
       display: flex; gap: 10px; overflow-x: auto; overflow-y: hidden;
-      margin: 0 calc(-1 * var(--cx-bleed, 14px)); padding: 4px 8% 6px;
+      margin: 0 calc(-1 * var(--cx-bleed, 14px)); padding: 4px max(8%, calc(50% - 190px)) 6px; /* 넓은 화면(폴드 펼침)에선 카드가 가운데 오도록 */
       scroll-snap-type: x mandatory; scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
       scrollbar-width: none;
     }
     .quest-carousel::-webkit-scrollbar { display: none; }
     .quest-banner {
-      position: relative; flex: 0 0 84%; aspect-ratio: 1.56 / 1; min-height: 180px;
+      position: relative; flex: 0 0 min(84%, 380px); aspect-ratio: 1.56 / 1; min-height: 180px; /* 폴드 펼침 등 넓은 화면에서 과하게 커지지 않게 (ADR 57) */
       scroll-snap-align: center; scroll-snap-stop: always;
       border-radius: 24px; padding: 18px 16px 14px; overflow: hidden; cursor: pointer;
       background: var(--qb-dark); border: 1px solid rgba(255,255,255,0.08);
