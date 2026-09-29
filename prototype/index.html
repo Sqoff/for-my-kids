@@ -6039,6 +6039,9 @@
 
       const task = STATE.tasks[idx];
       const deleter = STATE.users[deleterKey];
+      // 오늘 완료하고 받은 포인트는 삭제하면 되돌림 (지난 날 완료분은 그대로)
+      const todayRec = (task.dateRecords || {})[todayStr()];
+      if (todayRec && todayRec.done) revokeTaskPoints(task, todayRec);
       STATE.tasks.splice(idx, 1);
 
       showToast(`🗑️ [삭제 완료] '${task.title}' 할 일이 삭제되었습니다.`);
@@ -8206,8 +8209,7 @@
       try { localStorage.setItem('poma_has_swiped_tutorial', 'true'); } catch(e) {}
 
       const user = STATE.users[task.assignee];
-      STATE.couplePoints = (STATE.couplePoints || 0) + 10;
-      updatePointsDisplay();
+      awardTaskPoints(task, rec, task.assignee);
 
       incrementTaskStat(task.assignee);
       grantExp(20);
@@ -9960,10 +9962,11 @@
 
         <!-- 🎁 토스 스타일 거대 화이트 히어로 카드 (토스어플3.jpg 1:1 매칭) -->
         <div class="bg-white text-slate-900 rounded-[32px] p-6 shadow-2xl flex flex-col items-center text-center relative gap-1 w-full border border-slate-100">
-          <span class="text-[13px] text-[#8B95A1] font-semibold">모은 치킨값</span>
+          <span class="text-[13px] text-[#8B95A1] font-semibold">모은 포인트</span>
           <div class="border-b-2 border-[#191F28] pb-0.5 mb-1 inline-block">
-            <span class="text-3xl font-black text-[#191F28] font-mono tracking-tight couple-points-val">${STATE.couplePoints.toLocaleString()}원</span>
+            <span class="text-3xl font-black text-[#191F28] font-mono tracking-tight couple-points-val">${STATE.couplePoints.toLocaleString()}P</span>
           </div>
+          <span class="text-[11px] text-[#8B95A1] font-semibold -mt-0.5">1P = 1원 · 치킨값 <span class="couple-won-val">${STATE.couplePoints.toLocaleString()}</span>원만큼 모였어요</span>
 
           <!-- 실버 트레이 & 황금 통닭 & 바삭 닭다리 (토스어플3 1:1 SVG) -->
           <div class="w-full my-1 flex items-center justify-center animate-float">
@@ -10062,6 +10065,8 @@
                 else if (h.type === 'roulette') badgeIcon = '🎰';
                 else if (h.type === 'quest') badgeIcon = '⚔️';
                 else if (h.type === 'ad') badgeIcon = '📺';
+                else if (h.type === 'task') badgeIcon = '✅';
+                else if (h.type === 'task_undo') badgeIcon = '↩️';
 
                 return `
                   <div class="flex items-center justify-between text-xs py-1.5 border-b border-white/[0.04] last:border-none">
@@ -10744,8 +10749,7 @@
 
       STATE.pet.speech = `${helper.name}님이 ${spouse.name}님을 도와주었어요! 천사 인정! 👼💖`;
       updatePetUI();
-      STATE.couplePoints = (STATE.couplePoints || 0) + 10;
-      updatePointsDisplay();
+      awardTaskPoints(task, rec, helperKey, '대신 돕기');
       showTaskCelebrationModal(helper.name, 10, `'${task.title}' 대신 돕기`);
       renderApp('mom');
       renderApp('dad');
@@ -10803,10 +10807,14 @@
 
       // If already done, toggle back to pending
       if (rec.done) {
+        const doer = (rec.helper === 'mom' || rec.helper === 'dad') ? rec.helper : task.assignee;
+        const back = revokeTaskPoints(task, rec);
+        if (back) logActivity(doer, 'Tasks', -1); // 통계에서도 완료 1건 빼기
         rec.done = false;
         rec.incompleteNotice = null;
         rec.overdue = false;
-        showToast(`↩️ [${task.title}] 다시 진행 중으로 변경되었습니다.`);
+        rec.helper = null;
+        showToast(`↩️ [${task.title}] 다시 진행 중으로 변경되었습니다.${back ? ` (−${back}P)` : ''}`);
         logEvent(`[할 일 미완료 전환] ${user.name} - ${task.title}`);
         renderApp('mom');
         renderApp('dad');
@@ -10828,8 +10836,7 @@
       rec.incompleteNotice = null;
 
       // Award +10 Couple Points & trigger celebration modal (요구사항 ①)
-      STATE.couplePoints = (STATE.couplePoints || 0) + 10;
-      updatePointsDisplay();
+      awardTaskPoints(task, rec, task.assignee);
       showTaskCelebrationModal(user.name, 10, task.title);
 
       if (task.isPenaltyTask) {
@@ -10939,8 +10946,7 @@
         try { localStorage.setItem('poma_has_swiped_tutorial', 'true'); } catch(e) {}
       }
 
-      STATE.couplePoints = (STATE.couplePoints || 0) + 10;
-      updatePointsDisplay();
+      awardTaskPoints(task, rec, task.assignee, '일부 항목 빠짐');
 
       incrementTaskStat(task.assignee);
       grantExp(10); // Partial EXP
@@ -11519,6 +11525,20 @@
     let isRouletteSpinning = false;
     let rouletteCurrentDeg = 0;
 
+    // ✅ 할 일 포인트 (ADR 58): 완료하면 +10P 적립하고 내역에 남김, 완료를 취소하면 받은 만큼 되돌림
+    var TASK_POINTS = 10;
+    function awardTaskPoints(task, rec, doerKey, note) {
+      addCouplePoints(TASK_POINTS, `${task.title} 완료 · ${getDisplayName(doerKey)}${note ? ` (${note})` : ''}`, 'task');
+      rec.pointsAwarded = (rec.pointsAwarded || 0) + TASK_POINTS;
+    }
+    function revokeTaskPoints(task, rec) {
+      const pts = rec.pointsAwarded || 0; // 예전(규칙 이전) 완료분은 기록이 없어 되돌리지 않음
+      if (!pts) return 0;
+      addCouplePoints(-pts, `${task.title} 완료 취소`, 'task_undo');
+      rec.pointsAwarded = 0;
+      return pts;
+    }
+
     function addCouplePoints(amount, reason = '포인트 변동', type = 'general') {
       STATE.couplePoints += amount;
       if (STATE.couplePoints < 0) STATE.couplePoints = 0;
@@ -11552,6 +11572,7 @@
       document.querySelectorAll('.couple-points-val').forEach(el => {
         el.innerText = STATE.couplePoints.toLocaleString() + 'P';
       });
+      document.querySelectorAll('.couple-won-val').forEach(el => { el.innerText = STATE.couplePoints.toLocaleString(); });
       const momBadge = document.getElementById('momPointsBadge');
       const dadBadge = document.getElementById('dadPointsBadge');
       if (momBadge) momBadge.innerText = STATE.couplePoints.toLocaleString() + 'P';
@@ -11751,7 +11772,7 @@
         historyContainer.innerHTML = STATE.pointHistory.map(h => `
           <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-2.5 flex items-center justify-between text-xs">
             <div class="flex items-center gap-2 min-w-0 flex-1">
-              <span class="text-base">${h.type === 'quest' ? '🏆' : h.type === 'ad' ? '📺' : h.type === 'coupang' ? '🛒' : h.type === 'roulette' ? '🎰' : '🎁'}</span>
+              <span class="text-base">${h.type === 'quest' ? '🏆' : h.type === 'ad' ? '📺' : h.type === 'coupang' ? '🛒' : h.type === 'roulette' ? '🎰' : h.type === 'task' ? '✅' : h.type === 'task_undo' ? '↩️' : '🎁'}</span>
               <div class="min-w-0 flex-1">
                 <div class="font-bold text-slate-200 text-xs truncate">${h.title}</div>
                 <div class="text-[9px] text-slate-500">${h.date}</div>
