@@ -921,6 +921,44 @@
     body.theme-white .dl-chip { background: #F2F4F6 !important; color: #4E5968 !important; }
     body.theme-white .dl-chip.is-on { background: #FFFFFF !important; border-color: #3182F6; color: #1B64DA !important; }
     /* 오늘 하루 보지 않기 */
+    /* 🔔 알림 센터 (ADR 63): 큰 글자·짧은 문장·날짜별 묶음, 안 읽음은 파란 점 하나 */
+    #notificationModal .nc-sheet { display:flex; flex-direction:column; border-radius:28px; padding:20px 0 6px; max-height:min(86vh, calc(100dvh - 32px)); overflow:hidden; }
+    .nc-head { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 14px 10px 22px; }
+    .nc-title-wrap { display:flex; align-items:baseline; gap:8px; min-width:0; }
+    .nc-title { font-size:22px; font-weight:900; color:#191F28; letter-spacing:-0.02em; }
+    .nc-count { font-size:15px; font-weight:800; color:#3182F6; }
+    .nc-head-actions { display:flex; align-items:center; gap:2px; flex-shrink:0; }
+    .nc-text-btn { font-size:14px; font-weight:700; color:#3182F6; padding:8px 8px; border-radius:10px; }
+    .nc-text-btn.is-muted { color:#8B95A1; font-size:13px; font-weight:600; }
+    .nc-close { width:38px; height:38px; font-size:18px; color:#8B95A1; border-radius:12px; }
+    .nc-filters { display:flex; gap:6px; padding:0 20px 8px; overflow-x:auto; scrollbar-width:none; flex-shrink:0; }
+    .nc-filters::-webkit-scrollbar { display:none; }
+    .nc-chip { flex-shrink:0; padding:7px 14px; border-radius:99px; border:1.5px solid #E5E8EB; background:transparent; font-size:14px; font-weight:700; color:#6B7684; }
+    .nc-chip.is-on { border-color:#191F28; color:#191F28; }
+    .nc-list { flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; padding:0 8px 6px; overscroll-behavior:contain; }
+    .nc-day { font-size:13px; font-weight:800; color:#8B95A1; padding:14px 14px 4px; }
+    .nc-item { display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border-radius:18px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+    .nc-item:active { background:rgba(0,0,0,0.04); }
+    .nc-ic { position:relative; width:42px; height:42px; border-radius:14px; background:#F2F4F6; display:flex; align-items:center; justify-content:center; font-size:21px; flex-shrink:0; }
+    .nc-dot { position:absolute; top:-3px; right:-3px; width:11px; height:11px; border-radius:50%; background:#3182F6; border:2px solid #fff; }
+    .nc-body { flex:1; min-width:0; }
+    .nc-row { display:flex; align-items:baseline; gap:8px; }
+    .nc-t { flex:1; min-width:0; font-size:15.5px; font-weight:800; color:#191F28; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .nc-time { font-size:12.5px; font-weight:600; color:#8B95A1; flex-shrink:0; }
+    .nc-m { margin-top:3px; font-size:14px; line-height:1.45; color:#4E5968; word-break:keep-all; overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .nc-item.is-read .nc-t { color:#6B7684; font-weight:700; }
+    .nc-item.is-read .nc-m { color:#8B95A1; }
+    .nc-empty { padding:56px 20px; text-align:center; font-size:15px; font-weight:700; color:#8B95A1; }
+    .nc-empty span { display:block; font-size:36px; margin-bottom:8px; }
+    .nc-foot { padding:6px 20px 2px; text-align:center; border-top:1px solid #F2F4F6; flex-shrink:0; }
+    body.theme-navy .nc-title, body.theme-navy .nc-t { color:#F1F5F9; }
+    body.theme-navy .nc-m { color:#CBD5E1; }
+    body.theme-navy .nc-item.is-read .nc-t { color:#94A3B8; } body.theme-navy .nc-item.is-read .nc-m { color:#64748B; }
+    body.theme-navy .nc-ic { background:rgba(255,255,255,0.07); }
+    body.theme-navy .nc-dot { border-color:#0F172A; }
+    body.theme-navy .nc-chip { border-color:#334155; color:#94A3B8; } body.theme-navy .nc-chip.is-on { border-color:#F1F5F9; color:#F1F5F9; }
+    body.theme-navy .nc-item:active { background:rgba(255,255,255,0.05); }
+    body.theme-navy .nc-foot { border-top-color:rgba(255,255,255,0.06); }
     .rule-mode-card { display:flex; flex-direction:column; align-items:center; gap:3px; padding:12px 8px; border-radius:16px; border:2px solid #E5E8EB; background:transparent; }
     .rule-mode-card b { font-size:13px; font-weight:900; color:#4E5968; } .rule-mode-card span { font-size:10.5px; font-weight:600; color:#8B95A1; }
     .rule-mode-card.is-on { border-color:#3182F6; } .rule-mode-card.is-on b { color:#3182F6; }
@@ -2685,52 +2723,23 @@
   </div>
 
   <!-- 📢 Notification Center Modal (부부 실시간 알림 내역 & 히스토리) -->
-  <div id="notificationModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-slate-900 border-2 border-indigo-500/50 rounded-3xl p-5 md:p-6 max-w-lg w-full max-h-[85vh] flex flex-col shadow-2xl relative text-slate-100 animate-dialog overflow-x-hidden">
-      <!-- Close Button -->
-      <button onclick="closeNotificationModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg p-1 rounded-lg hover:bg-slate-800 transition">✕</button>
-
-      <!-- Modal Header -->
-      <div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-800 pr-8 min-w-0">
-        <div class="w-11 h-11 rounded-2xl bg-blue-500 flex items-center justify-center text-xl shadow-lg shrink-0" id="notifModalIcon">
-          📢
-        </div>
-        <div class="min-w-0">
-          <div class="flex items-center gap-x-2 gap-y-1 flex-wrap">
-            <h2 class="text-base font-black text-white" id="notifModalTitle">지은의 알림 센터</h2>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30" id="notifModalUnreadCount">
-              안 읽은 알림 2개
-            </span>
-          </div>
-          <p class="text-[11px] text-slate-400">배우자의 할 일/패널티 수정·추가·삭제 및 돕기 내역을 실시간으로 확인합니다.</p>
+  <div id="notificationModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="nc-sheet max-w-lg w-full shadow-2xl relative animate-dialog">
+      <div class="nc-head">
+        <div class="nc-title-wrap"><h2 class="nc-title">알림</h2><span id="notifModalUnreadCount" class="nc-count"></span></div>
+        <div class="nc-head-actions">
+          <button type="button" onclick="markAllNotificationsRead()" class="nc-text-btn">모두 읽음</button>
+          <button type="button" onclick="closeNotificationModal()" class="nc-close" aria-label="닫기">✕</button>
         </div>
       </div>
-
-      <!-- Action & Filter Bar (좁은 폰에서도 넘치지 않게 두 줄: 필터 / 모두 읽음·비우기, ADR 60) -->
-      <div class="flex flex-col gap-2 mb-3 min-w-0">
-        <!-- Filter Tabs -->
-        <div class="notif-filter-row grid grid-cols-4 gap-1 text-[11px] bg-slate-950 p-1 rounded-xl border border-slate-800">
-          <button onclick="filterNotifList('all')" id="notifFilter_all" class="px-1 py-1 rounded-lg bg-indigo-600 text-white font-bold transition whitespace-nowrap">전체</button>
-          <button onclick="filterNotifList('todo')" id="notifFilter_todo" class="px-1 py-1 rounded-lg text-slate-400 hover:text-slate-200 transition whitespace-nowrap">📋 할 일</button>
-          <button onclick="filterNotifList('penalty')" id="notifFilter_penalty" class="px-1 py-1 rounded-lg text-slate-400 hover:text-slate-200 transition whitespace-nowrap">⚡ 패널티</button>
-          <button onclick="filterNotifList('battle')" id="notifFilter_battle" class="px-1 py-1 rounded-lg text-slate-400 hover:text-slate-200 transition whitespace-nowrap">⚔️ 돕기</button>
-        </div>
-
-        <!-- Utility Buttons -->
-        <div class="flex items-center justify-end gap-1.5 text-[11px]">
-          <button onclick="markAllNotificationsRead()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 font-bold border border-slate-700 transition flex items-center gap-1">
-            <span>✓ 모두 읽음</span>
-          </button>
-          <button onclick="clearAllNotifications()" class="px-2 py-1 rounded-xl bg-slate-800 hover:bg-slate-800 text-slate-400 hover:text-rose-300 border border-slate-700 transition" title="전체 비우기">
-            <span>🗑️</span>
-          </button>
-        </div>
+      <div class="nc-filters">
+        <button type="button" id="notifFilter_all" onclick="filterNotifList('all')" class="nc-chip is-on">전체</button>
+        <button type="button" id="notifFilter_todo" onclick="filterNotifList('todo')" class="nc-chip">할 일</button>
+        <button type="button" id="notifFilter_penalty" onclick="filterNotifList('penalty')" class="nc-chip">페널티</button>
+        <button type="button" id="notifFilter_battle" onclick="filterNotifList('battle')" class="nc-chip">칭찬·돕기</button>
       </div>
-
-      <!-- Notification List (Scrollable) -->
-      <div id="notificationListContainer" class="flex-1 min-w-0 overflow-y-auto overflow-x-hidden pr-1 flex flex-col gap-2 text-xs">
-        <!-- Rendered by JS -->
-      </div>
+      <div id="notificationListContainer" class="nc-list"></div>
+      <div class="nc-foot"><button type="button" onclick="clearAllNotifications()" class="nc-text-btn is-muted">알림 모두 지우기</button></div>
     </div>
   </div>
 
@@ -4790,6 +4799,8 @@
           const fresh = (STATE.users[me].notifications || []).filter(n => !beforeIds.has(n.id) && !n.read);
           if (fresh.length && beforeIds.size && !snap.metadata.hasPendingWrites) { triggerHaptic('light'); showToast(`🔔 ${fresh[0].title}: ${fresh[0].message}`); }
           renderApp('mom'); renderApp('dad'); updateNotifBadges(); updatePointsDisplay();
+          const nm = document.getElementById('notificationModal');
+          if (nm && !nm.classList.contains('hidden')) renderNotificationList(); // 열어 둔 알림 센터도 바로 반영
         }
         saveLocalState();
         scheduleSync();
@@ -5388,8 +5399,8 @@
       const user = STATE.users[userKey];
       const titleEl = document.getElementById('notifModalTitle');
       const iconEl = document.getElementById('notifModalIcon');
-      if (titleEl) titleEl.innerText = `${user.avatar} ${user.name}의 알림 센터`;
-      if (iconEl) iconEl.innerText = userKey === 'mom' ? '👩' : '👨';
+      if (titleEl) titleEl.innerText = '알림';
+      if (iconEl) iconEl.innerText = '';
       
       filterNotifList('all');
       const modal = document.getElementById('notificationModal');
@@ -5408,97 +5419,77 @@
       currentNotifFilter = filter;
       ['all', 'todo', 'penalty', 'battle'].forEach(f => {
         const btn = document.getElementById(`notifFilter_${f}`);
-        if (btn) {
-          if (f === filter) {
-            btn.className = 'px-1 py-1 rounded-lg bg-indigo-600 text-white font-bold transition whitespace-nowrap';
-          } else {
-            btn.className = 'px-1 py-1 rounded-lg text-slate-400 hover:text-slate-200 transition whitespace-nowrap';
-          }
-        }
+        if (btn) btn.classList.toggle('is-on', f === filter);
       });
       renderNotificationList();
     }
 
+    // 알림 문장을 짧게: 앞 이모지·(📌 1회성(…))·(+20 EXP, +10P) 같은 부가 정보 빼기 — 예전에 쌓인 긴 알림도 깔끔하게
+    function notifShortText(msg) {
+      let t = String(msg || '');
+      t = t.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, '');
+      t = t.replace(/\s*\((?:📌|🔄)[^()]*(?:\([^()]*\))?[^()]*\)/gu, '');
+      t = t.replace(/\s*\(\+?\d+\s*EXP[^)]*\)/g, '');
+      t = t.replace(/\s*\([^)]*(?:수락 시|대기 중|수락\/방어)[^)]*\)/g, '');
+      t = t.replace(/을\(를\)\s*\S+\s*담당으로 새로 추가했습니다\.?/, '을(를) 추가했어요');
+      t = t.replace(/\s*정보를 수정했습니다\.?/, ' 할 일을 수정했어요');
+      t = t.replace(/을\(를\) 모든 체크리스트와 함께 완벽히 마쳤습니다!?/, '을(를) 끝냈어요');
+      t = t.replace(/을\(를\) 완벽히 마쳤습니다!?/, '을(를) 끝냈어요');
+      t = t.replace(/벌칙권을 발동했습니다!?/, '벌칙을 보냈어요');
+      // [제목]을(를) → 받침에 맞춰 을/를
+      t = t.replace(/\[([^\]]+)\]을\(를\)/g, (m, w) => {
+        const c = w.trim().slice(-1).charCodeAt(0);
+        const j = c >= 0xAC00 && c <= 0xD7A3 ? ((c - 0xAC00) % 28 ? '을' : '를') : '을(를)';
+        return `[${w}]${j}`;
+      });
+      return t.trim();
+    }
+    function notifTitleText(title) { return String(title || '').replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, '').trim(); }
+    function notifWhen(item) {
+      const ts = item.timestamp;
+      if (!ts) return { day: 'old', label: item.time || '' };
+      const d = new Date(ts), now = new Date();
+      const diffMin = Math.floor((now - d) / 60000);
+      const ymd = toDateStr(d), today = todayStr(), yest = addDays(today, -1);
+      const hm = `${d.getHours() < 12 ? '오전' : '오후'} ${((d.getHours() + 11) % 12) + 1}:${String(d.getMinutes()).padStart(2, '0')}`;
+      if (ymd === today) return { day: 'today', label: diffMin < 1 ? '방금' : (diffMin < 60 ? `${diffMin}분 전` : hm) };
+      if (ymd === yest) return { day: 'yesterday', label: hm };
+      return { day: 'old', label: `${d.getMonth() + 1}/${d.getDate()}` };
+    }
     function renderNotificationList() {
       const container = document.getElementById('notificationListContainer');
       const unreadCountEl = document.getElementById('notifModalUnreadCount');
       if (!container) return;
-
       const user = STATE.users[currentNotifUser];
-      const notifs = user.notifications || [];
+      const notifs = (user.notifications || []).slice().sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
       const unreadCount = notifs.filter(n => !n.read).length;
-
-      if (unreadCountEl) {
-        unreadCountEl.innerText = `안 읽은 알림 ${unreadCount}개`;
-        if (unreadCount > 0) {
-          unreadCountEl.className = 'text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30 animate-pulse';
-        } else {
-          unreadCountEl.className = 'text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-bold border border-slate-700';
-        }
-      }
-
-      let filtered = notifs;
-      if (currentNotifFilter !== 'all') {
-        filtered = notifs.filter(n => n.type === currentNotifFilter);
-      }
-
+      if (unreadCountEl) unreadCountEl.innerText = unreadCount ? `${unreadCount}` : '';
+      const filtered = currentNotifFilter === 'all' ? notifs : notifs.filter(n => n.type === currentNotifFilter);
       if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="bg-slate-950/60 border border-dashed border-slate-800 rounded-2xl p-8 text-center text-slate-400 flex flex-col items-center gap-2">
-            <span class="text-3xl">📭</span>
-            <span class="font-bold text-slate-300">새로운 알림이 없습니다.</span>
-            <p class="text-[11px] text-slate-500">배우자가 할 일이나 패널티를 수정/추가/삭제하면 이곳에 실시간으로 기록됩니다.</p>
-          </div>
-        `;
+        container.innerHTML = `<div class="nc-empty"><span>📭</span>새 알림이 없어요</div>`;
         updateNotifBadges();
         return;
       }
-
+      const esc = t => String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+      const DAY = { today: '오늘', yesterday: '어제', old: '이전' };
+      let lastDay = null;
       container.innerHTML = filtered.map(item => {
-        const isUnread = !item.read;
-        let badgeColor = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
-        let typeName = '시스템';
-        if (item.type === 'todo') {
-          badgeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-          typeName = '할 일';
-        } else if (item.type === 'penalty') {
-          badgeColor = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-          typeName = '패널티';
-        } else if (item.type === 'battle') {
-          badgeColor = 'bg-pink-500/20 text-pink-300 border-pink-500/30';
-          typeName = '배틀/돕기';
-        }
-
-        return `
-          <div onclick="openNotificationTarget('${currentNotifUser}', '${item.id}')" class="p-3 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-2.5 ${isUnread ? 'bg-slate-950/90 border-indigo-500/70 shadow-lg' : 'bg-slate-950/40 border-slate-800/80 opacity-80 hover:opacity-100'}">
-            <div class="flex items-start gap-2.5 flex-1 min-w-0">
-              <span class="text-xl p-1.5 rounded-xl bg-slate-900 border border-slate-800 shrink-0 mt-0.5">${item.icon || '🔔'}</span>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-1.5 mb-0.5">
-                  <span class="text-[9px] px-1.5 py-0.2 rounded font-bold border ${badgeColor}">${typeName}</span>
-                  <span class="font-bold text-slate-100 text-xs truncate">${item.title}</span>
-                  ${isUnread ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span><span class="text-[8px] font-black text-rose-400 bg-rose-500/10 px-1 rounded">NEW</span>' : ''}
-                </div>
-                <p class="text-[11px] text-slate-300 leading-relaxed break-words">${item.message}</p>
-                <div class="text-[9px] text-slate-500 mt-1 flex items-center gap-1 font-mono">
-                  <i data-lucide="clock" class="w-2.5 h-2.5"></i>
-                  <span>${item.time}</span>
-                  <span class="ml-auto font-sans font-bold text-blue-500">${getNotificationRoute(currentNotifUser, item).label} ›</span>
-                </div>
-              </div>
+        const w = notifWhen(item);
+        const head = w.day !== lastDay ? `<div class="nc-day">${DAY[w.day]}</div>` : '';
+        lastDay = w.day;
+        return `${head}
+          <div class="nc-item ${item.read ? 'is-read' : ''}" onclick="openNotificationTarget('${currentNotifUser}', '${item.id}')">
+            <div class="nc-ic">${item.icon || '🔔'}${item.read ? '' : '<span class="nc-dot"></span>'}</div>
+            <div class="nc-body">
+              <div class="nc-row"><span class="nc-t">${esc(notifTitleText(item.title))}</span><span class="nc-time">${w.label}</span></div>
+              <div class="nc-m">${esc(notifShortText(item.message))}</div>
             </div>
-
-            <!-- Single Item Delete -->
-            <button onclick="deleteSingleNotification('${currentNotifUser}', '${item.id}', event)" class="text-slate-600 hover:text-rose-400 p-1 transition" title="알림 삭제">
-              ✕
-            </button>
-          </div>
-        `;
+          </div>`;
       }).join('');
-
-      lucide.createIcons();
       updateNotifBadges();
     }
+    // 열려 있는 동안 '3분 전' 같은 시간 표시를 계속 새로 고침
+    setInterval(() => { const m = document.getElementById('notificationModal'); if (m && !m.classList.contains('hidden')) renderNotificationList(); }, 30000);
 
     // 텍스트 노드가 실제로 두 줄 이상으로 꺾였는지 (아이콘이 위아래로 쌓인 버튼과 구분)
     function textWraps(el) {
@@ -6031,7 +6022,7 @@
             type: 'todo',
             icon: '✏️',
             title: '할 일 수정',
-            message: `${actor.name}님이 [${title}] (${typeLabel}) 정보를 수정했습니다.`
+            message: `${getDisplayName(actorKey)}님이 [${title}] 할 일을 수정했어요`
           });
         }
       } else {
@@ -6061,7 +6052,7 @@
           type: 'todo',
           icon: '📋',
           title: '새 할 일 등록',
-          message: `${actor.name}님이 [${title}] (${typeLabel})을(를) ${assigneeUser.name} 담당으로 새로 추가했습니다.`
+          message: `${getDisplayName(actorKey)}님이 [${title}]을(를) ${assignee === actorKey ? '' : getDisplayName(assignee) + ' 할 일로 '}추가했어요`
         });
       }
 
@@ -8361,7 +8352,7 @@
         type: 'todo',
         icon: '✅',
         title: '할 일 완벽 완료',
-        message: `👏 ${user.name}님이 [${task.title}]을(를) 완벽히 마쳤습니다! (+20 EXP, +10P)`
+        message: `${getDisplayName(task.assignee)}님이 [${task.title}]을(를) 끝냈어요`
       });
 
       renderApp('mom');
@@ -11027,7 +11018,7 @@
           type: 'todo',
           icon: '✅',
           title: '할 일 완벽 완료',
-          message: `👏 ${user.name}님이 [${task.title}]을(를) 모든 체크리스트와 함께 완벽히 마쳤습니다! (+20 EXP, +10P)`
+          message: `${getDisplayName(task.assignee)}님이 [${task.title}]을(를) 끝냈어요`
         });
       }
 
@@ -11348,7 +11339,7 @@
         type: 'battle',
         icon: '⚡',
         title: '페널티권 사용 공격!',
-        message: `⚡ ${fromUser.name}님이 [${penalty.title}] 벌칙권을 발동했습니다! (${addToTodo ? '수락 시 오늘 할 일에 자동 등록' : '수락/방어 선택'})`
+        message: `${getDisplayName(fromKey)}님이 [${penalty.title}] 벌칙을 보냈어요. 수락하거나 방어권으로 막을 수 있어요`
       });
 
       renderApp('mom');
