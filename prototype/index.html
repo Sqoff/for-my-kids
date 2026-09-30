@@ -1967,7 +1967,7 @@
           <h3 class="text-xs font-black text-slate-200">마감을 넘겼을 때 (육아 규칙 모드)</h3>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <button type="button" id="ruleMode_easy" onclick="setAppMode('easy', true)" class="rule-mode-card"><b>🟢 이지 모드</b><span>마감 후 30분 여유</span></button>
+          <button type="button" id="ruleMode_easy" onclick="setAppMode('easy', true)" class="rule-mode-card"><b>🟢 이지 모드</b><span>그날 안에만 하면 OK</span></button>
           <button type="button" id="ruleMode_hard" onclick="setAppMode('hard', true)" class="rule-mode-card"><b>🔴 하드 모드</b><span>1분만 지나도 바로</span></button>
         </div>
         <p id="ruleModeDesc" class="text-[11px] text-slate-400 mt-2 leading-relaxed"></p>
@@ -5444,6 +5444,7 @@
       });
       return t.trim();
     }
+    function eulReul(w) { const c = String(w || '').trim().slice(-1).charCodeAt(0); return c >= 0xAC00 && c <= 0xD7A3 ? ((c - 0xAC00) % 28 ? '을' : '를') : '을(를)'; }
     function notifTitleText(title) { return String(title || '').replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s]+/u, '').trim(); }
     function notifWhen(item) {
       const ts = item.timestamp;
@@ -6710,14 +6711,14 @@
 
     // ⚖️ 육아 규칙 모드 (ADR 59): 마감을 넘기면 배우자에게 🎫 페널티 부여권 — 이지는 30분 여유, 하드는 1분
     var RULE_MODE_DESC = {
-      easy: '마감이 지나면 먼저 본인에게 “30분 안에 끝내면 괜찮아요” 알림이 가요. 30분이 지나도 못 끝내면 배우자에게 알림과 🎫 페널티 부여권 1장이 생겨요.',
-      hard: '마감이 1분만 지나도 바로 배우자에게 알림과 🎫 페널티 부여권 1장이 생겨요. 여유 시간은 없어요.'
+      easy: '마감이 지나면 나와 배우자에게 한 번 알려줘요. 그날 안에만 끝내면 괜찮아요. 하루가 다 지나도 못 끝낸 할 일은 다음 날 아침 8시에 배우자에게 🎫 페널티 부여권 1장이 생겨요.',
+      hard: '마감이 1분만 지나도 바로 배우자에게 🎫 페널티 부여권 1장이 생겨요. 시간을 정하지 않은 할 일은 하루가 지나도 못 끝내면 다음 날 아침에 생겨요.'
     };
     function renderRuleModeCards() {
       const m = STATE.mode === 'hard' ? 'hard' : 'easy';
       ['easy', 'hard'].forEach(k => { const el = document.getElementById('ruleMode_' + k); if (el) el.classList.toggle('is-on', k === m); });
       const d = document.getElementById('ruleModeDesc');
-      if (d) d.innerHTML = RULE_MODE_DESC[m] + '<br/>부여권을 받은 사람은 벌칙을 골라 보내거나, 이번엔 넘어갈 수 있어요. 시간을 “언제든”으로 둔 할 일과 벌칙 할 일은 해당되지 않아요.';
+      if (d) d.innerHTML = RULE_MODE_DESC[m] + '<br/>부여권을 받은 사람은 벌칙을 골라 보내거나, 이번엔 넘어갈 수 있어요. 벌칙 할 일은 해당되지 않아요.';
       const easyBtn = document.getElementById('modeEasyBtn');
       const hardBtn = document.getElementById('modeHardBtn');
       if (easyBtn && hardBtn) {
@@ -6732,7 +6733,7 @@
       renderRuleModeCards();
       const label = mode === 'easy' ? '🟢 이지 모드' : '🔴 하드 모드';
       if (changed) {
-        showToast(`⚖️ ${label}로 바꿨어요 · ${mode === 'easy' ? '마감 후 30분 여유' : '1분만 지나도 바로 부여권'}`);
+        showToast(`⚖️ ${label}로 바꿨어요 · ${mode === 'easy' ? '그날 안에만 하면 괜찮아요' : '1분만 지나도 바로 부여권'}`);
         logEvent(`모드 전환: [${label}]`);
         if (fromUser) {
           const me = (typeof getDevice === 'function' && getDevice()) ? myRole() : (STATE.viewMode === 'dad' ? 'dad' : 'mom');
@@ -9930,8 +9931,8 @@
           <div class="quest-banner penalty-card" style="--qb-light:#FFF4E0;--qb-dark:#3D3222;--qb-accent:#D97706;--qb-accent-dark:#FBBF24;">
             <div class="qb-body">
               <div class="qb-eyebrow">🎫 페널티 부여권${mode === 'mine' ? '' : ` · ${owner.avatar} ${getDisplayName(ownerKey)} 보유`}</div>
-              <div class="qb-title">${p.lateName || '배우자'}님이 [${p.taskTitle || '할 일'}] 마감을 넘겼어요</div>
-              <div class="qb-sub">${md(p.date)} ${p.deadline || ''} 마감 · 벌칙을 골라 보내거나 넘어갈 수 있어요</div>
+              <div class="qb-title">${p.reason === 'dayend' ? `${p.lateName || '배우자'}님이 ${md(p.date)} [${p.taskTitle || '할 일'}]${eulReul(p.taskTitle)} 못 했어요` : `${p.lateName || '배우자'}님이 [${p.taskTitle || '할 일'}] 마감을 넘겼어요`}</div>
+              <div class="qb-sub">${p.reason === 'dayend' ? '하루 안에 못 끝낸 할 일' : `${md(p.date)} ${p.deadline || ''} 마감`} · 벌칙을 골라 보내거나 넘어갈 수 있어요</div>
             </div>
             <div class="qb-icon">🎫</div>
             <div class="qb-counter">${idx + 1} | ${total}</div>
@@ -13211,8 +13212,8 @@
         { chapter: '퀘스트', title: '숨겨진 퀘스트', desc: '퀘스트를 하나 달성할 때마다 <b>새 퀘스트가 1개씩</b> 열려요. 포인트로 바로 열 수도 있어요.', tab: 'quest', target: '.quest-locked-card' },
         { chapter: '캘린더', title: '가족 일정과 할 일', desc: '병원·외출 같은 <b>일정</b>과 가사·육아 <b>할 일</b>이 나뉘어 있어요. 일정을 누르면 바로 수정해요.', tab: 'calendar', target: '.cal-section-head', parent: 1 },
         { chapter: '포인트', title: '부부 기프티콘 저금통', desc: '퀘스트와 할 일로 모은 포인트로 <b>치킨·커피 기프티콘</b>을 받을 수 있어요.', tab: 'point', sub: 'bank', target: '.bank-shortcut-title', parent: 2 },
-        { chapter: '규칙', title: '⚖️ 마감을 넘기면? 이지·하드 모드', desc: '시간을 정한 할 일의 마감이 지나면 배우자에게 <b>🎫 페널티 부여권</b>이 생겨요.<br/>🟢 <b>이지 모드</b>(기본) — 마감 후 <b>30분 여유</b>가 있어요. 먼저 나에게 “30분 안에 끝내면 괜찮아요” 알림이 오고, 그 안에 끝내면 부여권이 생기지 않아요.<br/>🔴 <b>하드 모드</b> — 마감이 <b>1분</b>만 지나도 바로 배우자에게 가요.', tab: 'point', sub: 'battle', center: true },
-        { chapter: '규칙', title: '🎫 부여권은 이렇게 써요', desc: '부여권을 받은 사람이 <b>벌칙을 골라</b> 보내요 — 우리가 등록한 벌칙, 기본 벌칙(가사 넘기기·안마 등), 직접 쓰기 중에서요. 봐주고 싶으면 <b>이번엔 넘어가기</b>를 누르면 돼요.<br/>시간을 “언제든”으로 둔 할 일과 벌칙 할 일은 해당되지 않아요.', tab: 'point', sub: 'battle', center: true },
+        { chapter: '규칙', title: '⚖️ 할 일을 못 하면? 이지·하드 모드', desc: '🟢 <b>이지 모드</b>(기본) — 마감이 지나면 나와 배우자에게 <b>한 번</b> 알려줘요. <b>그날 안에만</b> 끝내면 괜찮아요. 하루가 다 지나도 못 끝낸 할 일은 <b>다음 날 아침 8시</b>에 배우자에게 <b>🎫 페널티 부여권</b>이 생겨요.<br/>🔴 <b>하드 모드</b> — 마감이 <b>1분</b>만 지나도 바로 배우자에게 부여권이 생겨요.', tab: 'point', sub: 'battle', center: true },
+        { chapter: '규칙', title: '🎫 부여권은 이렇게 써요', desc: '부여권을 받은 사람이 <b>벌칙을 골라</b> 보내요 — 우리가 등록한 벌칙, 기본 벌칙(가사 넘기기·안마 등), 직접 쓰기 중에서요. 봐주고 싶으면 <b>이번엔 넘어가기</b>를 누르면 돼요.<br/>벌칙 할 일은 해당되지 않아요.', tab: 'point', sub: 'battle', center: true },
         { chapter: '규칙', title: '모드는 설정에서 함께 정해요', desc: '프로필 → <b>⚙️ 설정</b>의 <b>“마감을 넘겼을 때”</b>에서 이지·하드를 고를 수 있어요. 바꾸면 배우자에게도 알림이 가요.', tab: 'home', center: true },
         { chapter: '포인트', title: '페널티권 카드', desc: '약속을 어기면 쓰는 페널티권이에요. 카드를 넘겨보고 <b>사용하기</b>로 보내요. 상대는 방어권으로 막을 수 있어요.', tab: 'point', sub: 'battle', target: '.quest-carousel', demo: 'carousel' },
         { chapter: '포인트', title: '🛡️ 방어권(페널티 면제권)', desc: '배우자가 보낸 벌칙을 <b>한 번 막아주는 방패</b>예요. 막힌 페널티권은 48시간 잠겨서 돌아가요.', tab: 'point', sub: 'battle', target: '.shield-card' },
