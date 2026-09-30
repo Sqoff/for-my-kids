@@ -621,6 +621,12 @@
     .task-row .tr-subtasks { margin: 8px 0 0 2px; display: flex; flex-direction: column; gap: 2px; }
     body.theme-white .task-group + .task-group { border-top-color: #E5E8EB; }
     body.theme-white .task-row { background: #F2F4F6; }
+    .task-row.is-penalty { box-shadow: inset 4px 0 0 #F2668B; padding-left: 14px; }
+    .task-row.is-penalty .tr-title, body.theme-white .task-row.is-penalty .tr-title { color: #D6336C !important; }
+    .task-row.is-penalty.is-done { box-shadow: inset 4px 0 0 #F8B4C8; }
+    .task-row.is-penalty.is-done .tr-title, body.theme-white .task-row.is-penalty.is-done .tr-title { color: #C9A0AE !important; }
+    .tr-penalty-tag { display: inline-flex; align-items: center; flex-shrink: 0; font-size: 10.5px; font-weight: 800; color: #D6336C; border: 1.5px solid #F2668B; border-radius: 99px; padding: 0 7px; line-height: 17px; }
+    .task-row.is-penalty .tr-sub .tr-penalty-from { color: #D6336C; font-weight: 700; }
     body.theme-white .task-swipe-wrapper + .task-swipe-wrapper .task-row { border-top-color: #E5E8EB; }
     body.theme-white .task-row .tr-title { color: #191F28 !important; }
     body.theme-white .task-row.is-done .tr-title { color: #8B95A1 !important; }
@@ -8774,6 +8780,7 @@
     function toggleTaskHelpRequest(taskId, userKey) {
       const task = STATE.tasks.find(t => t.id === taskId);
       if (!task) return;
+      if (task.isPenaltyTask) { showToast('⚡ 벌칙은 직접 해야 해요 · 도움 요청은 할 수 없어요'); renderApp('mom'); renderApp('dad'); return; }
       const selDate = STATE.selectedDate || todayStr();
       const rec = getTaskDateRecord(task, selDate);
       const name = getDisplayName(userKey);
@@ -9307,12 +9314,17 @@
       const isExpanded = STATE.expandedTasks && !!STATE.expandedTasks[task.id];
       const isDad = task.assignee === 'dad';
       const helpRequested = !isDone && !!rec.helpRequested;
+      const isPenalty = !!task.isPenaltyTask; // ⚡ 배우자가 보낸 벌칙 (ADR 62)
+      const src = task.penaltySource || {};
+      const shownTitle = isPenalty ? String(task.title || '').replace(/^\[⚡ 벌칙\]\s*/, '') : task.title;
 
       let action;
       if (isDone) {
         action = isMine
           ? `<button type="button" class="task-done-pill ${isDad ? 'is-dad' : ''}" data-no-swipe="true" onclick="event.stopPropagation(); toggleTask('${task.id}', '${userKey}')" title="눌러서 완료 취소">완료</button>`
           : `<button type="button" class="task-done-pill ${isDad ? 'is-dad' : ''}" data-no-swipe="true" onclick="event.stopPropagation(); sendThanksForTask('${task.id}', '${userKey}')" title="고마워요 보내기">${rec.thankedBy === userKey ? '💖 고마워요' : '완료 💖'}</button>`;
+      } else if (!isMine && isPenalty) {
+        action = `<span class="tr-penalty-tag" style="border-color:#E5E8EB;color:#8B95A1;">진행 중</span>`;
       } else if (!isMine) {
         action = `<button type="button" onclick="event.stopPropagation(); helpSpouseTask('${userKey}', '${task.id}')" data-no-swipe="true" class="task-help-pill theme-help-spouse-btn ${helpRequested ? 'is-requested' : ''} active:scale-95 transition">${helpRequested ? '🙏 도와주기' : '🤝 대신 돕기'}</button>`;
       } else if (!STATE.hasCompletedSwipeTutorial) {
@@ -9327,19 +9339,22 @@
             <div class="task-swipe-bg is-complete pointer-events-none select-none">
               <span class="flex items-center gap-1 select-none pointer-events-none"><span>밀어서 완료</span><span>✓</span></span>
             </div>
-            <div class="task-swipe-bg is-help pointer-events-none select-none">
+            <div class="task-swipe-bg is-help pointer-events-none select-none" ${isPenalty ? 'style="display:none"' : ''}>
               <span class="flex items-center gap-1 select-none pointer-events-none"><span>🙏</span><span>${helpRequested ? '도움 요청 취소' : '도와줘'}</span></span>
             </div>
           ` : ''}
-          <div class="${isMine && !isDone ? 'task-swipe-surface ' : ''}task-row ${isDone ? 'is-done' : ''} relative z-[2]" data-task-id="${task.id}" data-user-key="${userKey}" data-longpress-task="true" style="--tg-color:${isDad ? '#3182F6' : '#F04452'};">
+          <div class="${isMine && !isDone ? 'task-swipe-surface ' : ''}task-row ${isDone ? 'is-done' : ''} ${isPenalty ? 'is-penalty' : ''} relative z-[2]" data-task-id="${task.id}" data-user-key="${userKey}" data-longpress-task="true" style="--tg-color:${isDad ? '#3182F6' : '#F04452'};">
             <div class="flex items-center gap-3">
               <div class="flex-1 min-w-0 cursor-pointer select-none" onclick="openTaskDetailModal('${task.id}', '${userKey}')">
                 <div class="flex items-center gap-1.5">
-                  <span class="tr-title truncate">${task.title}</span>
+                  ${isPenalty ? `<span class="tr-penalty-tag">⚡ 벌칙</span>` : ''}
+                  <span class="tr-title truncate">${shownTitle}</span>
                   ${task.isCoupangItem ? '<span class="text-[11px] shrink-0" title="쿠팡 2% 적립">🛒</span>' : ''}
                 </div>
                 <div class="tr-sub flex items-center gap-1 whitespace-nowrap overflow-hidden">
-                  <span class="shrink-0">${task.deadline ? task.deadline.slice(0, 5) : '언제든'} · ${getDisplayName(task.assignee)}</span>
+                  ${isPenalty
+                    ? `<span class="shrink-0"><span class="tr-penalty-from">${src.from ? getDisplayName(src.from) : '배우자'}님이 보낸 벌칙</span> · 오늘 안에 · ${getDisplayName(task.assignee)}</span>`
+                    : `<span class="shrink-0">${task.deadline ? task.deadline.slice(0, 5) : '언제든'} · ${getDisplayName(task.assignee)}</span>`}
                   ${helpRequested ? `<span class="tr-help-tag shrink-0">· 🙏 ${isMine ? '도움 요청 중' : '도움 요청'}</span>` : ''}
                   ${subtasks.length > 0 ? `
                     <span onclick="toggleTaskSubtasks('${task.id}', event, '${userKey}')" data-no-swipe="true" class="text-blue-500 font-bold cursor-pointer shrink-0">· 세부 ${subDoneCount}/${subtasks.length} ${isExpanded ? '▲' : '▾'}</span>
@@ -9386,8 +9401,8 @@
       }
       // 정렬: 사람별 그룹(내 할 일 → 배우자 할 일) 안에서 미완료 → 완료 (같은 상태 내 기존 순서 유지)
       displayTasks = displayTasks
-        .map((t, i) => ({ t, i, rank: (t.assignee === userKey ? 0 : 2) + (getTaskDateRecord(t, selDate).done ? 1 : 0) }))
-        .sort((a, b) => a.rank - b.rank || a.i - b.i)
+        .map((t, i) => ({ t, i, rank: (t.assignee === userKey ? 0 : 2) + (getTaskDateRecord(t, selDate).done ? 1 : 0), pen: t.isPenaltyTask ? 0 : 1 }))
+        .sort((a, b) => a.rank - b.rank || a.pen - b.pen || a.i - b.i)
         .map(x => x.t);
 
       // Quests for Hero card
@@ -10862,6 +10877,7 @@
     function helpSpouseTask(helperKey, taskId) {
       const task = STATE.tasks.find(t => t.id === taskId);
       if (!task) return;
+      if (task.isPenaltyTask) { showToast('⚡ 벌칙은 받은 사람이 직접 해야 해요'); return; }
 
       const selDate = STATE.selectedDate || todayStr();
       if (!canCompleteOnDate(selDate)) return;
@@ -11359,8 +11375,8 @@
       user.incomingPenalty = null;
 
       if (addToTodo) {
-        const selDate = STATE.selectedDate || todayStr();
-        const newTaskId = 't_penalty_' + Date.now();
+        const selDate = todayStr(); // 보고 있는 날짜와 상관없이 오늘 할 일로 (ADR 62)
+        const newTaskId = 't_penalty_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
 
         const newTask = {
           id: newTaskId,
@@ -11392,8 +11408,9 @@
 
         STATE.tasks.push(newTask);
 
-        // Switch to todo tab so user sees newly added task immediately!
-        user.tab = 'todo';
+        // 오늘 날짜의 홈으로 이동해 방금 생긴 벌칙 할 일을 바로 보게
+        user.tab = 'home';
+        STATE.selectedDate = todayStr();
 
         confetti({
           particleCount: 90,
