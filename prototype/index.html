@@ -7030,7 +7030,7 @@
       const nowMin = now.getHours() * 60 + now.getMinutes();
       const out = { overdue: [], soon: [], later: [], anytime: [] };
       (STATE.tasks || []).forEach(t => {
-        if (t.assignee !== userKey || !isTaskActiveOnDate(t, today)) return;
+        if (t.assignee !== userKey || t.isPenaltyTask || !isTaskActiveOnDate(t, today)) return;
         if (getTaskDateRecord(t, today).done) return;
         const m = /^(\d{1,2}):(\d{2})/.exec(t.deadline || '');
         if (!m) { out.anytime.push(t); return; }
@@ -8558,6 +8558,14 @@
       const m = /^t_(\d{12,})/.exec(task.id || '');
       return m ? toDateStr(new Date(+m[1])) : null;
     }
+    function getPenaltyDoneDate(task) {
+      return Object.keys(task.dateRecords || {}).filter(d => task.dateRecords[d] && task.dateRecords[d].done).sort()[0] || null;
+    }
+    // 벌칙이 며칠째 밀렸는지 (받은 날 = 0)
+    function penaltyCarryDays(task, dateStr) {
+      if (!task.isPenaltyTask || !task.targetDate || dateStr <= task.targetDate) return 0;
+      return Math.round((new Date(dateStr + 'T00:00:00') - new Date(task.targetDate + 'T00:00:00')) / 86400000);
+    }
     function isTaskActiveOnDate(task, dateStr) {
       const dt = new Date(dateStr);
       const dayOfWeek = dt.getDay(); // 0(Sun) ~ 6(Sat)
@@ -8570,6 +8578,12 @@
         const days = task.routineDays || [1, 2, 3, 4, 5, 6, 0];
         return days.includes(dayOfWeek);
       } else {
+        // ⚡ 벌칙 할 일은 끝낼 때까지 매일 넘어옴 (ADR 65): 받은 날 ~ 끝낸 날(안 끝냈으면 오늘)
+        if (task.isPenaltyTask && task.targetDate) {
+          if (dateStr < task.targetDate) return false;
+          const doneDate = getPenaltyDoneDate(task);
+          return dateStr <= (doneDate || todayStr());
+        }
         // One-time task
         return task.targetDate === dateStr;
       }
@@ -9345,7 +9359,7 @@
                 </div>
                 <div class="tr-sub flex items-center gap-1 whitespace-nowrap overflow-hidden">
                   ${isPenalty
-                    ? `<span class="shrink-0"><span class="tr-penalty-from">${src.from ? getDisplayName(src.from) : '배우자'}님이 보낸 벌칙</span> · 오늘 안에 · ${getDisplayName(task.assignee)}</span>`
+                    ? `<span class="shrink-0"><span class="tr-penalty-from">${src.from ? getDisplayName(src.from) : '배우자'}님이 보낸 벌칙</span> · ${!isDone && penaltyCarryDays(task, selDate) ? `<b class="tr-penalty-from">${penaltyCarryDays(task, selDate) + 1}일째 밀림</b>` : (isDone ? '완료' : '오늘 안에')} · ${getDisplayName(task.assignee)}</span>`
                     : `<span class="shrink-0">${task.deadline ? task.deadline.slice(0, 5) : '언제든'} · ${getDisplayName(task.assignee)}</span>`}
                   ${helpRequested ? `<span class="tr-help-tag shrink-0">· 🙏 ${isMine ? '도움 요청 중' : '도움 요청'}</span>` : ''}
                   ${subtasks.length > 0 ? `
