@@ -8305,10 +8305,23 @@
       renderApp('dad');
     };
 
+    // 📅 할 일 완료는 '오늘' 날짜에서만 (ADR 61) — 다른 날짜를 보고 있다가 실수로 완료하는 것 방지. 완료 취소는 어느 날짜든 가능
+    function canCompleteOnDate(dateStr) {
+      const today = todayStr();
+      if (!dateStr || dateStr === today) return true;
+      triggerHaptic('warning');
+      showToast(dateStr > today
+        ? `📅 ${+dateStr.slice(5, 7)}/${+dateStr.slice(8)} 할 일은 그날이 되어야 완료할 수 있어요`
+        : `📅 지난 날짜(${+dateStr.slice(5, 7)}/${+dateStr.slice(8)})의 할 일은 완료할 수 없어요`);
+      renderApp('mom'); renderApp('dad'); // 밀려 나간 카드 원위치
+      return false;
+    }
+
     function completeTaskBySwipe(taskId, userKey) {
       const task = STATE.tasks.find(t => t.id === taskId);
       if (!task) return;
       const selDate = STATE.selectedDate || todayStr();
+      if (!canCompleteOnDate(selDate)) return;
       const rec = getTaskDateRecord(task, selDate);
 
       // 세부 항목이 남아 있으면 자동 체크하지 않고 확인창 (남은 항목 강조 → 체크 또는 빠진 채로 완료)
@@ -10851,6 +10864,7 @@
       if (!task) return;
 
       const selDate = STATE.selectedDate || todayStr();
+      if (!canCompleteOnDate(selDate)) return;
       const rec = getTaskDateRecord(task, selDate);
       const wasRequested = !!rec.helpRequested;
       rec.done = true;
@@ -10954,6 +10968,8 @@
         renderApp('dad');
         return;
       }
+
+      if (!canCompleteOnDate(selDate)) return; // 완료는 오늘만 (취소는 위에서 허용)
 
       // Check if subtasks exist and are incomplete
       const subtasks = task.subtasks || [];
