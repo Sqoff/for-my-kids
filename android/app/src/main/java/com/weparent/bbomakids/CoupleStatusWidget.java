@@ -136,8 +136,8 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         String text = WidgetStore.text(c, role);
         long since = WidgetStore.since(c, role);
         if (text == null) {
-            v.setTextViewText(statusId, large ? "아직 안 알렸어요" : "아직 알리지 않았어요");
-            if (large) v.setTextViewTextSize(statusId, android.util.TypedValue.COMPLEX_UNIT_SP, 15); // 카드 폭에 한 줄로
+            v.setTextViewText(statusId, "아직 안 알렸어요");
+            v.setTextViewTextSize(statusId, android.util.TypedValue.COMPLEX_UNIT_SP, large ? 15 : 13); // 카드 폭에 한 줄로
             v.setTextViewText(timeId, "");
             v.setTextColor(statusId, ContextCompat.getColor(c, R.color.widget_sub));
             return;
@@ -147,8 +147,8 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         boolean stale = System.currentTimeMillis() - since > WidgetStore.STALE_MS;
         int ink = ContextCompat.getColor(c, stale ? R.color.widget_stale : R.color.widget_ink);
         v.setTextColor(statusId, ink);
-        // 큰 모양은 이름을 엄마·아빠 색으로, 오래된 상태면 흐리게
-        int nameColor = stale ? ink : (large ? ContextCompat.getColor(c, "mom".equals(role) ? R.color.widget_mom : R.color.widget_dad) : ink);
+        // 이름은 엄마·아빠 색으로, 오래된 상태면 흐리게 (두 모양 모두 같은 카드 디자인, ADR 70)
+        int nameColor = stale ? ink : ContextCompat.getColor(c, "mom".equals(role) ? R.color.widget_mom : R.color.widget_dad);
         v.setTextColor(nameId, nameColor);
         v.setTextViewText(timeId, stale ? ago(since) : hhmm(since) + "부터");
     }
