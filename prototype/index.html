@@ -588,6 +588,15 @@
     .family-hero .fh-person.is-dad { background: rgba(49,130,246,0.12); }
     .family-hero .fh-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
     .family-hero .fh-person-name { font-size: 12px; font-weight: 700; color: #94A3B8; }
+    /* 💞 부부 상태 (ADR 66): 카드마다 지금 상태 한 줄, 내 카드를 누르면 상태 바꾸기 */
+    .family-hero .fh-person { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .family-hero .fh-st { font-size: 14px; font-weight: 800; color: #F1F5F9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.35; }
+    .family-hero .fh-st.is-empty { font-size: 12.5px; font-weight: 700; color: #64748B; }
+    .family-hero .fh-st.is-stale { color: #64748B; font-weight: 600; }
+    .family-hero .fh-st-meta { font-size: 11px; font-weight: 600; color: #94A3B8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body.theme-white .family-hero .fh-st { color: #191F28 !important; }
+    body.theme-white .family-hero .fh-st.is-empty, body.theme-white .family-hero .fh-st.is-stale { color: #8B95A1 !important; }
+    body.theme-white .family-hero .fh-st-meta { color: #8B95A1 !important; }
     .family-hero .fh-person-min { font-size: 13px; font-weight: 700; color: #F1F5F9; white-space: nowrap; }
     .family-hero .fh-person-min b { font-size: 18px; font-weight: 900; }
     body.theme-white .family-hero .fh-title,
@@ -963,6 +972,9 @@
     .rule-mode-card b { font-size:13px; font-weight:900; color:#4E5968; } .rule-mode-card span { font-size:10.5px; font-weight:600; color:#8B95A1; }
     .rule-mode-card.is-on { border-color:#3182F6; } .rule-mode-card.is-on b { color:#3182F6; }
     body.theme-navy .rule-mode-card { border-color:#334155; } body.theme-navy .rule-mode-card b { color:#CBD5E1; } body.theme-navy .rule-mode-card.is-on { border-color:#60A5FA; } body.theme-navy .rule-mode-card.is-on b { color:#60A5FA; }
+    .status-chips { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px; margin-top:14px; }
+    .status-chip { padding:11px 4px; border-radius:14px; border:1.5px solid #E5E8EB; background:transparent; font-size:13.5px; font-weight:700; color:#4E5968; white-space:nowrap; }
+    .status-chip.is-on { border-color:#191F28; color:#191F28; }
     .grant-sheet { position:fixed; inset:0; z-index:5800; background:rgba(15,23,42,.45); display:flex; align-items:flex-end; justify-content:center; }
     .grant-sheet .gs-box { width:100%; max-width:480px; max-height:86dvh; overflow-y:auto; background:#fff; border-radius:24px 24px 0 0; padding:20px 18px calc(env(safe-area-inset-bottom,0px) + 18px); animation: gsUp .28s ease; }
     @keyframes gsUp { from { transform: translateY(40px); opacity:0; } to { transform:none; opacity:1; } }
@@ -4790,6 +4802,9 @@
         if (!FB.meta) FB.meta = emptyMeta();
         FB.meta.code = getDevice() && getDevice().code;
         let changed = applyRemote(data, takeAll);
+        const nextStatus = data.status || {};
+        if (JSON.stringify(nextStatus) !== JSON.stringify(STATE.coupleStatus || {})) { STATE.coupleStatus = nextStatus; changed = true; }
+        syncWidget();
         if (!FB.gotFirst && recountBabyCareQuest()) changed = true;
         FB.gotFirst = true;
         FB.ready = true;
@@ -4810,7 +4825,7 @@
     async function connectFamilyOnLaunch() {
       const d = getDevice();
       if (!d || d.offline) return;
-      try { await fbStart(); subscribeFamily(); registerPush(); if (FB.ref) FB.ref.update({ 'features.overdueGrant': true }).catch(() => {}); }
+      try { await fbStart(); subscribeFamily(); registerPush(); if (FB.ref) FB.ref.update({ 'features.overdueGrant': true }).catch(() => {}); linkWidgetMember(); }
       catch (e) { console.warn(e); showToast('⚠️ 서버 연결 실패 — 오프라인으로 사용 중이에요'); }
     }
 
@@ -4871,7 +4886,7 @@
       if (msg) msg.innerText = '가족을 만드는 중…';
       try {
         const code = await createFamily(role);
-        subscribeFamily(); registerPush();
+        subscribeFamily(); registerPush(); linkWidgetMember(); if (FB.ref) FB.ref.update({ 'features.overdueGrant': true }).catch(() => {});
         document.querySelector('#familySetup .fs-inner').innerHTML = `
           <div class="fs-title">가족이 만들어졌어요 🎉</div>
           <div class="fs-sub">배우자 폰에 앱을 설치하고<br/>아래 코드를 입력하게 해주세요.</div>
@@ -4899,7 +4914,7 @@
       if (msg) msg.innerText = '연결하는 중…';
       try {
         const { role } = await joinFamily(val);
-        subscribeFamily(); registerPush();
+        subscribeFamily(); registerPush(); linkWidgetMember(); if (FB.ref) FB.ref.update({ 'features.overdueGrant': true }).catch(() => {});
         document.querySelector('#familySetup .fs-inner').innerHTML = `
           <div class="fs-title">연결됐어요 💞</div>
           <div class="fs-sub">${role === 'mom' ? '엄마' : '아빠'}로 참여했어요.<br/>이제 서로의 할 일과 알림이 바로 전해져요.</div>
@@ -6743,6 +6758,77 @@
       if (typeof scheduleSync === 'function') scheduleSync();
       renderApp('mom');
       renderApp('dad');
+    }
+
+    // 💞 부부 상태 (ADR 66): 직접 알리는 상태 — 가족 문서 status.<role> {ic, t, since}, 위젯과 공유
+    var COUPLE_STATUSES = [['🏠', '집'], ['🚸', '등원 중'], ['🧒', '하원 중'], ['💼', '일하는 중'], ['🚗', '이동 중'], ['🛒', '장보는 중'], ['🍼', '아이 보는 중'], ['😴', '쉬는 중']];
+    var STATUS_STALE_MS = 4 * 3600e3;
+    if (!STATE.coupleStatus) STATE.coupleStatus = {};
+    function statusOwner(userKey) { return (typeof getDevice === 'function' && getDevice()) ? myRole() : userKey; }
+    function coupleStatusView(role) {
+      const st = (STATE.coupleStatus || {})[role];
+      const mine = role === statusOwner(STATE.viewMode === 'dad' ? 'dad' : 'mom');
+      if (!st || !st.t) return { cls: 'is-empty', text: mine ? '+ 지금 상태 알리기' : '아직 알리지 않았어요', meta: '' };
+      const age = Date.now() - (st.since || 0);
+      const d = new Date(st.since || 0);
+      const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      const stale = age > STATUS_STALE_MS;
+      const ago = age >= 86400e3 ? `${Math.floor(age / 86400e3)}일 전` : `${Math.floor(age / 3600e3)}시간 전`;
+      return { cls: stale ? 'is-stale' : '', text: `${st.ic || ''} ${String(st.t).replace(/</g, '&lt;')}`.trim(), meta: stale ? ago : `${hm}부터` };
+    }
+    function openStatusSheet() {
+      const me = statusOwner(STATE.viewMode === 'dad' ? 'dad' : 'mom');
+      const cur = (STATE.coupleStatus[me] || {}).t;
+      const spouse = me === 'mom' ? 'dad' : 'mom';
+      closeStatusSheet();
+      const el = document.createElement('div');
+      el.id = 'statusSheet';
+      el.className = 'grant-sheet';
+      el.innerHTML = `<div class="gs-box">
+        <div class="gs-title">지금 뭐 하고 있어요?</div>
+        <div class="gs-sub">${getDisplayName(spouse)}님 화면과 위젯에도 바로 보여요</div>
+        <div class="status-chips">${COUPLE_STATUSES.map(([ic, t], i) => `<button type="button" class="status-chip ${cur === t ? 'is-on' : ''}" onclick="setMyStatus(${i})">${ic} ${t}</button>`).join('')}</div>
+        <div class="gs-label">직접 쓰기</div>
+        <div class="gs-row" style="margin-top:0"><input id="statusCustomInput" class="gs-input" maxlength="10" placeholder="예: 병원 가는 중" style="flex:1" /><button type="button" class="gs-btn is-primary" style="flex:0 0 auto;padding:0 18px" onclick="setMyStatus(-1)">알리기</button></div>
+        <div class="gs-row"><button type="button" class="gs-btn is-ghost" onclick="closeStatusSheet()">닫기</button></div>
+      </div>`;
+      el.addEventListener('click', e => { if (e.target === el) closeStatusSheet(); });
+      document.body.appendChild(el);
+    }
+    function closeStatusSheet() { const el = document.getElementById('statusSheet'); if (el) el.remove(); }
+    function setMyStatus(idx) {
+      const me = statusOwner(STATE.viewMode === 'dad' ? 'dad' : 'mom');
+      let ic, t;
+      if (idx >= 0) { [ic, t] = COUPLE_STATUSES[idx]; }
+      else {
+        t = ((document.getElementById('statusCustomInput') || {}).value || '').trim().slice(0, 10);
+        if (!t) { showToast('✍️ 지금 상태를 적어 주세요'); return; }
+        ic = '✏️';
+      }
+      const st = { ic, t, since: Date.now() };
+      STATE.coupleStatus[me] = st;
+      if (typeof FB !== 'undefined' && FB.ref) FB.ref.update({ ['status.' + me]: st, updatedBy: me }).catch(() => showToast('⚠️ 서버에 못 보냈어요. 인터넷을 확인해 주세요'));
+      closeStatusSheet();
+      triggerHaptic('light');
+      showToast(`💞 ‘${t}’ 알렸어요`);
+      syncWidget();
+      renderApp('mom'); renderApp('dad');
+    }
+    // 홈 화면 위젯에 최신 상태·이름 넘기기 (앱 안에서만 동작)
+    function syncWidget() {
+      const W = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge;
+      const d = typeof getDevice === 'function' && getDevice();
+      if (!W || !d) return;
+      W.sync({ code: d.code, role: d.role, names: { mom: getDisplayName('mom'), dad: getDisplayName('dad') }, status: STATE.coupleStatus || {} }).catch(() => {});
+    }
+    // 위젯이 앱 없이도 직접 상태를 저장하도록, 폰의 네이티브 로그인 계정을 가족 멤버로 등록
+    async function linkWidgetMember() {
+      const W = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge;
+      if (!W || !FB.ref) return;
+      try {
+        const r = await W.nativeUid();
+        if (r && r.uid) await FB.ref.update({ members: firebase.firestore.FieldValue.arrayUnion(r.uid) });
+      } catch (e) { console.warn('widget link', e); }
     }
 
     // 🎫 페널티 부여권: 서버가 마감 초과 때 배우자 인벤토리에 넣어 줌(kind: 'grant') → 받은 사람이 벌칙을 골라 보내거나 넘어감
@@ -9454,20 +9540,18 @@
               ${renderBbomaMascot(userKey)}
             </div>
             <div class="fh-people">
-              <div class="fh-person is-mom">
-                <div class="fh-avatar">${STATE.users.mom.avatar}</div>
-                <div class="min-w-0">
-                  <div class="fh-person-name">${getDisplayName('mom')}</div>
-                  <div class="fh-person-min">${fmtHeroMin(momTodayMin)}</div>
+              ${['mom', 'dad'].map(r => {
+                const cs = coupleStatusView(r);
+                const mine = r === statusOwner(userKey);
+                return `<div class="fh-person is-${r}" onclick="${mine ? 'openStatusSheet()' : `showToast('${getDisplayName(r)}님이 직접 알려주는 상태예요')`}">
+                <div class="fh-avatar">${STATE.users[r].avatar}</div>
+                <div class="min-w-0 flex-1">
+                  <div class="fh-person-name">${getDisplayName(r)} · 집중 ${r === 'mom' ? momTodayMin : dadTodayMin}분</div>
+                  <div class="fh-st ${cs.cls}">${cs.text}</div>
+                  ${cs.meta ? `<div class="fh-st-meta">${cs.meta}</div>` : ''}
                 </div>
-              </div>
-              <div class="fh-person is-dad">
-                <div class="fh-avatar">${STATE.users.dad.avatar}</div>
-                <div class="min-w-0">
-                  <div class="fh-person-name">${getDisplayName('dad')}</div>
-                  <div class="fh-person-min">${fmtHeroMin(dadTodayMin)}</div>
-                </div>
-              </div>
+              </div>`;
+              }).join('')}
             </div>
           </div>
 

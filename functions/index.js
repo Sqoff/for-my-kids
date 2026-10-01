@@ -28,6 +28,18 @@ exports.spousePush = onDocumentUpdated({ document: 'couples/{code}', region: REG
   const after = event.data.after.data() || {};
   const tokens = after.tokens || {};
   const jobs = [];
+  // 💞 부부 상태가 바뀌면 두 폰의 홈 화면 위젯에 조용한 데이터 푸시 (ADR 66)
+  if (JSON.stringify(before.status || {}) !== JSON.stringify(after.status || {})) {
+    const data = { type: 'status' };
+    for (const r of ['mom', 'dad']) {
+      const st = (after.status || {})[r] || {};
+      data[r + 'Ic'] = String(st.ic || ''); data[r + 'T'] = String(st.t || ''); data[r + 'Since'] = String(st.since || 0);
+      data[r + 'Name'] = displayName(after, r);
+    }
+    for (const r of ['mom', 'dad']) {
+      if (tokens[r]) jobs.push(getMessaging().send({ token: tokens[r], data, android: { priority: 'high' } }).catch(err => console.warn('status push fail', r, err.code || err.message)));
+    }
+  }
   for (const role of ['mom', 'dad']) {
     const token = tokens[role];
     if (!token) continue;
