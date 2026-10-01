@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="widget_bg">#F2222926</color>
-    <color name="widget_ink">#EEF2EF</color>
-    <color name="widget_sub">#8A958F</color>
-    <color name="widget_line">#36403B</color>
-    <color name="widget_on_solid">#1D2321</color>
-    <color name="widget_mom">#FF7680</color>
-    <color name="widget_dad">#6C9CFF</color>
-    <color name="widget_stale">#5E6964</color>
-    <color name="widget_mom_line">#7A3E45</color>
-    <color name="widget_dad_line">#3D5684</color>
+    <color name="widget_bg">#F51E2329</color>
+    <color name="widget_ink">#F2F4F6</color>
+    <color name="widget_sub">#8B95A1</color>
+    <color name="widget_line">#333A43</color>
+    <color name="widget_on_solid">#FFFFFF</color>
+    <color name="widget_mom">#FF8593</color>
+    <color name="widget_dad">#7AA8FF</color>
+    <color name="widget_stale">#5E6670</color>
+    <color name="widget_mom_fill">#2E282C</color>
+    <color name="widget_dad_fill">#252B36</color>
+    <color name="widget_chip">#2C323A</color>
+    <color name="widget_primary">#3182F6</color>
+    <color name="widget_emoji_bg">#3A414B</color>
 </resources>

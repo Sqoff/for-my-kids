@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="widget_bg">#F2FFFFFF</color>
-    <color name="widget_ink">#1D2321</color>
-    <color name="widget_sub">#8A938F</color>
-    <color name="widget_line">#E2E5E0</color>
+    <color name="widget_bg">#FAFFFFFF</color>
+    <color name="widget_ink">#191F28</color>
+    <color name="widget_sub">#8B95A1</color>
+    <color name="widget_line">#E5E8EB</color>
     <color name="widget_on_solid">#FFFFFF</color>
-    <color name="widget_mom">#E8505B</color>
-    <color name="widget_dad">#2F6FE4</color>
-    <color name="widget_stale">#B0B8B4</color>
-    <color name="widget_mom_line">#F2A9AF</color>
-    <color name="widget_dad_line">#A8C3F2</color>
+    <color name="widget_mom">#E5566A</color>
+    <color name="widget_dad">#3478E5</color>
+    <color name="widget_stale">#B0B8C1</color>
+    <!-- ADR 71: 부드러운 카드 바탕 · 칩 · 주 버튼 -->
+    <color name="widget_mom_fill">#FFF2F4</color>
+    <color name="widget_dad_fill">#EEF4FE</color>
+    <color name="widget_chip">#F2F4F6</color>
+    <color name="widget_primary">#3182F6</color>
+    <color name="widget_emoji_bg">#FFFFFF</color>
 </resources>

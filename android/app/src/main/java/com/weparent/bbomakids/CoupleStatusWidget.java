@@ -55,8 +55,8 @@ public class CoupleStatusWidget extends AppWidgetProvider {
 
     private static RemoteViews build(Context c, boolean large) {
         RemoteViews v = new RemoteViews(c.getPackageName(), large ? R.layout.widget_couple_status_large : R.layout.widget_couple_status);
-        bindRow(c, v, "mom", R.id.mom_name, R.id.mom_status, R.id.mom_time, large);
-        bindRow(c, v, "dad", R.id.dad_name, R.id.dad_status, R.id.dad_time, large);
+        bindRow(c, v, "mom", R.id.mom_name, R.id.mom_icon, R.id.mom_status, R.id.mom_time, large);
+        bindRow(c, v, "dad", R.id.dad_name, R.id.dad_icon, R.id.dad_status, R.id.dad_time, large);
 
         int flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         Intent pick = new Intent(c, StatusPickerActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -131,11 +131,12 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         return PendingIntent.getActivity(c, 15, i, flags);
     }
 
-    private static void bindRow(Context c, RemoteViews v, String role, int nameId, int statusId, int timeId, boolean large) {
+    private static void bindRow(Context c, RemoteViews v, String role, int nameId, int iconId, int statusId, int timeId, boolean large) {
         v.setTextViewText(nameId, WidgetStore.name(c, role));
         String text = WidgetStore.text(c, role);
         long since = WidgetStore.since(c, role);
         if (text == null) {
+            v.setViewVisibility(iconId, View.GONE);
             v.setTextViewText(statusId, "아직 안 알렸어요");
             v.setTextViewTextSize(statusId, android.util.TypedValue.COMPLEX_UNIT_SP, large ? 15 : 13); // 카드 폭에 한 줄로
             v.setTextViewText(timeId, "");
@@ -143,7 +144,10 @@ public class CoupleStatusWidget extends AppWidgetProvider {
             return;
         }
         String icon = WidgetStore.icon(c, role);
-        v.setTextViewText(statusId, (icon.isEmpty() ? "" : icon + " ") + text);
+        // 이모지는 카드 오른쪽 위 동그라미 안에 (ADR 71)
+        v.setViewVisibility(iconId, icon.isEmpty() ? View.GONE : View.VISIBLE);
+        v.setTextViewText(iconId, icon);
+        v.setTextViewText(statusId, text);
         boolean stale = System.currentTimeMillis() - since > WidgetStore.STALE_MS;
         int ink = ContextCompat.getColor(c, stale ? R.color.widget_stale : R.color.widget_ink);
         v.setTextColor(statusId, ink);

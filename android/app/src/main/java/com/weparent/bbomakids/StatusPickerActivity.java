@@ -44,10 +44,12 @@ public class StatusPickerActivity extends AppCompatActivity {
             return;
         }
         dark = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-        int ink = dark ? 0xFFEEF2EF : 0xFF1D2321;
-        int sub = dark ? 0xFF8A958F : 0xFF8A938F;
-        int line = dark ? 0xFF36403B : 0xFFE2E5E0;
-        int bg = dark ? 0xFF222926 : 0xFFFFFFFF;
+        // 위젯과 같은 색 (ADR 71)
+        int ink = dark ? 0xFFF2F4F6 : 0xFF191F28;
+        int sub = 0xFF8B95A1;
+        int line = dark ? 0xFF333A43 : 0xFFE5E8EB;
+        int bg = dark ? 0xFF1E2329 : 0xFFFFFFFF;
+        int primary = 0xFF3182F6;
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -76,7 +78,8 @@ public class StatusPickerActivity extends AppCompatActivity {
         grid.setColumnCount(3);
         String curText = WidgetStore.text(this, role);
         for (String[] s : STATUSES) {
-            Button b = chip(s[0] + " " + s[1], ink, s[1].equals(curText) ? ink : line);
+            boolean cur = s[1].equals(curText); // 지금 상태는 배경 없이 테두리·글자만 강조 (ADR 27)
+            Button b = chip(s[0] + " " + s[1], cur ? primary : ink, cur ? primary : line, cur);
             b.setOnClickListener(v -> pick(role, s[0], s[1]));
             GridLayout.LayoutParams lp = new GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED), GridLayout.spec(GridLayout.UNDEFINED, 1f));
             lp.width = 0;
@@ -96,17 +99,18 @@ public class StatusPickerActivity extends AppCompatActivity {
         input.setSingleLine(true);
         input.setImeOptions(EditorInfo.IME_ACTION_DONE);
         input.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
-        input.setBackground(box(Color.TRANSPARENT, line, 12));
+        input.setBackground(box(Color.TRANSPARENT, line, 14, 1f));
         input.setPadding(dp(12), dp(10), dp(12), dp(10));
         LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         custom.addView(input, ilp);
         Button send = new Button(this);
         send.setText("알리기");
         send.setAllCaps(false);
-        send.setTextColor(bg);
+        send.setTextColor(0xFFFFFFFF);
         send.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        send.setBackground(box(ink, ink, 12));
-        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(46));
+        send.setStateListAnimator(null);
+        send.setBackground(box(primary, primary, 100, 0));
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(dp(84), dp(44));
         slp.setMarginStart(dp(8));
         custom.addView(send, slp);
         Runnable doCustom = () -> {
@@ -151,7 +155,7 @@ public class StatusPickerActivity extends AppCompatActivity {
         else auth.signInAnonymously().addOnSuccessListener(r -> write.run());
     }
 
-    private Button chip(String label, int textColor, int stroke) {
+    private Button chip(String label, int textColor, int stroke, boolean selected) {
         Button b = new Button(this);
         b.setText(label);
         b.setAllCaps(false);
@@ -161,14 +165,15 @@ public class StatusPickerActivity extends AppCompatActivity {
         b.setMinimumHeight(dp(44));
         b.setPadding(dp(4), 0, dp(4), 0);
         b.setStateListAnimator(null);
-        b.setBackground(box(Color.TRANSPARENT, stroke, 14));
+        if (selected) b.setTypeface(b.getTypeface(), android.graphics.Typeface.BOLD);
+        b.setBackground(box(Color.TRANSPARENT, stroke, 100, selected ? 1.5f : 1f));
         return b;
     }
 
-    private GradientDrawable box(int fill, int stroke, int radiusDp) {
+    private GradientDrawable box(int fill, int stroke, int radiusDp, float strokeDp) {
         GradientDrawable d = new GradientDrawable();
         d.setColor(fill);
-        d.setStroke(dp(1.5f), stroke);
+        if (strokeDp > 0) d.setStroke(dp(strokeDp), stroke);
         d.setCornerRadius(dp(radiusDp));
         return d;
     }
