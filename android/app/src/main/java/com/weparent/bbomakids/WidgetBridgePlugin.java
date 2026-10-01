@@ -2,6 +2,7 @@ package com.weparent.bbomakids;
 
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
+import android.content.Intent;
 import android.os.Build;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -40,7 +41,40 @@ public class WidgetBridgePlugin extends Plugin {
                 WidgetStore.saveStatus(getContext(), r, s.getString("ic"), s.getString("t"), since);
             }
         }
+        JSObject loc = call.getObject("loc");
+        if (loc != null) {
+            JSObject req = null, pos = null;
+            try { req = loc.getJSObject("req"); } catch (Exception ignored) {}
+            try { pos = loc.getJSObject("pos"); } catch (Exception ignored) {}
+            if (req != null && req.getString("state") != null) {
+                long until = 0, at = 0;
+                try { until = req.getLong("until"); } catch (Exception ignored) {}
+                try { at = req.getLong("at"); } catch (Exception ignored) {}
+                double lat = 0, lng = 0;
+                String addr = null;
+                if (pos != null) {
+                    try { lat = pos.getDouble("lat"); lng = pos.getDouble("lng"); addr = pos.getString("addr", ""); } catch (Exception ignored) {}
+                }
+                WidgetStore.saveLoc(getContext(), req.getString("from"), req.getString("to"), req.getString("state"), until, at, addr, lat, lng);
+            }
+        }
         WidgetStore.refreshAll(getContext());
+        call.resolve();
+    }
+
+    /** 📍 '15분 보여주기' — 권한 확인과 공유 시작은 LocationRequestActivity 가 처리 (ADR 68) */
+    @PluginMethod
+    public void shareLocation(PluginCall call) {
+        Intent i = new Intent(getContext(), LocationRequestActivity.class)
+            .putExtra(LocationRequestActivity.EXTRA_ACCEPT, true)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(i);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void stopShareLocation(PluginCall call) {
+        getContext().startService(new Intent(getContext(), LocationShareService.class).setAction(LocationShareService.ACTION_STOP));
         call.resolve();
     }
 

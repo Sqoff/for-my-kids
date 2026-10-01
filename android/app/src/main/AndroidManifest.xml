@@ -64,6 +64,21 @@
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
+        <!-- 📍 위치 물어보기 / 15분 보여주기 (ADR 68) -->
+        <activity
+            android:name=".LocationRequestActivity"
+            android:theme="@style/StatusPickerTheme"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:launchMode="singleTask"
+            android:exported="false" />
+        <receiver
+            android:name=".WidgetActionReceiver"
+            android:exported="false" />
+        <service
+            android:name=".LocationShareService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
         <!-- 푸시 수신: Capacitor 서비스를 감싼 버전으로 교체 (배우자 상태가 바뀌면 위젯 갱신) -->
         <service
             android:name="com.capacitorjs.plugins.pushnotifications.MessagingService"
@@ -83,6 +98,9 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- 날씨 스킨 뽀마: 대략적인 위치로 날씨 조회 (ADR 53) -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- 📍 15분 정확한 위치 공유 (ADR 68): 보여주기를 누른 동안만, 위쪽 알림과 함께 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

@@ -972,6 +972,14 @@
     .rule-mode-card b { font-size:13px; font-weight:900; color:#4E5968; } .rule-mode-card span { font-size:10.5px; font-weight:600; color:#8B95A1; }
     .rule-mode-card.is-on { border-color:#3182F6; } .rule-mode-card.is-on b { color:#3182F6; }
     body.theme-navy .rule-mode-card { border-color:#334155; } body.theme-navy .rule-mode-card b { color:#CBD5E1; } body.theme-navy .rule-mode-card.is-on { border-color:#60A5FA; } body.theme-navy .rule-mode-card.is-on b { color:#60A5FA; }
+    /* 📍 위치 물어보기·보여주기 (ADR 68) */
+    .loc-bar { display:flex; align-items:center; gap:8px; margin-top:10px; padding:10px 12px; border-radius:16px; border:1.5px solid #E5E8EB; font-size:13.5px; font-weight:700; color:#191F28; }
+    .loc-bar .lb-t { flex:1; min-width:0; word-break:keep-all; }
+    .loc-bar .lb-t small { display:block; font-size:12px; font-weight:600; color:#8B95A1; margin-top:1px; }
+    .loc-bar button { flex-shrink:0; padding:7px 11px; border-radius:11px; font-size:13px; font-weight:800; border:1.5px solid #E5E8EB; background:transparent; color:#333D4B; }
+    .loc-bar button.is-ok { background:#1F9D6B; border-color:#1F9D6B; color:#fff; }
+    .loc-bar.is-in { border-color:#F2668B; }
+    body.theme-navy .loc-bar { border-color:#334155; color:#F1F5F9; } body.theme-navy .loc-bar button { border-color:#334155; color:#CBD5E1; }
     .status-chips { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px; margin-top:14px; }
     .status-chip { padding:11px 4px; border-radius:14px; border:1.5px solid #E5E8EB; background:transparent; font-size:13.5px; font-weight:700; color:#4E5968; white-space:nowrap; }
     .status-chip.is-on { border-color:#191F28; color:#191F28; }
@@ -4804,6 +4812,8 @@
         let changed = applyRemote(data, takeAll);
         const nextStatus = data.status || {};
         if (JSON.stringify(nextStatus) !== JSON.stringify(STATE.coupleStatus || {})) { STATE.coupleStatus = nextStatus; changed = true; }
+        const nextLoc = data.loc || {};
+        if (JSON.stringify(nextLoc) !== JSON.stringify(STATE.coupleLoc || {})) { STATE.coupleLoc = nextLoc; changed = true; }
         syncWidget();
         if (!FB.gotFirst && recountBabyCareQuest()) changed = true;
         FB.gotFirst = true;
@@ -6822,12 +6832,99 @@
       syncWidget();
       renderApp('mom'); renderApp('dad');
     }
+    // 📍 위치 물어보기 → 상대가 15분 보여주기 (ADR 68). 가족 문서 loc.req {from,to,at,state,until} · loc.pos {lat,lng,addr,at}
+    var LOC_ASK_TTL = 10 * 60e3;
+    if (!STATE.coupleLoc) STATE.coupleLoc = {};
+    function locHm(ms) { const d = new Date(ms || 0); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
+    function activeLoc() {
+      const req = (STATE.coupleLoc || {}).req;
+      if (!req || !req.state || req.state === 'ended' || req.state === 'expired') return null;
+      if ((req.state === 'asked' || req.state === 'sharing') && req.until && Date.now() > req.until) return null;
+      if (req.state === 'declined' && Date.now() - (req.at || 0) > 30 * 60e3) return null;
+      return req;
+    }
+    function locMapUrl(name, pos) { return `https://map.kakao.com/link/map/${encodeURIComponent(name)},${pos.lat},${pos.lng}`; }
+    function renderLocBar() {
+      const req = activeLoc();
+      if (!req) return '';
+      const me = statusOwner(STATE.viewMode === 'dad' ? 'dad' : 'mom');
+      const sp = me === 'mom' ? 'dad' : 'mom';
+      const spName = getDisplayName(sp);
+      const pos = (STATE.coupleLoc || {}).pos;
+      const esc = t => String(t || '').replace(/</g, '&lt;');
+      if (req.from === me) {
+        if (req.state === 'asked') return `<div class="loc-bar"><div class="lb-t">📍 ${spName}님에게 물어봤어요…<small>답이 없으면 ${locHm(req.until)}에 저절로 끝나요</small></div><button type="button" onclick="event.stopPropagation(); locCancel()">취소</button></div>`;
+        if (req.state === 'sharing') return `<div class="loc-bar is-in"><div class="lb-t">📍 ${pos && pos.addr ? esc(pos.addr) : `${spName}님 위치를 받는 중…`}<small>${spName}님이 ${locHm(req.until)}까지 보여줘요</small></div>${pos && pos.lat ? `<a href="${locMapUrl(spName, pos)}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><button type="button">🗺️ 지도</button></a>` : ''}</div>`;
+        if (req.state === 'declined') return `<div class="loc-bar"><div class="lb-t">${spName}님이 지금은 어렵대요<small>이유는 묻지 않아요</small></div></div>`;
+      } else if (req.to === me) {
+        if (req.state === 'asked') return `<div class="loc-bar is-in"><div class="lb-t">📍 ${spName}님이 위치를 궁금해해요<small>보여주면 15분 동안 정확한 위치가 보여요</small></div><button type="button" onclick="event.stopPropagation(); locDecline()">어려워요</button><button type="button" class="is-ok" onclick="event.stopPropagation(); locAccept()">15분 보여주기</button></div>`;
+        if (req.state === 'sharing') return `<div class="loc-bar is-in"><div class="lb-t">📍 ${spName}님에게 보여주는 중<small>${locHm(req.until)}까지 · 끝나면 위치는 지워져요</small></div><button type="button" onclick="event.stopPropagation(); locStop()">그만</button></div>`;
+      }
+      return '';
+    }
+    function openLocAskSheet() {
+      const me = statusOwner(STATE.viewMode === 'dad' ? 'dad' : 'mom');
+      const sp = me === 'mom' ? 'dad' : 'mom';
+      const st = (STATE.coupleStatus || {})[sp];
+      const req = activeLoc();
+      closeStatusSheet();
+      const el = document.createElement('div');
+      el.id = 'statusSheet';
+      el.className = 'grant-sheet';
+      el.innerHTML = `<div class="gs-box">
+        <div class="gs-title">${getDisplayName(sp)}님 지금</div>
+        <div class="gs-sub">${st && st.t ? `${st.ic || ''} ${String(st.t).replace(/</g, '&lt;')} · ${locHm(st.since)}부터` : '아직 상태를 알리지 않았어요'}</div>
+        <div class="gs-label">위치가 궁금하면</div>
+        <p class="gs-sub" style="margin-top:0">물어보면 ${getDisplayName(sp)}님 폰에 알림이 가요. 보여주기를 누르면 15분 동안만 정확한 위치가 보여요.</p>
+        <div class="gs-row">${req && req.state !== 'declined'
+          ? `<button type="button" class="gs-btn is-ghost" onclick="closeStatusSheet()">이미 진행 중이에요</button>`
+          : `<button type="button" class="gs-btn is-ghost" onclick="closeStatusSheet()">닫기</button><button type="button" class="gs-btn is-primary" onclick="locAsk()">📍 위치 물어보기</button>`}</div>
+      </div>`;
+      el.addEventListener('click', e => { if (e.target === el) closeStatusSheet(); });
+      document.body.appendChild(el);
+    }
+    function locWrite(fields, me) {
+      if (typeof FB === 'undefined' || !FB.ref) { showToast('가족이 연결된 폰에서만 쓸 수 있어요'); return false; }
+      FB.ref.update(Object.assign({ updatedBy: me }, fields)).catch(() => showToast('⚠️ 서버에 못 보냈어요. 인터넷을 확인해 주세요'));
+      return true;
+    }
+    function locAsk() {
+      const me = statusOwner(STATE.viewMode === 'dad' ? 'dad' : 'mom');
+      const sp = me === 'mom' ? 'dad' : 'mom';
+      const now = Date.now();
+      const req = { from: me, to: sp, at: now, state: 'asked', until: now + LOC_ASK_TTL };
+      if (!locWrite({ 'loc.req': req, 'loc.pos': firebase.firestore.FieldValue.delete() }, me)) return;
+      STATE.coupleLoc = { req };
+      closeStatusSheet();
+      triggerHaptic('light');
+      showToast(`📍 ${getDisplayName(sp)}님에게 위치를 물어봤어요`);
+      syncWidget(); renderApp('mom'); renderApp('dad');
+    }
+    function locSetState(state) {
+      const me = statusOwner(STATE.viewMode === 'dad' ? 'dad' : 'mom');
+      if (!locWrite({ 'loc.req.state': state }, me)) return;
+      if (STATE.coupleLoc.req) STATE.coupleLoc.req.state = state;
+      syncWidget(); renderApp('mom'); renderApp('dad');
+    }
+    function locCancel() { locSetState('ended'); showToast('요청을 취소했어요'); }
+    function locDecline() { locSetState('declined'); showToast('‘지금은 어려워요’를 보냈어요'); }
+    function locAccept() {
+      const W = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge;
+      if (!W) { showToast('위치는 폰 앱에서만 보여줄 수 있어요'); return; }
+      W.shareLocation().catch(() => showToast('위치를 보여줄 수 없어요'));
+    }
+    function locStop() {
+      const W = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge;
+      if (W) W.stopShareLocation().catch(() => {});
+      else locSetState('ended');
+    }
+
     // 홈 화면 위젯에 최신 상태·이름 넘기기 (앱 안에서만 동작)
     function syncWidget() {
       const W = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge;
       const d = typeof getDevice === 'function' && getDevice();
       if (!W || !d) return;
-      W.sync({ code: d.code, role: d.role, names: { mom: getDisplayName('mom'), dad: getDisplayName('dad') }, status: STATE.coupleStatus || {} }).catch(() => {});
+      W.sync({ code: d.code, role: d.role, names: { mom: getDisplayName('mom'), dad: getDisplayName('dad') }, status: STATE.coupleStatus || {}, loc: STATE.coupleLoc || {} }).catch(() => {});
     }
     // 위젯이 앱 없이도 직접 상태를 저장하도록, 폰의 네이티브 로그인 계정을 가족 멤버로 등록
     async function linkWidgetMember() {
@@ -9551,7 +9648,7 @@
               ${['mom', 'dad'].map(r => {
                 const cs = coupleStatusView(r);
                 const mine = r === statusOwner(userKey);
-                return `<div class="fh-person is-${r}" onclick="${mine ? 'openStatusSheet()' : `showToast('${getDisplayName(r)}님이 직접 알려주는 상태예요')`}">
+                return `<div class="fh-person is-${r}" onclick="${mine ? 'openStatusSheet()' : 'openLocAskSheet()'}">
                 <div class="fh-avatar">${STATE.users[r].avatar}</div>
                 <div class="min-w-0 flex-1">
                   <div class="fh-person-name">${getDisplayName(r)} · 집중 ${r === 'mom' ? momTodayMin : dadTodayMin}분</div>
@@ -9561,6 +9658,7 @@
               </div>`;
               }).join('')}
             </div>
+            ${renderLocBar()}
           </div>
 
           <!-- ⚡ 육아 집중 타이머 퀵 진입 배너 카드 (사용자 원터치 퀵 진입 & 실시간 상태 표시) -->

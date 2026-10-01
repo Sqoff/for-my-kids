@@ -7,7 +7,7 @@
 const { onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
-const { getFirestore } = require('firebase-admin/firestore');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { defineSecret } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
 const { getMessaging } = require('firebase-admin/messaging');
@@ -38,6 +38,16 @@ exports.spousePush = onDocumentUpdated({ document: 'couples/{code}', region: REG
     }
     for (const r of ['mom', 'dad']) {
       if (tokens[r]) jobs.push(getMessaging().send({ token: tokens[r], data, android: { priority: 'high' } }).catch(err => console.warn('status push fail', r, err.code || err.message)));
+    }
+  }
+  // 📍 위치 요청·공유가 바뀌면 두 폰에 데이터 푸시 → 위젯 갱신·요청 알림 (ADR 68)
+  if (JSON.stringify(before.loc || {}) !== JSON.stringify(after.loc || {}) && after.loc && after.loc.req) {
+    const req = after.loc.req, pos = after.loc.pos || {};
+    const data = { type: 'loc', lfrom: String(req.from || ''), lto: String(req.to || ''), // 'from' 은 FCM 예약어라 못 씀
+      state: String(req.state || ''), until: String(req.until || 0), at: String(req.at || 0),
+      addr: String(pos.addr || ''), lat: String(pos.lat || ''), lng: String(pos.lng || ''), fromName: displayName(after, req.from), toName: displayName(after, req.to) };
+    for (const r of ['mom', 'dad']) {
+      if (tokens[r]) jobs.push(getMessaging().send({ token: tokens[r], data, android: { priority: 'high' } }).catch(err => console.warn('loc push fail', r, err.code || err.message)));
     }
   }
   for (const role of ['mom', 'dad']) {
@@ -122,6 +132,11 @@ exports.eventReminders = onSchedule({ schedule: 'every 5 minutes', timeZone: 'As
   for (const doc of snap.docs) {
     const data = doc.data() || {};
     const tokens = data.tokens || {};
+    // 📍 시간이 지난 위치 요청·공유 정리: 위치는 지우고 끝냄 (공유하던 폰이 꺼져 있어도 기록이 남지 않게, ADR 68)
+    const lr = data.loc && data.loc.req;
+    if (lr && (lr.state === 'asked' || lr.state === 'sharing') && lr.until && Date.now() > lr.until + 60e3) {
+      jobs.push(doc.ref.update({ 'loc.req.state': lr.state === 'asked' ? 'expired' : 'ended', 'loc.pos': FieldValue.delete(), updatedBy: 'server' }).catch(() => {}));
+    }
     // 할 일 마감 초과 → 페널티 부여권 (새 버전 앱이 켠 가족만)
     if (data.features && data.features.overdueGrant) jobs.push(checkOverdue(db, doc, data, date, min, once));
     if (!tokens.mom && !tokens.dad) continue;

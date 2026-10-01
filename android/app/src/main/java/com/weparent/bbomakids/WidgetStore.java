@@ -52,6 +52,48 @@ public final class WidgetStore {
     public static String text(Context c, String role) { return prefs(c).getString(role + "_text", null); }
     public static long since(Context c, String role) { return prefs(c).getLong(role + "_since", 0); }
 
+    // ---------- 📍 위치 요청·공유 (ADR 68) ----------
+    /** 요청 정보 저장. reqAt 이 지금 저장된 것보다 오래됐으면 무시(늦게 온 푸시) */
+    public static void saveLoc(Context c, String from, String to, String state, long until, long reqAt, String addr, double lat, double lng) {
+        SharedPreferences p = prefs(c);
+        if (reqAt < p.getLong("loc_at", 0)) return;
+        SharedPreferences.Editor e = p.edit()
+            .putString("loc_from", from).putString("loc_to", to).putString("loc_state", state)
+            .putLong("loc_until", until).putLong("loc_at", reqAt);
+        if (addr != null) e.putString("loc_addr", addr).putString("loc_lat", String.valueOf(lat)).putString("loc_lng", String.valueOf(lng));
+        else e.remove("loc_addr").remove("loc_lat").remove("loc_lng");
+        e.apply();
+    }
+    public static void saveLocState(Context c, String state, long until) {
+        SharedPreferences.Editor e = prefs(c).edit().putString("loc_state", state);
+        if (until > 0) e.putLong("loc_until", until);
+        if (!"sharing".equals(state)) e.remove("loc_addr").remove("loc_lat").remove("loc_lng");
+        e.apply();
+    }
+    public static String locState(Context c) { return prefs(c).getString("loc_state", null); }
+    public static String locFrom(Context c) { return prefs(c).getString("loc_from", null); }
+    public static String locTo(Context c) { return prefs(c).getString("loc_to", null); }
+    public static long locUntil(Context c) { return prefs(c).getLong("loc_until", 0); }
+    public static String locAddr(Context c) { return prefs(c).getString("loc_addr", null); }
+    public static String locLat(Context c) { return prefs(c).getString("loc_lat", null); }
+    public static String locLng(Context c) { return prefs(c).getString("loc_lng", null); }
+    /** 같은 요청·상태로 알림을 이미 띄웠으면 false, 처음이면 기록하고 true */
+    public static boolean markLocNotified(Context c, String key) {
+        SharedPreferences p = prefs(c);
+        if (key.equals(p.getString("loc_notified", null))) return false;
+        p.edit().putString("loc_notified", key).apply();
+        return true;
+    }
+    /** 지금 의미 있는 요청인지 (끝났거나 시간이 지났으면 null) */
+    public static String activeLocState(Context c) {
+        String st = locState(c);
+        if (st == null || "ended".equals(st)) return null;
+        long until = locUntil(c);
+        if (("asked".equals(st) || "sharing".equals(st)) && until > 0 && System.currentTimeMillis() > until) return null;
+        if ("declined".equals(st) && System.currentTimeMillis() - prefs(c).getLong("loc_at", 0) > 30L * 60 * 1000) return null;
+        return st;
+    }
+
     /** 홈 화면에 놓인 모든 부부 상태 위젯을 다시 그림 */
     public static void refreshAll(Context c) {
         AppWidgetManager mgr = AppWidgetManager.getInstance(c);
