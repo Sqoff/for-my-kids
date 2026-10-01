@@ -1,5 +1,8 @@
 package com.weparent.bbomakids;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
+import android.os.Build;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -49,6 +52,17 @@ public class WidgetBridgePlugin extends Plugin {
         auth.signInAnonymously()
             .addOnSuccessListener(r -> resolveUid(call, r.getUser() != null ? r.getUser().getUid() : null))
             .addOnFailureListener(e -> call.reject(e.getMessage()));
+    }
+
+    /** 홈 화면에 위젯 추가 요청 (런처가 지원하면 '홈 화면에 추가' 창이 뜸) */
+    @PluginMethod
+    public void pinWidget(PluginCall call) {
+        JSObject o = new JSObject();
+        AppWidgetManager mgr = AppWidgetManager.getInstance(getContext());
+        boolean ok = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && mgr.isRequestPinAppWidgetSupported();
+        if (ok) ok = mgr.requestPinAppWidget(new ComponentName(getContext(), CoupleStatusWidget.class), null, null);
+        o.put("requested", ok);
+        call.resolve(o);
     }
 
     private void resolveUid(PluginCall call, String uid) {

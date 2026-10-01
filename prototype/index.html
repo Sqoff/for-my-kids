@@ -587,7 +587,7 @@
     .family-hero .fh-person.is-mom { background: rgba(240,68,82,0.12); }
     .family-hero .fh-person.is-dad { background: rgba(49,130,246,0.12); }
     .family-hero .fh-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(255,255,255,0.1); flex-shrink: 0; }
-    .family-hero .fh-person-name { font-size: 12px; font-weight: 700; color: #94A3B8; }
+    .family-hero .fh-person-name { font-size: 12px; font-weight: 700; color: #94A3B8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* 💞 부부 상태 (ADR 66): 카드마다 지금 상태 한 줄, 내 카드를 누르면 상태 바꾸기 */
     .family-hero .fh-person { cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .family-hero .fh-st { font-size: 14px; font-weight: 800; color: #F1F5F9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.35; }
@@ -6790,10 +6790,18 @@
         <div class="status-chips">${COUPLE_STATUSES.map(([ic, t], i) => `<button type="button" class="status-chip ${cur === t ? 'is-on' : ''}" onclick="setMyStatus(${i})">${ic} ${t}</button>`).join('')}</div>
         <div class="gs-label">직접 쓰기</div>
         <div class="gs-row" style="margin-top:0"><input id="statusCustomInput" class="gs-input" maxlength="10" placeholder="예: 병원 가는 중" style="flex:1" /><button type="button" class="gs-btn is-primary" style="flex:0 0 auto;padding:0 18px" onclick="setMyStatus(-1)">알리기</button></div>
-        <div class="gs-row"><button type="button" class="gs-btn is-ghost" onclick="closeStatusSheet()">닫기</button></div>
+        <div class="gs-row"><button type="button" class="gs-btn is-ghost" onclick="closeStatusSheet()">닫기</button>${window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge ? `<button type="button" class="gs-btn is-ghost" onclick="pinStatusWidget()">📲 홈 화면에 위젯 추가</button>` : ''}</div>
       </div>`;
       el.addEventListener('click', e => { if (e.target === el) closeStatusSheet(); });
       document.body.appendChild(el);
+    }
+    async function pinStatusWidget() {
+      const W = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge;
+      if (!W) return;
+      try {
+        const r = await W.pinWidget();
+        if (!r || !r.requested) showToast('홈 화면을 꾹 눌러 위젯 → 뽀마키즈 → 부부 상태를 추가해 주세요');
+      } catch (e) { showToast('홈 화면을 꾹 눌러 위젯 → 뽀마키즈 → 부부 상태를 추가해 주세요'); }
     }
     function closeStatusSheet() { const el = document.getElementById('statusSheet'); if (el) el.remove(); }
     function setMyStatus(idx) {
