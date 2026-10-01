@@ -8,10 +8,14 @@ import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
 import java.net.URLEncoder;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.SizeF;
 import android.widget.RemoteViews;
 import androidx.core.content.ContextCompat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 /** 홈 화면 4x2 부부 상태 위젯 (ADR 66) */
 public class CoupleStatusWidget extends AppWidgetProvider {
@@ -25,14 +29,31 @@ public class CoupleStatusWidget extends AppWidgetProvider {
     }
 
     @Override
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+        // 앱을 업데이트하면 위젯이 옛 모양 그대로 남아 있어서, 새 모양으로 바로 다시 그림
+        if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) WidgetStore.refreshAll(context);
+    }
+
+    @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager mgr, int id, Bundle options) {
         mgr.updateAppWidget(id, build(context, options)); // 크기를 바꾸면 모양도 다시 고름
     }
 
     static RemoteViews build(Context c, Bundle options) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Android 12+: 두 모양을 다 넘기면 런처가 실제 위젯 크기에 맞는 쪽을 고름 (런처마다 보고하는 크기 숫자가 달라서)
+            Map<SizeF, RemoteViews> sizes = new HashMap<>();
+            sizes.put(new SizeF(180f, 100f), build(c, false));
+            sizes.put(new SizeF(180f, LARGE_MIN_HEIGHT_DP), build(c, true));
+            return new RemoteViews(sizes);
+        }
         // 세로 화면에서는 위젯 높이 = MAX_HEIGHT
         int h = options == null ? 0 : options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0);
-        boolean large = h >= LARGE_MIN_HEIGHT_DP;
+        return build(c, h >= LARGE_MIN_HEIGHT_DP);
+    }
+
+    private static RemoteViews build(Context c, boolean large) {
         RemoteViews v = new RemoteViews(c.getPackageName(), large ? R.layout.widget_couple_status_large : R.layout.widget_couple_status);
         bindRow(c, v, "mom", R.id.mom_name, R.id.mom_status, R.id.mom_time, large);
         bindRow(c, v, "dad", R.id.dad_name, R.id.dad_status, R.id.dad_time, large);
@@ -115,7 +136,8 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         String text = WidgetStore.text(c, role);
         long since = WidgetStore.since(c, role);
         if (text == null) {
-            v.setTextViewText(statusId, "아직 알리지 않았어요");
+            v.setTextViewText(statusId, large ? "아직 안 알렸어요" : "아직 알리지 않았어요");
+            if (large) v.setTextViewTextSize(statusId, android.util.TypedValue.COMPLEX_UNIT_SP, 15); // 카드 폭에 한 줄로
             v.setTextViewText(timeId, "");
             v.setTextColor(statusId, ContextCompat.getColor(c, R.color.widget_sub));
             return;
