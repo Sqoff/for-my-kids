@@ -21,14 +21,14 @@
             android:layout_weight="1"
             android:text="우리 지금"
             android:textColor="@color/widget_sub"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="뽀마키즈"
             android:textColor="@color/widget_sub"
-            android:textSize="11sp" />
+            android:textSize="12sp" />
     </LinearLayout>
 
     <FrameLayout
@@ -57,7 +57,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/widget_ink"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:layout_marginEnd="6dp" />
         <TextView
@@ -69,14 +69,14 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/widget_ink"
-            android:textSize="14sp" />
+            android:textSize="15sp" />
         <TextView
             android:id="@+id/mom_time"
             android:text="08:40부터"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/widget_sub"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:layout_marginStart="6dp" />
     </LinearLayout>
 
@@ -100,7 +100,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/widget_ink"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:layout_marginEnd="6dp" />
         <TextView
@@ -112,14 +112,14 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/widget_ink"
-            android:textSize="14sp" />
+            android:textSize="15sp" />
         <TextView
             android:id="@+id/dad_time"
             android:text="09:02부터"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/widget_sub"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:layout_marginStart="6dp" />
     </LinearLayout>
 
@@ -136,25 +136,25 @@
         <TextView
             android:id="@+id/btn_change"
             android:layout_width="0dp"
-            android:layout_height="34dp"
+            android:layout_height="38dp"
             android:layout_weight="1"
             android:layout_marginEnd="6dp"
             android:background="@drawable/widget_btn"
             android:gravity="center"
             android:text="상태 바꾸기"
             android:textColor="@color/widget_ink"
-            android:textSize="13sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
         <TextView
             android:id="@+id/btn_open"
             android:layout_width="0dp"
-            android:layout_height="34dp"
+            android:layout_height="38dp"
             android:layout_weight="1"
             android:background="@drawable/widget_btn_solid"
             android:gravity="center"
             android:text="앱 열기"
             android:textColor="@color/widget_on_solid"
-            android:textSize="13sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
     </LinearLayout>
 </LinearLayout>

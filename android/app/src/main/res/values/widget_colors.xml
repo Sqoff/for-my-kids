@@ -8,4 +8,6 @@
     <color name="widget_mom">#E8505B</color>
     <color name="widget_dad">#2F6FE4</color>
     <color name="widget_stale">#B0B8B4</color>
+    <color name="widget_mom_line">#F2A9AF</color>
+    <color name="widget_dad_line">#A8C3F2</color>
 </resources>
