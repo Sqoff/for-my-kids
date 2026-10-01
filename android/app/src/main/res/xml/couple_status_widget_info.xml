@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 4x2 칸 (ADR 66). 4시간 지난 상태를 흐리게 하려고 30분마다 다시 그림 -->
+<!-- 4x3 칸 (ADR 66, 72: 지도·캐릭터 디자인이라 기본 3칸 높이). 4시간 지난 상태를 흐리게 하려고 30분마다 다시 그림 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="250dp"
-    android:minHeight="110dp"
+    android:minHeight="150dp"
     android:targetCellWidth="4"
-    android:targetCellHeight="2"
+    android:targetCellHeight="3"
     android:minResizeWidth="180dp"
-    android:minResizeHeight="100dp"
+    android:minResizeHeight="140dp"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/widget_couple_status"
-    android:previewLayout="@layout/widget_couple_status"
+    android:previewLayout="@layout/widget_couple_status_large"
     android:description="@string/widget_desc"
     android:widgetCategory="home_screen" />

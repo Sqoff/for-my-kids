@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="widget_bg">#FAFFFFFF</color>
-    <color name="widget_ink">#191F28</color>
-    <color name="widget_sub">#8B95A1</color>
-    <color name="widget_line">#E5E8EB</color>
+    <!-- ADR 72: 크림 바탕 · 장식 지도 · 캐릭터 핀 -->
+    <color name="widget_bg">#FCFBF7EF</color>
+    <color name="widget_ink">#3A3330</color>
+    <color name="widget_sub">#9A918A</color>
     <color name="widget_on_solid">#FFFFFF</color>
-    <color name="widget_mom">#E5566A</color>
-    <color name="widget_dad">#3478E5</color>
-    <color name="widget_stale">#B0B8C1</color>
-    <!-- ADR 71: 부드러운 카드 바탕 · 칩 · 주 버튼 -->
-    <color name="widget_mom_fill">#FFF2F4</color>
-    <color name="widget_dad_fill">#EEF4FE</color>
-    <color name="widget_chip">#F2F4F6</color>
+    <color name="widget_mom">#E2668A</color>
+    <color name="widget_dad">#4E86D9</color>
+    <color name="widget_stale">#B8B0A8</color>
+    <color name="widget_card">#FFFFFF</color>
+    <color name="widget_btn_gray">#ECE8E1</color>
+    <color name="widget_btn_lav">#E4DEFC</color>
+    <color name="widget_lav_ink">#4B3FA8</color>
+    <color name="widget_chip_green">#E2F3E6</color>
+    <color name="widget_green_ink">#2F8A4E</color>
+    <color name="widget_chip_neutral">#EFEBE4</color>
     <color name="widget_primary">#3182F6</color>
-    <color name="widget_emoji_bg">#FFFFFF</color>
 </resources>

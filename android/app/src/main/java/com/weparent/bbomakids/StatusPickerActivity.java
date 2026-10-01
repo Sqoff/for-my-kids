@@ -44,12 +44,13 @@ public class StatusPickerActivity extends AppCompatActivity {
             return;
         }
         dark = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-        // 위젯과 같은 색 (ADR 71)
-        int ink = dark ? 0xFFF2F4F6 : 0xFF191F28;
-        int sub = 0xFF8B95A1;
-        int line = dark ? 0xFF333A43 : 0xFFE5E8EB;
-        int bg = dark ? 0xFF1E2329 : 0xFFFFFFFF;
-        int primary = 0xFF3182F6;
+        // 위젯과 같은 색 (ADR 72: 크림 바탕 · 연보라)
+        int ink = dark ? 0xFFF1EEEA : 0xFF3A3330;
+        int sub = 0xFF9A918A;
+        int line = dark ? 0xFF3A3D44 : 0xFFE6E0D6;
+        int bg = dark ? 0xFF1F2126 : 0xFFFBF7EF;
+        int primary = dark ? 0xFFCFC6FF : 0xFF5B4BC4;
+        int primaryFill = dark ? 0xFF363052 : 0xFFE4DEFC;
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -106,10 +107,11 @@ public class StatusPickerActivity extends AppCompatActivity {
         Button send = new Button(this);
         send.setText("알리기");
         send.setAllCaps(false);
-        send.setTextColor(0xFFFFFFFF);
+        send.setTextColor(primary);
         send.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        send.setTypeface(send.getTypeface(), android.graphics.Typeface.BOLD);
         send.setStateListAnimator(null);
-        send.setBackground(box(primary, primary, 100, 0));
+        send.setBackground(box(primaryFill, primaryFill, 100, 0));
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(dp(84), dp(44));
         slp.setMarginStart(dp(8));
         custom.addView(send, slp);

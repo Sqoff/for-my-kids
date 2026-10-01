@@ -20,8 +20,8 @@ import java.util.Map;
 /** 홈 화면 4x2 부부 상태 위젯 (ADR 66) */
 public class CoupleStatusWidget extends AppWidgetProvider {
 
-    /** 이 높이(dp) 이상이면 두 사람 카드를 크게 보여주는 넉넉한 모양 (ADR 67) */
-    static final int LARGE_MIN_HEIGHT_DP = 150;
+    /** 이 높이(dp) 이상이면 핀 위·카드 아래로 크게, 그보다 낮으면 핀과 카드를 옆으로 (ADR 67, 72) */
+    static final int LARGE_MIN_HEIGHT_DP = 240;
 
     @Override
     public void onUpdate(Context context, AppWidgetManager mgr, int[] ids) {
@@ -44,7 +44,7 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // Android 12+: 두 모양을 다 넘기면 런처가 실제 위젯 크기에 맞는 쪽을 고름 (런처마다 보고하는 크기 숫자가 달라서)
             Map<SizeF, RemoteViews> sizes = new HashMap<>();
-            sizes.put(new SizeF(180f, 100f), build(c, false));
+            sizes.put(new SizeF(180f, 140f), build(c, false));
             sizes.put(new SizeF(180f, LARGE_MIN_HEIGHT_DP), build(c, true));
             return new RemoteViews(sizes);
         }
@@ -69,7 +69,7 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         return v;
     }
 
-    /** 📍 위치 줄 + 두 번째 버튼 (ADR 68) */
+    /** 📍 머리말 오른쪽 상태 칩 + 왼쪽 버튼 (ADR 68, 72) */
     private static void bindLocation(Context c, RemoteViews v, PendingIntent openPi, int flags) {
         String me = WidgetStore.role(c);
         String sp = me == null ? "dad" : FamilyDoc.spouse(me);
@@ -77,43 +77,63 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         String st = WidgetStore.activeLocState(c);
         boolean iAsked = me != null && me.equals(WidgetStore.locFrom(c));
         boolean askedMe = me != null && me.equals(WidgetStore.locTo(c));
-        String locText = null;
-        PendingIntent locPi = openPi;
-        String btn = "📍 위치 물어보기";
+        String chip = null;
+        boolean green = false;
+        PendingIntent chipPi = openPi;
+        int btnIcon = R.drawable.widget_ic_pin;
+        String btn = "위치 물어보기";
         PendingIntent btnPi = broadcast(c, WidgetActionReceiver.ASK, 11, flags);
         String until = hhmm(WidgetStore.locUntil(c));
         if (st != null && iAsked) {
             if ("asked".equals(st)) {
-                locText = "📍 " + spName + "님에게 물어봤어요…";
+                chip = "📍 물어보는 중";
+                btnIcon = R.drawable.widget_ic_close;
                 btn = "요청 취소";
                 btnPi = broadcast(c, WidgetActionReceiver.CANCEL, 12, flags);
             } else if ("sharing".equals(st)) {
+                chip = "● 위치공유 중 · " + until + "까지";
+                green = true;
                 String addr = WidgetStore.locAddr(c);
                 PendingIntent map = mapIntent(c, spName, flags);
-                locText = "📍 " + (addr == null || addr.isEmpty() ? spName + "님 위치를 받는 중…" : addr) + " · " + until + "까지";
-                if (map != null) { locPi = map; btn = "🗺️ 지도 보기"; btnPi = map; }
+                // 상대 카드 맨 아래 줄에 주소 (지도 보기 버튼으로 카카오맵)
+                v.setTextViewText("mom".equals(sp) ? R.id.mom_time : R.id.dad_time,
+                    addr == null || addr.isEmpty() ? "위치 받는 중…" : "📍 " + addr);
+                if (map != null) {
+                    chipPi = map;
+                    btnIcon = R.drawable.widget_ic_map;
+                    btn = "지도 보기";
+                    btnPi = map;
+                    v.setOnClickPendingIntent("mom".equals(sp) ? R.id.row_mom : R.id.row_dad, map);
+                }
             } else if ("declined".equals(st)) {
-                locText = spName + "님이 지금은 어렵대요";
+                chip = spName + "님이 지금은 어렵대요";
             }
         } else if (st != null && askedMe) {
             if ("asked".equals(st)) {
-                locText = "📍 " + spName + "님이 위치를 궁금해해요 · 눌러서 답하기";
+                chip = "📍 " + spName + "님이 궁금해해요";
                 Intent req = new Intent(c, LocationRequestActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                locPi = PendingIntent.getActivity(c, 13, req, flags);
+                chipPi = PendingIntent.getActivity(c, 13, req, flags);
+                btnIcon = R.drawable.widget_ic_reply;
                 btn = "답하기";
-                btnPi = locPi;
+                btnPi = chipPi;
             } else if ("sharing".equals(st)) {
-                locText = "📍 " + spName + "님에게 보여주는 중 · " + until + "까지";
-                btn = "공유 그만";
+                chip = "● 위치공유 중 · " + until + "까지";
+                green = true;
+                btnIcon = R.drawable.widget_ic_stop;
+                btn = "그만하기";
                 btnPi = broadcast(c, WidgetActionReceiver.STOP, 14, flags);
             }
         }
-        v.setViewVisibility(R.id.loc_row, locText == null ? View.GONE : View.VISIBLE);
-        if (locText != null) {
-            v.setTextViewText(R.id.loc_row, locText);
-            v.setOnClickPendingIntent(R.id.loc_row, locPi);
+        // "위치공유 중" 칩은 실제로 공유 중일 때만 (ADR 72)
+        v.setViewVisibility(R.id.loc_row, chip == null ? View.GONE : View.VISIBLE);
+        if (chip != null) {
+            v.setTextViewText(R.id.loc_row, chip);
+            v.setInt(R.id.loc_row, "setBackgroundResource", green ? R.drawable.widget_chip_green : R.drawable.widget_chip_neutral);
+            v.setTextColor(R.id.loc_row, ContextCompat.getColor(c, green ? R.color.widget_green_ink : R.color.widget_ink));
+            v.setOnClickPendingIntent(R.id.loc_row, chipPi);
         }
-        v.setTextViewText(R.id.btn_open, btn);
+        v.setImageViewResource(R.id.btn_open_icon, btnIcon);
+        v.setTextViewText(R.id.btn_open_text, btn);
         v.setOnClickPendingIntent(R.id.btn_open, btnPi);
     }
 
@@ -138,13 +158,13 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         if (text == null) {
             v.setViewVisibility(iconId, View.GONE);
             v.setTextViewText(statusId, "아직 안 알렸어요");
-            v.setTextViewTextSize(statusId, android.util.TypedValue.COMPLEX_UNIT_SP, large ? 15 : 13); // 카드 폭에 한 줄로
+            v.setTextViewTextSize(statusId, android.util.TypedValue.COMPLEX_UNIT_SP, large ? 14 : 12); // 카드 폭에 한 줄로
             v.setTextViewText(timeId, "");
             v.setTextColor(statusId, ContextCompat.getColor(c, R.color.widget_sub));
             return;
         }
         String icon = WidgetStore.icon(c, role);
-        // 이모지는 카드 오른쪽 위 동그라미 안에 (ADR 71)
+        // 이모지는 이름 옆에 작게 (ADR 72)
         v.setViewVisibility(iconId, icon.isEmpty() ? View.GONE : View.VISIBLE);
         v.setTextViewText(iconId, icon);
         v.setTextViewText(statusId, text);
