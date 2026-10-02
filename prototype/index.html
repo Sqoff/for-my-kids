@@ -610,6 +610,9 @@
     body.theme-white .family-hero .fh-person.is-mom { background: #FDEEF0; }
     body.theme-white .family-hero .fh-person.is-dad { background: #EAF3FE; }
     body.theme-white .family-hero .fh-avatar { background: #FFFFFF; }
+    /* 엄마 토끼 · 아빠 곰 (ADR 83): 글자 옆 작은 캐릭터. 흰 토끼가 흰 바탕에 묻히지 않게 아주 옅은 윤곽 */
+    .char-ic { display: inline-block; width: 1.4em; height: 1.4em; vertical-align: -0.34em; object-fit: contain; filter: drop-shadow(0 0 0.6px rgba(0,0,0,0.28)); pointer-events: none; -webkit-user-drag: none; }
+    .char-ic.is-btn { width: 30px; height: 30px; vertical-align: 0; }
     /* 홈 사람 카드: 동그라미 안에 지금 상태 이모지 (ADR 82) — 캐릭터는 위의 뽀마 하나만 */
     .family-hero .fh-avatar.is-status { font-size: 21px; line-height: 1; }
     .family-hero .fh-avatar.is-status.is-stale { opacity: 0.45; }
@@ -924,6 +927,7 @@
     .fs-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .fs-role { padding: 22px 0; border-radius: 18px; background: #FFFFFF; border: 1.5px solid #E5E8EB; font-size: 16px; font-weight: 800; color: #191F28; display: flex; flex-direction: column; align-items: center; gap: 6px; }
     .fs-role span { font-size: 40px; }
+    .fs-role .char-ic.is-role { width: 56px; height: 56px; vertical-align: 0; }
     .fs-code { font-size: 34px; font-weight: 900; letter-spacing: 4px; color: #3182F6; background: #FFFFFF; border-radius: 18px; padding: 18px 0; font-family: ui-monospace, monospace; user-select: text; -webkit-user-select: text; }
     .fs-input { font-size: 26px; font-weight: 900; letter-spacing: 3px; text-align: center; padding: 14px; border-radius: 16px; border: 1.5px solid #E5E8EB; background: #FFFFFF; color: #191F28; outline: none; user-select: text; -webkit-user-select: text; font-family: ui-monospace, monospace; }
     .fs-input:focus { border-color: #3182F6; }
@@ -1912,10 +1916,10 @@
       <!-- View Layout Selector -->
       <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
         <button id="viewMomBtn" onclick="setViewMode('mom')" class="px-2.5 py-1 rounded-lg font-medium bg-rose-600 text-white shadow">
-          👩 엄마(지은) 앱
+          <img class="char-ic" src="assets/char_mom.png" alt=""> 엄마(지은) 앱
         </button>
         <button id="viewDadBtn" onclick="setViewMode('dad')" class="px-2.5 py-1 rounded-lg font-medium text-slate-400 hover:text-slate-200">
-          👨 아빠(민수) 앱
+          <img class="char-ic" src="assets/char_dad.png" alt=""> 아빠(민수) 앱
         </button>
         <button id="viewDualBtn" onclick="setViewMode('dual')" class="px-2.5 py-1 rounded-lg font-medium text-slate-400 hover:text-slate-200">
           👥 2인 시뮬레이터
@@ -1971,7 +1975,7 @@
       <div class="p-3 bg-slate-950/80 border border-amber-500/40 rounded-2xl flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl shrink-0" id="ruleSettingsProfileAvatar">
-            👩
+            <img class="char-ic" src="assets/char_mom.png" alt="">
           </div>
           <div class="flex flex-col">
             <div class="flex items-center gap-1.5">
@@ -2276,8 +2280,8 @@
             <div class="flex items-center gap-2">
               <span class="text-[11px] text-slate-400">지급 대상:</span>
               <select id="penaltyInput_target" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 outline-none focus:border-amber-400">
-                <option value="mom">👩 엄마(지은) 인벤토리</option>
-                <option value="dad">👨 아빠(민수) 인벤토리</option>
+                <option value="mom">🐰 엄마(지은) 인벤토리</option>
+                <option value="dad">🐻 아빠(민수) 인벤토리</option>
                 <option value="both">👥 부부 모두에게 1장씩</option>
               </select>
             </div>
@@ -2300,8 +2304,8 @@
             <span class="font-bold text-slate-200 whitespace-nowrap">등록된 패널티권</span>
             <div class="flex items-center gap-1 text-[11px] whitespace-nowrap">
               <button onclick="filterPenaltyList('all')" id="pFilter_all" class="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold transition">전체</button>
-              <button onclick="filterPenaltyList('mom')" id="pFilter_mom" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 transition">👩 엄마 (${STATE.users.mom.penalties.length}장)</button>
-              <button onclick="filterPenaltyList('dad')" id="pFilter_dad" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 transition">👨 아빠 (${STATE.users.dad.penalties.length}장)</button>
+              <button onclick="filterPenaltyList('mom')" id="pFilter_mom" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 transition"><img class="char-ic" src="assets/char_mom.png" alt=""> 엄마 (${STATE.users.mom.penalties.length}장)</button>
+              <button onclick="filterPenaltyList('dad')" id="pFilter_dad" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 transition"><img class="char-ic" src="assets/char_dad.png" alt=""> 아빠 (${STATE.users.dad.penalties.length}장)</button>
             </div>
           </div>
 
@@ -2384,8 +2388,8 @@
           </div>
         </div>
 
-        <!-- Gender & Avatar Toggle -->
-        <div class="flex flex-col gap-1.5">
+        <!-- Gender & Avatar Toggle (ADR 83: 캐릭터는 역할로 정해져서 숨김) -->
+        <div class="flex flex-col gap-1.5" style="display:none">
           <label class="text-xs font-bold text-slate-300">성별 및 아바타</label>
           <div class="grid grid-cols-2 gap-2">
             <button type="button" id="profileBtnGenderFemale" onclick="selectProfileGender('female')" class="py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-rose-500/20 border-rose-400 text-rose-300">
@@ -2473,7 +2477,7 @@
       <!-- Selected Penalty Preview Card -->
       <div class="bg-slate-900 tint-soft border border-pink-500/50 rounded-2xl p-3.5 flex flex-col gap-2">
         <div class="flex items-center justify-between text-[11px] text-pink-300 font-bold">
-          <span id="penaltyPromptFromToText">👩 엄마 ➔ 👨 아빠</span>
+          <span id="penaltyPromptFromToText"><img class="char-ic" src="assets/char_mom.png" alt=""> 엄마 ➔ <img class="char-ic" src="assets/char_dad.png" alt=""> 아빠</span>
           <span class="text-[10px] px-2 py-0.5 rounded bg-pink-500/30 text-pink-200">⚡ 벌칙권 발동</span>
         </div>
         <div class="flex items-center gap-3">
@@ -2637,8 +2641,8 @@
         <div>
           <label class="block text-[11px] font-bold text-slate-300 mb-1">담당자</label>
           <select id="taskInput_assignee" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none focus:border-emerald-400">
-            <option value="mom">👩 엄마 (지은)</option>
-            <option value="dad">👨 아빠 (민수)</option>
+            <option value="mom">🐰 엄마 (지은)</option>
+            <option value="dad">🐻 아빠 (민수)</option>
           </select>
         </div>
         <div>
@@ -2818,10 +2822,10 @@
               <span>👥 부부 함께</span>
             </button>
             <button type="button" onclick="selectRewardRecipient('mom')" id="recipBtn_mom" class="py-2 px-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 bg-slate-950 border-slate-700 text-slate-400 hover:border-rose-500/50 hover:text-rose-300 transition">
-              <span>👩 엄마에게</span>
+              <span><img class="char-ic" src="assets/char_mom.png" alt=""> 엄마에게</span>
             </button>
             <button type="button" onclick="selectRewardRecipient('dad')" id="recipBtn_dad" class="py-2 px-2.5 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 bg-slate-950 border-slate-700 text-slate-400 hover:border-sky-500/50 hover:text-sky-300 transition">
-              <span>👨 아빠에게</span>
+              <span><img class="char-ic" src="assets/char_dad.png" alt=""> 아빠에게</span>
             </button>
           </div>
         </div>
@@ -3493,7 +3497,7 @@
       <div class="phone-top-label mb-2 flex items-center justify-between w-[360px] px-2 text-xs">
         <span class="flex items-center gap-1.5 font-bold text-rose-300">
           <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
-          👩 지은의 스마트폰 (엄마)
+          <img class="char-ic" src="assets/char_mom.png" alt=""> 지은의 스마트폰 (엄마)
         </span>
         <span class="text-slate-400 text-[11px]">뽀마키즈 Mobile App</span>
       </div>
@@ -3533,7 +3537,7 @@
               <span id="momNotifBadge" class="hidden absolute top-1 right-1 min-w-[14px] h-[14px] bg-rose-500 text-white rounded-full text-[8px] font-black flex items-center justify-center px-0.5 animate-pulse">0</span>
             </button>
             <button onclick="openUserProfileModal('mom')" class="w-8 h-8 rounded-full bg-pink-500/20 border border-pink-400/40 hover:border-pink-300 flex items-center justify-center text-sm shadow-sm transition active:scale-95" title="프로필 & 설정">
-              👩
+              <img class="char-ic is-btn" src="assets/char_mom.png" alt="">
             </button>
           </div>
         </div>
@@ -3667,7 +3671,7 @@
       <div class="phone-top-label mb-2 flex items-center justify-between w-[360px] px-2 text-xs">
         <span class="flex items-center gap-1.5 font-bold text-sky-300">
           <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
-          👨 민수의 스마트폰 (아빠)
+          <img class="char-ic" src="assets/char_dad.png" alt=""> 민수의 스마트폰 (아빠)
         </span>
         <span class="text-slate-400 text-[11px]">뽀마키즈 Mobile App</span>
       </div>
@@ -3707,7 +3711,7 @@
               <span id="dadNotifBadge" class="hidden absolute top-1 right-1 min-w-[14px] h-[14px] bg-rose-500 text-white rounded-full text-[8px] font-black flex items-center justify-center px-0.5 animate-pulse">0</span>
             </button>
             <button onclick="openUserProfileModal('dad')" class="w-8 h-8 rounded-full bg-sky-500/20 border border-sky-400/40 hover:border-sky-300 flex items-center justify-center text-sm shadow-sm transition active:scale-95" title="프로필 & 설정">
-              👨
+              <img class="char-ic is-btn" src="assets/char_dad.png" alt="">
             </button>
           </div>
         </div>
@@ -4960,8 +4964,8 @@
         <div class="fs-title">나는 누구인가요?</div>
         <div class="fs-sub">배우자는 코드로 참여하면 반대 역할로 자동 연결돼요.</div>
         <div class="fs-roles">
-          <button type="button" class="fs-role" onclick="doCreateFamily('mom')"><span>👩</span>엄마</button>
-          <button type="button" class="fs-role" onclick="doCreateFamily('dad')"><span>👨</span>아빠</button>
+          <button type="button" class="fs-role" onclick="doCreateFamily('mom')"><span><img class="char-ic is-role" src="assets/char_mom.png" alt=""></span>엄마</button>
+          <button type="button" class="fs-role" onclick="doCreateFamily('dad')"><span><img class="char-ic is-role" src="assets/char_dad.png" alt=""></span>아빠</button>
         </div>
         <button type="button" class="fs-link" onclick="showFamilySetup()">‹ 뒤로</button>
         <div id="fsMsg" class="fs-msg"></div>`;
@@ -5121,8 +5125,8 @@
       // Update button labels with live counts
       const bMom = document.getElementById('pFilter_mom');
       const bDad = document.getElementById('pFilter_dad');
-      if (bMom) bMom.innerText = `👩 엄마 (${STATE.users.mom.penalties.length}장)`;
-      if (bDad) bDad.innerText = `👨 아빠 (${STATE.users.dad.penalties.length}장)`;
+      if (bMom) bMom.innerHTML = `${charImg('mom')} 엄마 (${STATE.users.mom.penalties.length}장)`;
+      if (bDad) bDad.innerHTML = `${charImg('dad')} 아빠 (${STATE.users.dad.penalties.length}장)`;
 
       if (items.length === 0) {
         container.innerHTML = `
@@ -5437,10 +5441,10 @@
           <div class="flex items-center gap-1.5 pt-2 border-t border-slate-800/80">
             <span class="text-[10px] text-slate-400">지급:</span>
             <button onclick="addAiRecommendedPenalty('${item.id}', 'mom')" class="flex-1 py-1.5 bg-slate-950 tint-soft hover:bg-slate-800 border border-rose-800/60 text-rose-200 rounded-xl font-bold text-[10px] shadow transition flex items-center justify-center gap-1">
-              <span>+ 👩 엄마에게</span>
+              <span>+ <img class="char-ic" src="assets/char_mom.png" alt=""> 엄마에게</span>
             </button>
             <button onclick="addAiRecommendedPenalty('${item.id}', 'dad')" class="flex-1 py-1.5 bg-slate-950 tint-soft hover:bg-slate-800 border border-sky-800/60 text-sky-200 rounded-xl font-bold text-[10px] shadow transition flex items-center justify-center gap-1">
-              <span>+ 👨 아빠에게</span>
+              <span>+ <img class="char-ic" src="assets/char_dad.png" alt=""> 아빠에게</span>
             </button>
           </div>
         </div>
@@ -5906,7 +5910,7 @@
       const deadlineInput = document.getElementById('taskInput_deadline');
 
       if (assigneeSelect) {
-        assigneeSelect.innerHTML = `<option value="mom">👩 ${getDisplayName('mom')}</option><option value="dad">👨 ${getDisplayName('dad')}</option>`;
+        assigneeSelect.innerHTML = `<option value="mom">🐰 ${getDisplayName('mom')}</option><option value="dad">🐻 ${getDisplayName('dad')}</option>`;
         if (typeof getDevice === 'function' && getDevice()) defaultAssignee = myRole();
       }
       if (taskId) {
@@ -6315,7 +6319,7 @@
       const pName = document.getElementById('ruleSettingsProfileName');
       const pAvatar = document.getElementById('ruleSettingsProfileAvatar');
       if (pName && activeUser) pName.innerText = `${activeUser.name} (${activeUser.role})`;
-      if (pAvatar && activeUser) pAvatar.innerText = activeUser.avatar;
+      if (pAvatar && activeUser) pAvatar.innerHTML = charImg(userRole(activeUser), 'is-btn');
 
       // Update Theme buttons UI
       setAppTheme(STATE.theme || 'white', false);
@@ -6625,11 +6629,11 @@
       if (gender === 'female') {
         if (btnFemale) btnFemale.className = 'py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-rose-500/20 border-rose-400 text-rose-300 shadow';
         if (btnMale) btnMale.className = 'py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-950 border-slate-700 text-slate-400';
-        if (avatarIcon) avatarIcon.innerText = '👩';
+        if (avatarIcon) avatarIcon.innerHTML = charImg(currentEditingProfileUser, 'is-btn');
       } else {
         if (btnFemale) btnFemale.className = 'py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-950 border-slate-700 text-slate-400';
         if (btnMale) btnMale.className = 'py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 bg-sky-500/20 border-sky-400 text-sky-300 shadow';
-        if (avatarIcon) avatarIcon.innerText = '👨';
+        if (avatarIcon) avatarIcon.innerHTML = charImg(currentEditingProfileUser, 'is-btn');
       }
     }
 
@@ -6717,14 +6721,14 @@
       const momAvatarEl = document.getElementById('momHeaderAvatarDisplay');
       if (momNameEl) momNameEl.innerText = mom.name;
       if (momRoleEl) momRoleEl.innerText = `(${mom.role})`;
-      if (momAvatarEl) momAvatarEl.innerText = mom.avatar;
+      if (momAvatarEl) momAvatarEl.innerHTML = charImg('mom');
 
       const dadNameEl = document.getElementById('dadHeaderNameDisplay');
       const dadRoleEl = document.getElementById('dadHeaderRoleDisplay');
       const dadAvatarEl = document.getElementById('dadHeaderAvatarDisplay');
       if (dadNameEl) dadNameEl.innerText = dad.name;
       if (dadRoleEl) dadRoleEl.innerText = `(${dad.role})`;
-      if (dadAvatarEl) dadAvatarEl.innerText = dad.avatar;
+      if (dadAvatarEl) dadAvatarEl.innerHTML = charImg('dad');
 
       const activeKey = (STATE.viewMode === 'dad' ? 'dad' : 'mom');
       const activeUser = STATE.users[activeKey];
@@ -6735,7 +6739,7 @@
       const pName = document.getElementById('ruleSettingsProfileName');
       const pAvatar = document.getElementById('ruleSettingsProfileAvatar');
       if (pName && activeUser) pName.innerText = `${activeUser.name} (${activeUser.role})`;
-      if (pAvatar && activeUser) pAvatar.innerText = activeUser.avatar;
+      if (pAvatar && activeUser) pAvatar.innerHTML = charImg(userRole(activeUser), 'is-btn');
     }
 
     function loadSavedUserProfiles() {
@@ -6849,6 +6853,11 @@
     var COUPLE_STATUSES = [['🏠', '집'], ['🚸', '등원 중'], ['🧒', '하원 중'], ['💼', '일하는 중'], ['🚗', '이동 중'], ['🛒', '장보는 중'], ['🍼', '아이 보는 중'], ['😴', '쉬는 중']];
     var STATUS_STALE_MS = 4 * 3600e3;
     if (!STATE.coupleStatus) STATE.coupleStatus = {};
+    // 🐰🐻 캐릭터 (ADR 83): 역할 자리로 정해짐 — 엄마 = 토끼, 아빠 = 곰
+    function charImg(role, cls) { return `<img class="char-ic${cls ? ' ' + cls : ''}" src="assets/char_${role === 'dad' ? 'dad' : 'mom'}.png" alt="${role === 'dad' ? '곰' : '토끼'}">`; }
+    function userRole(u) { return u === STATE.users.dad ? 'dad' : 'mom'; }
+    function avatarHtml(u) { return charImg(userRole(u)); }
+    function avatarEmoji(role) { return role === 'dad' ? '🐻' : '🐰'; }
     function statusOwner(userKey) { return (typeof getDevice === 'function' && getDevice()) ? myRole() : userKey; }
     function coupleStatusView(role) {
       const st = (STATE.coupleStatus || {})[role];
@@ -7397,7 +7406,7 @@
           <div class="w-full mt-3 bg-white/90 dark:bg-[#16213E]/90 rounded-2xl p-3.5 flex items-center justify-between border border-slate-200/70 dark:border-white/10 shadow-sm">
             <div class="flex items-center gap-2.5">
               <div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-xl">
-                ${spouseKey === 'dad' ? '👨' : '👩'}
+                ${charImg(spouseKey)}
               </div>
               <div class="flex flex-col text-left">
                 <span class="text-[11px] text-[#8B95A1] font-medium">배우자 협력 중</span>
@@ -7755,8 +7764,8 @@
       const who = document.getElementById('eventInput_who');
       who.innerHTML = `
         <option value="both">👨‍👩‍👧 함께</option>
-        <option value="mom">${STATE.users.mom.avatar} ${getDisplayName('mom')}</option>
-        <option value="dad">${STATE.users.dad.avatar} ${getDisplayName('dad')}</option>
+        <option value="mom">🐰 ${getDisplayName('mom')}</option>
+        <option value="dad">🐻 ${getDisplayName('dad')}</option>
       `;
       who.value = ev ? (ev.who || 'both') : 'both';
       eventFormIcon = ev ? (ev.icon || '📌') : '📌';
@@ -8042,12 +8051,12 @@
             </div>
             <div class="grid grid-cols-2 gap-3 text-center">
               <div class="p-3 bg-slate-950/60 rounded-xl border border-white/[0.06]">
-                <span class="text-xs text-slate-400 font-bold block mb-1">👩 엄마</span>
+                <span class="text-xs text-slate-400 font-bold block mb-1"><img class="char-ic" src="assets/char_mom.png" alt=""> 엄마</span>
                 <div class="text-base font-black text-pink-300 font-mono">${momFocus}h 집중</div>
                 <div class="text-[11px] text-slate-400 mt-0.5">할 일 ${momTasks}건 완료</div>
               </div>
               <div class="p-3 bg-slate-950/60 rounded-xl border border-white/[0.06]">
-                <span class="text-xs text-slate-400 font-bold block mb-1">👨 아빠</span>
+                <span class="text-xs text-slate-400 font-bold block mb-1"><img class="char-ic" src="assets/char_dad.png" alt=""> 아빠</span>
                 <div class="text-base font-black text-sky-300 font-mono">${dadFocus}h 집중</div>
                 <div class="text-[11px] text-slate-400 mt-0.5">할 일 ${dadTasks}건 완료</div>
               </div>
@@ -8142,7 +8151,7 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2 font-black text-pink-300 text-sm">
                 <span class="text-base animate-pulse">⚡</span>
-                <span>${spouse.avatar} ${spouse.name}의 페널티권 공격!</span>
+                <span>${avatarHtml(spouse)} ${spouse.name}의 페널티권 공격!</span>
               </div>
               <span class="text-[9px] px-2 py-0.5 rounded-full bg-pink-500/30 text-pink-200 border border-pink-500/40 font-bold">
                 수락 / 방어 선택
@@ -10213,7 +10222,7 @@
         return `
           <div class="quest-banner penalty-card" style="--qb-light:#FFF4E0;--qb-dark:#3D3222;--qb-accent:#D97706;--qb-accent-dark:#FBBF24;">
             <div class="qb-body">
-              <div class="qb-eyebrow">🎫 페널티 부여권${mode === 'mine' ? '' : ` · ${owner.avatar} ${getDisplayName(ownerKey)} 보유`}</div>
+              <div class="qb-eyebrow">🎫 페널티 부여권${mode === 'mine' ? '' : ` · ${charImg(ownerKey)} ${getDisplayName(ownerKey)} 보유`}</div>
               <div class="qb-title">${p.reason === 'dayend' ? `${p.lateName || '배우자'}님이 ${md(p.date)} [${p.taskTitle || '할 일'}]${eulReul(p.taskTitle)} 못 했어요` : `${p.lateName || '배우자'}님이 [${p.taskTitle || '할 일'}] 마감을 넘겼어요`}</div>
               <div class="qb-sub">${p.reason === 'dayend' ? '하루 안에 못 끝낸 할 일' : `${md(p.date)} ${p.deadline || ''} 마감`} · 벌칙을 골라 보내거나 넘어갈 수 있어요</div>
             </div>
@@ -10235,7 +10244,7 @@
           : { light: '#EAF4FD', dark: '#153659', accent: '#0284C7', accentDark: '#38BDF8' };
       const eyebrow = isCooling
         ? `⏳ 쿨타임 ${cooldownRemaining}`
-        : (mode === 'mine' ? '⚡ 상대방에게 사용 가능' : `${owner.avatar} ${owner.name} 보유`);
+        : (mode === 'mine' ? '⚡ 상대방에게 사용 가능' : `${avatarHtml(owner)} ${owner.name} 보유`);
       const sub = isCooling ? `🛡️ 방어권으로 튕겨남 · 48시간 사용 불가` : (p.desc || '');
       const actions = mode === 'mine'
         ? `
@@ -11485,7 +11494,7 @@
       const subTitle = document.getElementById('nudgeTaskSubtitle');
       const warnMsg = document.getElementById('nudgeWarnMsg');
 
-      if (targetTitle) targetTitle.innerText = `${receiver.avatar} ${receiver.name}님에게 가벼운 제스처 보내기`;
+      if (targetTitle) targetTitle.innerHTML = `${charImg(receiverKey)} ${String(receiver.name).replace(/</g, '&lt;')}님에게 가벼운 제스처 보내기`;
       if (subTitle) subTitle.innerText = task ? `대상 과업: [${task.title}]` : '할 일에 대한 피드백을 전달하세요';
       if (warnMsg && task && task.subtasks && task.subtasks.length > 0 && rec) {
         const firstMissing = task.subtasks.find(s => !rec.subtaskDone[s.id]);
@@ -11620,7 +11629,7 @@
       const descEl = document.getElementById('penaltyPromptDesc');
       const modal = document.getElementById('penaltyUsePromptModal');
 
-      if (fromToEl) fromToEl.innerHTML = `${fromUser.avatar} ${fromUser.name} ➔ ${toUser.avatar} ${toUser.name}`;
+      if (fromToEl) fromToEl.innerHTML = `${avatarHtml(fromUser)} ${fromUser.name} ➔ ${avatarHtml(toUser)} ${toUser.name}`;
       if (iconEl) iconEl.innerText = penalty.icon || '⚡';
       if (titleEl) titleEl.innerText = penalty.title;
       if (descEl) descEl.innerText = penalty.desc || '약속된 가사/육아 벌칙 수행';
@@ -13257,11 +13266,11 @@
           <div class="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 flex flex-col gap-1.5">
             <div class="grid grid-cols-2 gap-2">
               <div class="rb-side">
-                <div class="rb-name is-mom">👩 ${momName}</div>
+                <div class="rb-name is-mom"><img class="char-ic" src="assets/char_mom.png" alt=""> ${momName}</div>
                 <div class="rb-val">${totalMomMetric}${unitStr} <span class="is-mom">${momPct}%</span></div>
               </div>
               <div class="rb-side text-right">
-                <div class="rb-name is-dad">${dadName} 👨</div>
+                <div class="rb-name is-dad">${dadName} <img class="char-ic" src="assets/char_dad.png" alt=""></div>
                 <div class="rb-val"><span class="is-dad">${dadPct}%</span> ${totalDadMetric}${unitStr}</div>
               </div>
             </div>
@@ -13324,7 +13333,7 @@
           <div class="bg-slate-900 tint-soft border border-rose-500/30 rounded-2xl p-3 flex flex-col gap-2 shadow">
             <div class="flex items-center justify-between pb-1.5 border-b border-rose-500/20">
               <div class="flex items-center gap-1.5">
-                <span class="text-xl">👩</span>
+                <span class="text-xl"><img class="char-ic" src="assets/char_mom.png" alt=""></span>
                 <div>
                   <div class="font-bold text-rose-300 text-xs whitespace-nowrap">${momName}의 육아 현황</div>
                   <div class="text-[9px] text-slate-400">낮 육아 & 소아과 & 이유식 전담</div>
@@ -13359,7 +13368,7 @@
           <div class="bg-slate-900 tint-soft border border-sky-500/30 rounded-2xl p-3 flex flex-col gap-2 shadow">
             <div class="flex items-center justify-between pb-1.5 border-b border-sky-500/20">
               <div class="flex items-center gap-1.5">
-                <span class="text-xl">👨</span>
+                <span class="text-xl"><img class="char-ic" src="assets/char_dad.png" alt=""></span>
                 <div>
                   <div class="font-bold text-sky-300 text-xs whitespace-nowrap">${dadName}의 육아 현황</div>
                   <div class="text-[9px] text-slate-400">밤 육아 & 목욕 & 설거지/분리수거 전담</div>
