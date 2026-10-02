@@ -582,7 +582,7 @@
     .wx-wind { stroke-dasharray: 60 200; animation: wxWind 1.4s linear infinite; }
     @keyframes wxWind { from { stroke-dashoffset: 260; } to { stroke-dashoffset: 0; } }
     .fh-wx-chip { position: absolute; right: -2px; bottom: -6px; z-index: 3; padding: 3px 8px; border-radius: 99px; background: #fff; color: #4E5968; font-size: 11px; font-weight: 800; box-shadow: 0 2px 8px rgba(0,0,0,.1); white-space: nowrap; pointer-events: auto; }
-    .family-hero .fh-people { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .family-hero .fh-people { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-top: 12px; } /* 긴 상태 문구가 카드를 밀어내지 않게 */
     .family-hero .fh-person { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 18px; }
     .family-hero .fh-person.is-mom { background: rgba(240,68,82,0.12); }
     .family-hero .fh-person.is-dad { background: rgba(49,130,246,0.12); }
@@ -610,6 +610,9 @@
     body.theme-white .family-hero .fh-person.is-mom { background: #FDEEF0; }
     body.theme-white .family-hero .fh-person.is-dad { background: #EAF3FE; }
     body.theme-white .family-hero .fh-avatar { background: #FFFFFF; }
+    /* 엄마 토끼 · 아빠 곰 캐릭터 (ADR 81) — 그림에 흰 동그라미가 들어 있고 귀가 위로 나옴 */
+    .family-hero .fh-avatar.is-char, body.theme-white .family-hero .fh-avatar.is-char { width: 46px; height: 46px; background: transparent; margin: -6px -2px -2px -4px; }
+    .family-hero .fh-avatar.is-char img { width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
 
     /* 📋 오늘의 할 일: 테두리 없는 리스트형 (사람별 그룹 + 행 구분선) */
     .task-group { display: flex; flex-direction: column; }
@@ -6847,7 +6850,7 @@
     function coupleStatusView(role) {
       const st = (STATE.coupleStatus || {})[role];
       const mine = role === statusOwner(STATE.viewMode === 'dad' ? 'dad' : 'mom');
-      if (!st || !st.t) return { cls: 'is-empty', text: mine ? '+ 지금 상태 알리기' : '아직 알리지 않았어요', meta: '' };
+      if (!st || !st.t) return { cls: 'is-empty', text: mine ? '+ 상태 알리기' : '아직 안 알렸어요', meta: '' };
       const age = Date.now() - (st.since || 0);
       const d = new Date(st.since || 0);
       const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -9721,7 +9724,7 @@
                 const cs = coupleStatusView(r);
                 const mine = r === statusOwner(userKey);
                 return `<div class="fh-person is-${r}" onclick="${mine ? 'openStatusSheet()' : 'openLocAskSheet()'}">
-                <div class="fh-avatar">${STATE.users[r].avatar}</div>
+                <div class="fh-avatar is-char"><img src="assets/char_${r}.png" alt="${r === 'mom' ? '엄마 토끼' : '아빠 곰'}" /></div>
                 <div class="min-w-0 flex-1">
                   <div class="fh-person-name">${getDisplayName(r)} · 집중 ${r === 'mom' ? momTodayMin : dadTodayMin}분</div>
                   <div class="fh-st ${cs.cls}">${cs.text}</div>

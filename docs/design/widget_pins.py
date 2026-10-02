@@ -64,3 +64,31 @@ def pin(src, name, ring, fill, face_xy, head_w, scale_k=1.0):
 pin('widget-character-mom-rabbit.png', 'widget_pin_mom', (245, 154, 174, 255), (255, 233, 238, 255), face_xy=(627, 640), head_w=700, scale_k=0.88)
 pin('widget-character-dad-bear.png', 'widget_pin_dad', (127, 176, 245, 255), (227, 238, 254, 255), face_xy=(627, 600), head_w=760)
 print('ok')
+
+
+# ---- 앱 홈 엄마·아빠 카드용 얼굴 (ADR 81): 흰 동그라미 + 얼굴, 귀는 위로 나오게 ----
+APP_ASSETS = r'G:\개발\for-my-kids\prototype\assets'
+
+def avatar(src, name, face_xy, head_w, scale_k=1.0):
+    S = 8
+    W = H = 64 * S
+    cx, cy, R = 32 * S, 38 * S, 25 * S
+    ch = cutout(os.path.join(SRC, src))
+    k = (2 * R * 0.95 / head_w) * scale_k
+    ch = ch.resize((int(ch.width * k), int(ch.height * k)), Image.LANCZOS)
+    fx, fy = int(face_xy[0] * k), int(face_xy[1] * k)
+    layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    layer.paste(ch, (cx - fx, cy + 4 * S - fy), ch)
+    canvas = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    ImageDraw.Draw(canvas).ellipse([cx - R, cy - R, cx + R, cy + R], fill=(255, 255, 255, 255))
+    clip = Image.new('L', (W, H), 0)
+    cd = ImageDraw.Draw(clip)
+    cd.ellipse([cx - R, cy - R, cx + R, cy + R], fill=255)
+    cd.rectangle([0, 0, W, cy - R // 3], fill=255)
+    layer.putalpha(ImageChops.multiply(layer.getchannel('A'), clip))
+    canvas.alpha_composite(layer)
+    canvas.resize((160, 160), Image.LANCZOS).save(os.path.join(APP_ASSETS, name + '.png'), optimize=True)
+
+avatar('widget-character-mom-rabbit.png', 'char_mom', face_xy=(627, 640), head_w=700, scale_k=0.82)
+avatar('widget-character-dad-bear.png', 'char_dad', face_xy=(627, 600), head_w=760, scale_k=0.95)
+print('avatars ok')
