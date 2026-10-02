@@ -81,6 +81,20 @@ public class WidgetBridgePlugin extends Plugin {
         call.resolve();
     }
 
+    /** 🔒 잠금화면 상태 카드 켜기/끄기 (ADR 87) */
+    @PluginMethod
+    public void setLockCard(PluginCall call) {
+        StatusNotification.setEnabled(getContext(), Boolean.TRUE.equals(call.getBoolean("on", true)));
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void getLockCard(PluginCall call) {
+        JSObject o = new JSObject();
+        o.put("on", StatusNotification.enabled(getContext()));
+        call.resolve(o);
+    }
+
     /** 🗺️ 네이버 지도로 열기 (ADR 86) */
     @PluginMethod
     public void openMap(PluginCall call) {

@@ -13,11 +13,13 @@ public class WidgetActionReceiver extends BroadcastReceiver {
     public static final String CANCEL = "com.weparent.bbomakids.LOC_CANCEL";
     public static final String DECLINE = "com.weparent.bbomakids.LOC_DECLINE";
     public static final String STOP = "com.weparent.bbomakids.LOC_STOP_SHARE";
+    public static final String CARD_DISMISSED = "com.weparent.bbomakids.LOCK_CARD_DISMISSED";
     public static final long ASK_TTL_MS = 10L * 60 * 1000; // 답이 없으면 10분 뒤 저절로 끝
 
     @Override
     public void onReceive(Context c, Intent intent) {
         String a = intent.getAction();
+        if (CARD_DISMISSED.equals(a)) { StatusNotification.dismissed(c); return; }
         String role = WidgetStore.role(c);
         if (role == null) {
             Toast.makeText(c, "뽀마키즈 앱을 열어 가족을 먼저 연결해 주세요", Toast.LENGTH_LONG).show();

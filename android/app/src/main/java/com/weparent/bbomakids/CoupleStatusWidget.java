@@ -26,13 +26,14 @@ public class CoupleStatusWidget extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager mgr, int[] ids) {
         for (int id : ids) mgr.updateAppWidget(id, build(context, mgr.getAppWidgetOptions(id)));
+        StatusNotification.update(context); // 30분마다 '4시간 전' 흐림도 카드에 반영
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         // 앱을 업데이트하면 위젯이 옛 모양 그대로 남아 있어서, 새 모양으로 바로 다시 그림
-        if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction())) WidgetStore.refreshAll(context);
+        if (Intent.ACTION_MY_PACKAGE_REPLACED.equals(intent.getAction()) || Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) WidgetStore.refreshAll(context); // 재부팅 뒤 잠금화면 카드도 다시 (ADR 87)
     }
 
     @Override

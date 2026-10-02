@@ -2042,6 +2042,23 @@
         </div>
       </div>
 
+      <!-- 🔒 잠금화면 상태 카드 (ADR 87) — 폰 앱에서만 -->
+      <div id="lockCardSection" class="border-t border-slate-200 dark:border-slate-800 pt-3" style="display:none">
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🔒</span>
+            <h3 class="text-xs font-black theme-text-primary">잠금화면 상태 카드</h3>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="lockCardToggleInput" class="sr-only peer" onchange="toggleLockCard(this.checked)" checked>
+            <div class="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+          </label>
+        </div>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2 leading-relaxed" style="word-break:keep-all">
+          잠금화면 알림 자리에 🐰🐻 둘의 지금 상태를 조용히 띄워 둬요. 소리·진동은 없고, 위치를 주고받는 동안엔 주소도 보여요. 밀어서 지우면 상태가 바뀔 때 다시 나타나요.
+        </p>
+      </div>
+
       <!-- 🔔 BankSalad Style Smart Parenting Nudge Section -->
       <div class="border-t border-slate-200 dark:border-slate-800 pt-3">
         <div class="flex items-center justify-between mb-1.5">
@@ -6279,7 +6296,22 @@
     // --- Rule Settings Modal Logic ---
     let tempThreshold = 5;
 
+    // 🔒 잠금화면 상태 카드 (ADR 87): 이 폰에만 적용되는 설정이라 네이티브에 저장
+    function lockCardBridge() { const W = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge; return W && W.setLockCard ? W : null; }
+    function syncLockCardSection() {
+      const sec = document.getElementById('lockCardSection'), W = lockCardBridge();
+      if (!sec) return;
+      sec.style.display = W ? '' : 'none';
+      if (W) W.getLockCard().then(r => { const i = document.getElementById('lockCardToggleInput'); if (i) i.checked = !!(r && r.on); }).catch(() => {});
+    }
+    function toggleLockCard(on) {
+      const W = lockCardBridge();
+      if (!W) return;
+      W.setLockCard({ on }).catch(() => {});
+      showToast(on ? '🔒 잠금화면에 둘의 상태가 보여요' : '잠금화면 상태 카드를 껐어요');
+    }
     function openRuleSettingsModal() {
+      setTimeout(syncLockCardSection, 0);
       setTimeout(renderRuleModeCards, 0);
       tempThreshold = STATE.settings.angelThreshold;
       updateRuleSettingsModalUI();

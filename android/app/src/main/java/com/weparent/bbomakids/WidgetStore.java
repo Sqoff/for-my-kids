@@ -116,6 +116,7 @@ public final class WidgetStore {
     public static void refreshAll(Context c) {
         refresh(c, CoupleStatusWidget.class);
         refresh(c, CoupleStatusSmallWidget.class); // 2×2 작은 위젯 (ADR 78)
+        StatusNotification.update(c);               // 🔒 잠금화면 상태 카드 (ADR 87)
     }
 
     private static void refresh(Context c, Class<?> provider) {
