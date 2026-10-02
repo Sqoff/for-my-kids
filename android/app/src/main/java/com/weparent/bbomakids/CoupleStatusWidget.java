@@ -160,7 +160,7 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         return PendingIntent.getBroadcast(c, code, new Intent(c, WidgetActionReceiver.class).setAction(action), flags);
     }
 
-    /** 카카오맵 링크로 그 자리 열기 (지도 앱이 없으면 브라우저) */
+    /** 네이버 지도로 그 자리 열기 (앱이 없으면 웹, ADR 86) */
     static PendingIntent mapIntent(Context c, String name, int flags) {
         return mapIntent(c, name, WidgetStore.locLat(c), WidgetStore.locLng(c), 15, flags);
     }
@@ -172,10 +172,7 @@ public class CoupleStatusWidget extends AppWidgetProvider {
 
     private static PendingIntent mapIntent(Context c, String name, String lat, String lng, int code, int flags) {
         if (lat == null || lng == null) return null;
-        String label;
-        try { label = URLEncoder.encode(name, "UTF-8"); } catch (Exception e) { label = "here"; }
-        Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("https://map.kakao.com/link/map/" + label + "," + lat + "," + lng)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        return PendingIntent.getActivity(c, code, i, flags);
+        return PendingIntent.getActivity(c, code, MapLinks.intent(c, name, lat, lng), flags); // 네이버 지도 (ADR 86)
     }
 
     private static void bindRow(Context c, RemoteViews v, String role, int nameId, int iconId, int statusId, int timeId, boolean large) {

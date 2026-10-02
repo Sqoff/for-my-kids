@@ -6940,7 +6940,13 @@
       if (req.state === 'declined' && Date.now() - (req.at || 0) > 30 * 60e3) return null;
       return req;
     }
-    function locMapUrl(name, pos) { return `https://map.kakao.com/link/map/${encodeURIComponent(name)},${pos.lat},${pos.lng}`; }
+    // 🗺️ 네이버 지도 (ADR 86): 폰 앱에선 네이버 지도 앱으로(없으면 웹), 브라우저에선 네이버 지도 웹
+    function locMapUrl(name, pos) { return `https://map.naver.com/p/?c=${pos.lng},${pos.lat},17,0,0,0,dh`; }
+    function locOpenMap(name, lat, lng) {
+      const W = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge;
+      if (W && W.openMap) { W.openMap({ name, lat, lng }).catch(() => window.open(locMapUrl(name, { lat, lng }), '_blank')); return; }
+      window.open(locMapUrl(name, { lat, lng }), '_blank');
+    }
     function renderLocBar() {
       const req = activeLoc();
       if (!req) return '';
@@ -6955,7 +6961,7 @@
           // ↔ 나도 보여주기 (서로 보기도 본인이 눌러야만, ADR 85)
           const backOn = locBackOn();
           const canBack = !backOn && !!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge);
-          return `<div class="loc-bar is-in"><div class="lb-t">📍 ${pos && pos.addr ? esc(pos.addr) : `${spName}님 위치를 받는 중…`}<small>${spName}님이 ${locHm(req.until)}까지 보여줘요${backOn ? ' · 내 위치도 보여주는 중' : ''}</small></div>${pos && pos.lat ? `<a href="${locMapUrl(spName, pos)}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><button type="button">🗺️ 지도</button></a>` : ''}${canBack ? `<button type="button" class="is-ok" onclick="event.stopPropagation(); locShareBack()">↔ 나도</button>` : ''}</div>`;
+          return `<div class="loc-bar is-in"><div class="lb-t">📍 ${pos && pos.addr ? esc(pos.addr) : `${spName}님 위치를 받는 중…`}<small>${spName}님이 ${locHm(req.until)}까지 보여줘요${backOn ? ' · 내 위치도 보여주는 중' : ''}</small></div>${pos && pos.lat ? `<button type="button" onclick="event.stopPropagation(); locOpenMap('${String(spName).replace(/['"<]/g, '')}', ${pos.lat}, ${pos.lng})">🗺️ 지도</button>` : ''}${canBack ? `<button type="button" class="is-ok" onclick="event.stopPropagation(); locShareBack()">↔ 나도</button>` : ''}</div>`;
         }
         if (req.state === 'declined') return `<div class="loc-bar"><div class="lb-t">${spName}님이 지금은 어렵대요<small>이유는 묻지 않아요</small></div></div>`;
       } else if (req.to === me) {
@@ -6963,7 +6969,7 @@
         if (req.state === 'sharing') {
           const bpos = (STATE.coupleLoc || {}).backPos;
           const backOn = locBackOn();
-          return `<div class="loc-bar is-in"><div class="lb-t">📍 ${backOn ? (bpos && bpos.addr ? `${spName}님: ${esc(bpos.addr)}` : `${spName}님 위치를 받는 중…`) : `${spName}님에게 보여주는 중`}<small>${backOn ? '서로 보여주는 중 · ' : ''}${locHm(req.until)}까지 · 끝나면 위치는 지워져요</small></div>${backOn && bpos && bpos.lat ? `<a href="${locMapUrl(spName, bpos)}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><button type="button">🗺️ 지도</button></a>` : ''}<button type="button" onclick="event.stopPropagation(); locStop()">그만</button></div>`;
+          return `<div class="loc-bar is-in"><div class="lb-t">📍 ${backOn ? (bpos && bpos.addr ? `${spName}님: ${esc(bpos.addr)}` : `${spName}님 위치를 받는 중…`) : `${spName}님에게 보여주는 중`}<small>${backOn ? '서로 보여주는 중 · ' : ''}${locHm(req.until)}까지 · 끝나면 위치는 지워져요</small></div>${backOn && bpos && bpos.lat ? `<button type="button" onclick="event.stopPropagation(); locOpenMap('${String(spName).replace(/['"<]/g, '')}', ${bpos.lat}, ${bpos.lng})">🗺️ 지도</button>` : ''}<button type="button" onclick="event.stopPropagation(); locStop()">그만</button></div>`;
         }
       }
       return '';

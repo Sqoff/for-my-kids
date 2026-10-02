@@ -81,6 +81,15 @@ public class WidgetBridgePlugin extends Plugin {
         call.resolve();
     }
 
+    /** 🗺️ 네이버 지도로 열기 (ADR 86) */
+    @PluginMethod
+    public void openMap(PluginCall call) {
+        try {
+            getContext().startActivity(MapLinks.intent(getContext(), call.getString("name"), String.valueOf(call.getDouble("lat")), String.valueOf(call.getDouble("lng"))));
+            call.resolve();
+        } catch (Exception e) { call.reject(e.getMessage()); }
+    }
+
     @PluginMethod
     public void stopShareLocation(PluginCall call) {
         getContext().startService(new Intent(getContext(), LocationShareService.class).setAction(LocationShareService.ACTION_STOP));
