@@ -610,9 +610,12 @@
     body.theme-white .family-hero .fh-person.is-mom { background: #FDEEF0; }
     body.theme-white .family-hero .fh-person.is-dad { background: #EAF3FE; }
     body.theme-white .family-hero .fh-avatar { background: #FFFFFF; }
-    /* 엄마 토끼 · 아빠 곰 캐릭터 (ADR 81) — 그림에 흰 동그라미가 들어 있고 귀가 위로 나옴 */
-    .family-hero .fh-avatar.is-char, body.theme-white .family-hero .fh-avatar.is-char { width: 46px; height: 46px; background: transparent; margin: -6px -2px -2px -4px; }
-    .family-hero .fh-avatar.is-char img { width: 100%; height: 100%; display: block; pointer-events: none; -webkit-user-drag: none; }
+    /* 홈 사람 카드: 동그라미 안에 지금 상태 이모지 (ADR 82) — 캐릭터는 위의 뽀마 하나만 */
+    .family-hero .fh-avatar.is-status { font-size: 21px; line-height: 1; }
+    .family-hero .fh-avatar.is-status.is-stale { opacity: 0.45; }
+    .family-hero .fh-avatar.is-status.is-empty { font-size: 18px; font-weight: 800; color: #8B95A1; }
+    .family-hero .fh-person.is-mom .fh-avatar.is-status.is-mine { color: #F04452; }
+    .family-hero .fh-person.is-dad .fh-avatar.is-status.is-mine { color: #3182F6; }
 
     /* 📋 오늘의 할 일: 테두리 없는 리스트형 (사람별 그룹 + 행 구분선) */
     .task-group { display: flex; flex-direction: column; }
@@ -6850,13 +6853,14 @@
     function coupleStatusView(role) {
       const st = (STATE.coupleStatus || {})[role];
       const mine = role === statusOwner(STATE.viewMode === 'dad' ? 'dad' : 'mom');
-      if (!st || !st.t) return { cls: 'is-empty', text: mine ? '+ 상태 알리기' : '아직 안 알렸어요', meta: '' };
+      if (!st || !st.t) return { cls: mine ? 'is-empty is-mine' : 'is-empty', text: mine ? '+ 상태 알리기' : '아직 안 알렸어요', label: mine ? '상태 알리기' : '아직 안 알렸어요', ic: mine ? '＋' : '…', meta: '' };
       const age = Date.now() - (st.since || 0);
       const d = new Date(st.since || 0);
       const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
       const stale = age > STATUS_STALE_MS;
       const ago = age >= 86400e3 ? `${Math.floor(age / 86400e3)}일 전` : `${Math.floor(age / 3600e3)}시간 전`;
-      return { cls: stale ? 'is-stale' : '', text: `${st.ic || ''} ${String(st.t).replace(/</g, '&lt;')}`.trim(), meta: stale ? ago : `${hm}부터` };
+      const label = String(st.t).replace(/</g, '&lt;');
+      return { cls: stale ? 'is-stale' : '', text: `${st.ic || ''} ${label}`.trim(), label, ic: st.ic || '💬', meta: stale ? ago : `${hm}부터` };
     }
     function openStatusSheet() {
       const me = statusOwner(STATE.viewMode === 'dad' ? 'dad' : 'mom');
@@ -9724,10 +9728,10 @@
                 const cs = coupleStatusView(r);
                 const mine = r === statusOwner(userKey);
                 return `<div class="fh-person is-${r}" onclick="${mine ? 'openStatusSheet()' : 'openLocAskSheet()'}">
-                <div class="fh-avatar is-char"><img src="assets/char_${r}.png" alt="${r === 'mom' ? '엄마 토끼' : '아빠 곰'}" /></div>
+                <div class="fh-avatar is-status ${cs.cls}">${cs.ic}</div>
                 <div class="min-w-0 flex-1">
                   <div class="fh-person-name">${getDisplayName(r)} · 집중 ${r === 'mom' ? momTodayMin : dadTodayMin}분</div>
-                  <div class="fh-st ${cs.cls}">${cs.text}</div>
+                  <div class="fh-st ${cs.cls}">${cs.label}</div>
                   ${cs.meta ? `<div class="fh-st-meta">${cs.meta}</div>` : ''}
                 </div>
               </div>`;
