@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- ADR 72: 크림 바탕 · 장식 지도 · 캐릭터 핀 -->
-    <color name="widget_bg">#FCFBF7EF</color>
+    <color name="widget_bg">#FFFBF7EF</color>
     <color name="widget_ink">#3A3330</color>
     <color name="widget_sub">#9A918A</color>
     <color name="widget_on_solid">#FFFFFF</color>

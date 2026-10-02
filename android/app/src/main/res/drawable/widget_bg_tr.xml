@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp" android:height="40dp" android:viewportWidth="40" android:viewportHeight="40">
+    <group android:scaleX="-1" android:pivotX="20.0">
+        <path android:fillColor="@color/widget_bg" android:pathData="M0.000,40.000 L0.000,40.000 L0.012,29.044 L0.049,25.548 L0.111,23.012 L0.198,20.954 L0.309,19.196 L0.446,17.647 L0.608,16.257 L0.795,14.993 L1.008,13.833 L1.247,12.761 L1.512,11.764 L1.804,10.834 L2.124,9.964 L2.471,9.147 L2.847,8.380 L3.251,7.659 L3.686,6.981 L4.151,6.343 L4.648,5.742 L5.178,5.178 L5.742,4.648 L6.343,4.151 L6.981,3.686 L7.659,3.251 L8.380,2.847 L9.147,2.471 L9.964,2.124 L10.834,1.804 L11.764,1.512 L12.761,1.247 L13.833,1.008 L14.993,0.795 L16.257,0.608 L17.647,0.446 L19.196,0.309 L20.954,0.198 L23.012,0.111 L25.548,0.049 L29.044,0.012 L40.000,0.000 L40,0 L40,40 Z" />
+    </group>
+</vector>
