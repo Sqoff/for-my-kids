@@ -99,7 +99,7 @@ flowchart LR
 |---|---|
 | Firebase 프로젝트 | `bbomakids-beta-21071` (표시명 Bbomakids Beta, Blaze, 예산 알림 설정) |
 | 인증 | 익명 로그인 (기기별 uid) |
-| DB | Firestore `couples/{6자리코드}` — `members[]`, `roleUids{mom,dad}`, `tokens{mom,dad}`(FCM), `items.{목록}.{id}`(항목별 JSON), `counters.*`(증감 숫자), `state.{필드}`(통째 값), `updatedBy` — v2 형식(ADR 42), v1 문서는 자동 이관 |
+| DB | Firestore `couples/{6자리코드}` — `members[]`, `roleUids{mom,dad}`, `tokens{mom,dad}`(FCM), `items.{목록}.{id}`(항목별 JSON), `counters.*`(증감 숫자), `state.{필드}`(통째 값), `updatedBy` — v2 형식(ADR 42), v1 문서는 자동 이관. 저장은 트랜잭션으로 서버 값을 읽고 같은 항목을 상대가 그 사이 고쳤으면 칸(필드) 단위 3-way 병합(ADR 79) |
 | 보안 규칙 | `firestore.rules` — 멤버만 get/update, 목록 조회 금지, 참여는 members에 자기 uid 1개 추가만 허용(최대 4), 삭제 금지 |
 | 서버 함수 | `functions/index.js` (Node 22, asia-northeast3): `spousePush`(가족 문서 변경 시 새 알림을 상대 FCM 토큰으로 발송, 채널 `spouse`), `coupangLink`(Secret `COUPANG_ACCESS_KEY/SECRET_KEY`로 파트너스 딥링크, 값이 `NONE`이면 일반 검색) |
 | 앱 | 첫 화면 `새 가족 만들기 / 초대 코드로 참여하기`, 프로필에 가족 코드 + 공유 버튼, 연결 기기에서는 테스트용 화면 전환 버튼 숨김 |

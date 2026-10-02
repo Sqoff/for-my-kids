@@ -4638,9 +4638,47 @@
       return { upd, after };
     }
 
+    // 🤝 같은 항목 동시 수정 병합 (ADR 79): base = 마지막으로 맞춰 둔 서버 값, local = 내 값, remote = 지금 서버 값.
+    //  칸(필드)마다 바뀐 쪽을 택하고, 같은 칸을 둘 다 바꿨을 때만 내 것. 예) 엄마가 세부 A, 아빠가 세부 B 체크 → 둘 다 체크됨
+    function sameJ(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+    function isPlainObj(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }
+    function merge3(base, local, remote) {
+      if (sameJ(local, base)) return remote;
+      if (sameJ(remote, base) || sameJ(remote, local)) return local;
+      if (isPlainObj(local) && isPlainObj(remote)) {
+        const b = isPlainObj(base) ? base : {};
+        const out = {};
+        new Set(Object.keys(local).concat(Object.keys(remote), Object.keys(b))).forEach(k => {
+          const v = merge3(b[k], local[k], remote[k]);
+          if (v !== undefined) out[k] = v;
+        });
+        return out;
+      }
+      return local;
+    }
+    function merge3Json(baseJ, localJ, remoteJ) {
+      const P = j => { try { return j == null ? undefined : JSON.parse(j); } catch (e) { return undefined; } };
+      return JSON.stringify(merge3(P(baseJ), P(localJ), P(remoteJ)));
+    }
+    // 저장이 진행 중인 칸이면 '저장 전 서버 값'을 기준점으로 (내 변경이 사라져 보이지 않게)
+    function inflightBase(path, fromBase, fallback) {
+      return (FLUSH.busy && FLUSH.base && FLUSH.paths && FLUSH.paths.has(path)) ? fromBase() : fallback;
+    }
+    function applyWholeJson(f, j) {
+      try {
+        const v = JSON.parse(j);
+        if (f.startsWith('u_')) { if (v) SYNC_USER_WHOLE.forEach(uf => { if (v[uf] !== undefined) STATE.users[f.slice(2)][uf] = v[uf]; }); }
+        else if (f === 'pet' && v) { const keep = {}; PET_COUNTER_FIELDS.forEach(k => { keep[k] = STATE.pet[k]; }); STATE.pet = { ...v, ...keep }; }
+        else if (v !== null) STATE[f] = v;
+        return true;
+      } catch (e) { return false; }
+    }
+
+    var FLUSH = { busy: false, again: false };
     function flushSync() {
       saveLocalState();
       if (!FB.ready || !FB.ref || !window.firebase) return;
+      if (FLUSH.busy) { FLUSH.again = true; return; }
       const { upd, after } = buildUpdate();
       if (!Object.keys(upd).length) return;
       upd.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
@@ -4648,7 +4686,38 @@
       const prev = FB.meta;
       FB.meta = { ...syncMeta(), items: after.items, whole: after.whole, counters: after.counters };
       saveLocalState();
-      FB.ref.update(upd).catch(err => { console.warn('sync fail', err); FB.meta = prev; saveLocalState(); });
+      FLUSH.busy = true;
+      FLUSH.base = prev; FLUSH.paths = new Set(Object.keys(upd)); // 저장이 끝나기 전에 온 상대 변경은 이 기준으로 합침
+      const finish = () => { FLUSH.busy = false; FLUSH.base = null; FLUSH.paths = null; if (FLUSH.again) { FLUSH.again = false; scheduleSync(); } };
+      const fail = err => { console.warn('sync fail', err); FB.meta = prev; saveLocalState(); finish(); };
+      const plain = () => FB.ref.update(upd).then(finish, fail);
+      if (navigator.onLine === false || !FB.db || !FB.db.runTransaction) { plain(); return; }
+      // 서버의 지금 값을 읽고, 그 사이 상대가 같은 항목을 고쳤으면 칸 단위로 합쳐서 저장
+      FB.db.runTransaction(async tx => {
+        const snap = await tx.get(FB.ref);
+        const data = snap.data() || {};
+        const out = Object.assign({}, upd), fixes = [];
+        Object.keys(upd).forEach(path => {
+          const val = upd[path];
+          if (typeof val !== 'string') return;
+          let m, server, base;
+          if ((m = path.match(/^items\.([^.]+)\.(.+)$/))) { server = ((data.items || {})[m[1]] || {})[m[2]]; base = ((prev && prev.items[m[1]]) || {})[m[2]]; }
+          else if ((m = path.match(/^state\.(.+)$/))) { server = (data.state || {})[m[1]]; base = prev && prev.whole[m[1]]; }
+          else return;
+          if (server === undefined || base === undefined || server === base || server === val) return;
+          const merged = merge3Json(base, val, server);
+          out[path] = merged;
+          fixes.push({ path, m, val, merged });
+        });
+        tx.update(FB.ref, out);
+        return fixes;
+      }).then(() => {
+        finish(); // 합쳐진 값은 곧 오는 서버 스냅샷으로 화면에 반영됨
+      }).catch(err => {
+        // 트랜잭션이 안 되면(연결 불안정 등) 예전처럼 바로 저장
+        console.warn('sync tx fail → plain', err && err.code);
+        plain();
+      });
     }
     setInterval(() => { if (FB.ready) flushSync(); }, 5000);
 
@@ -4674,7 +4743,11 @@
         const local = takeAll ? {} : listLocalMap(L);
         const merged = { ...remote };
         if (!takeAll) {
-          Object.keys(local).forEach(k => { if (local[k] !== sent[k]) merged[k] = local[k]; });     // 내가 고친/추가한 것
+          Object.keys(local).forEach(k => {                                                           // 내가 고친/추가한 것
+            const base = inflightBase('items.' + L.coll + '.' + k, () => (FLUSH.base.items[L.coll] || {})[k], sent[k]);
+            if (local[k] === base) return;
+            merged[k] = (k in remote && base !== undefined && remote[k] !== base) ? merge3Json(base, local[k], remote[k]) : local[k]; // 상대도 고쳤으면 칸 단위로 합침 (ADR 79)
+          });
           Object.keys(sent).forEach(k => { if (!(k in local)) delete merged[k]; });                 // 내가 지운 것
         }
         const before = JSON.stringify(L.get());
@@ -4699,16 +4772,11 @@
         const r = st[f];
         if (r === undefined) return;
         const local = f.startsWith('u_') ? userWholeJson(f.slice(2)) : wholeJson(f);
-        const pending = !takeAll && M.whole[f] !== undefined && local !== M.whole[f];
-        if (!pending && r !== local) {
-          try {
-            const v = JSON.parse(r);
-            if (f.startsWith('u_')) { if (v) SYNC_USER_WHOLE.forEach(uf => { if (v[uf] !== undefined) STATE.users[f.slice(2)][uf] = v[uf]; }); }
-            else if (f === 'pet' && v) { const keep = {}; PET_COUNTER_FIELDS.forEach(k => { keep[k] = STATE.pet[k]; }); STATE.pet = { ...v, ...keep }; }
-            else if (v !== null) STATE[f] = v;
-            changed = true;
-          } catch (e) {}
-        }
+        const wbase = inflightBase('state.' + f, () => FLUSH.base.whole[f], M.whole[f]);
+        const pending = !takeAll && wbase !== undefined && local !== wbase;
+        // 내 변경이 남아 있는데 상대도 바꿨으면 칸 단위로 합침 (ADR 79)
+        const target = !pending ? r : (r !== wbase ? merge3Json(wbase, local, r) : null);
+        if (target !== null && target !== local && applyWholeJson(f, target)) changed = true;
         M.whole[f] = r;
       });
       // 숫자: 서버 값 + 아직 못 보낸 내 증감
