@@ -861,6 +861,18 @@
     .gd-chapters { display: flex; flex-wrap: wrap; gap: 6px; }
     .gd-chapters span { font-size: 12px; font-weight: 700; color: #333D4B; background: #F2F4F6; padding: 6px 10px; border-radius: 99px; }
     .gd-sea { position: relative; height: 96px; border-radius: 16px; background: #0B1530; overflow: hidden; }
+    /* 가이드: 홈 화면 위젯 미리보기 (ADR 84) */
+    .gd-widget { background: #FBF7EF; border-radius: 22px; padding: 12px 14px 14px; border: 1px solid #EFE8DA; color: #3A3330; }
+    .gd-widget .gw-head { font-size: 13px; font-weight: 700; }
+    .gd-widget .gw-people { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 10px; }
+    .gd-widget .gw-p { display: flex; flex-direction: column; align-items: center; }
+    .gd-widget .gw-p img { width: 40px; height: 40px; }
+    .gd-widget .gw-card { margin-top: -2px; background: #fff; border-radius: 12px; padding: 5px 10px; text-align: center; font-size: 13px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+    .gd-widget .gw-card b { display: block; font-weight: 800; white-space: nowrap; }
+    .gd-widget .gw-n { font-size: 11px; font-weight: 700; } .gd-widget .gw-n.is-mom { color: #E2668A; } .gd-widget .gw-n.is-dad { color: #4E86D9; }
+    .gd-widget .gw-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; font-weight: 700; text-align: center; }
+    .gd-widget .gw-btns span { background: #ECE8E1; border-radius: 999px; padding: 8px 0; }
+    .gd-widget .gw-btns span.is-lav { background: #E4DEFC; color: #4B3FA8; }
     .gd-sea > svg { position: absolute; left: 0; bottom: 0; width: 200%; height: 48px; fill: #24417E; animation: bsWave 6s linear infinite; }
     .gd-sea-star { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #E8EEFF; animation: bsTwinkle 2.8s ease-in-out infinite; }
     .gd-sea-moon { position: absolute; top: 12px; right: 18px; width: 22px; height: 22px; border-radius: 50%; box-shadow: -5px 3px 0 0 #F4E9C9; }
@@ -13552,6 +13564,14 @@
         { chapter: '홈', title: '배우자 할 일엔 🤝 대신 돕기', desc: '배우자 할 일은 <b>대신 돕기</b>로 도와줄 수 있어요. 배우자가 끝낸 일의 <b>완료 💖</b>를 누르면 고마워요가 가요.', tab: 'home', target: '.task-help-pill', demo: 'tap' },
         { chapter: '홈', title: '할 일 추가 & 사람별 보기', desc: '이름 버튼으로 한 사람 것만 볼 수 있고, 바로 위 <b>+ 추가</b>로 매일 루틴이나 1회성 할 일을 만들어요.', tab: 'home', target: '[onclick^="filterTodoTab"]', parent: 1 },
         { chapter: '홈', title: '알림을 누르면 바로 이동', desc: '배우자가 무언가 하면 🔔에 알림이 와요. 알림을 누르면 <b>그 화면으로 바로</b> 가요.', tab: 'home', target: '#__ROLE__NotificationButton', demo: 'tap' },
+        { chapter: '부부 상태', title: '지금 뭐 해요? 내 상태 알리기', desc: '내 카드를 누르면 <b>🏠 집 · 💼 일하는 중 · 🚗 이동 중</b> 같은 상태를 골라 알릴 수 있어요. 직접 써도 돼요. 배우자 폰과 위젯에 바로 보이고, 4시간이 지나면 흐려져요.', tab: 'home', target: '#__ROLE__AppBody .fh-person.is-__ROLE__', demo: 'tap' },
+        { chapter: '부부 상태', title: '📍 위치는 물어볼 때만', desc: '배우자 카드를 누르면 <b>위치 물어보기</b>예요. 배우자가 <b>15분 보여주기</b>를 눌러야만 정확한 위치(주소·지도)가 보이고, 이유는 묻지 않아요. 15분이 지나면 위치는 지워져요.', tab: 'home', target: '#__ROLE__AppBody .fh-person.is-__SPOUSE__', demo: 'tap' },
+        { chapter: '부부 상태', title: '📲 홈 화면 위젯', desc: '앱을 열지 않아도 둘의 상태가 보여요. 내 카드 → 상태 창의 <b>📲 위젯</b> 버튼, 또는 홈 화면을 꾹 눌러 <b>위젯 → 뽀마키즈 → 부부 상태</b>로 추가해요. 크게(4×3)·작게(2×2) 두 가지예요.', tab: 'home', center: true,
+          extra: `<div class="gd-widget">
+            <div class="gw-head">🗺️ 지금, 우리 가족은</div>
+            <div class="gw-people">${['mom', 'dad'].map(r => `<div class="gw-p"><img src="assets/char_${r}.png" alt=""><div class="gw-card"><span class="gw-n is-${r}">${r === 'mom' ? '엄마' : '아빠'}</span><b>${r === 'mom' ? '😴 쉬는 중' : '💼 일하는 중'}</b></div></div>`).join('')}</div>
+            <div class="gw-btns"><span>📍 위치 물어보기</span><span class="is-lav">상태 바꾸기</span></div>
+          </div>` },
         { chapter: '퀘스트', title: '퀘스트는 옆으로 넘겨보세요', desc: '큰 카드를 <b>옆으로 넘기면</b> 톡톡 진동과 함께 다음 퀘스트가 나와요. 모두 <b>자동으로</b> 집계돼요.', tab: 'quest', target: '.quest-carousel', demo: 'carousel' },
         { chapter: '퀘스트', title: '누르면 달성 방법이 보여요', desc: '제목만 봐도 할 일이 보이고, 누르면 <b>무엇을 하면 올라가는지</b> 단계별로 알려줘요.', tab: 'quest', target: '.theme-quest-card', demo: 'tap' },
         { chapter: '퀘스트', title: '숨겨진 퀘스트', desc: '퀘스트를 하나 달성할 때마다 <b>새 퀘스트가 1개씩</b> 열려요. 포인트로 바로 열 수도 있어요.', tab: 'quest', target: '.quest-locked-card' },
@@ -13612,7 +13632,7 @@
 
     function guideFindTarget(step, root) {
       if (!step.target) return null;
-      const sel = step.target.replace(/__ROLE__/g, myRole());
+      const sel = step.target.replace(/__ROLE__/g, myRole()).replace(/__SPOUSE__/g, myRole() === 'dad' ? 'mom' : 'dad');
       const list = [...root.querySelectorAll(sel), ...document.querySelectorAll(sel)];
       let el = list.find(e => e.offsetParent !== null && e.getBoundingClientRect().width > 0);
       if (!el) return null;
