@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd G:/개발/for-my-kids/android/app/src/main && sed -i 's/    private static String hhmm(long ms) {/    static String hhmm(long ms) {/; s/    private static String ago(long ms) {/    static S...",
+  "error": "Exit code 2\n/usr/bin/bash: -c: line 100: unexpected EOF while looking for matching `''",
+  "timestamp": "2026-10-02T03:52:04.737Z",
+  "retry_count": 1
+}

@@ -2673,13 +2673,13 @@
   <!-- ⚠️ Subtask Incomplete Warning Modal -->
   <div id="subtaskWarningModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
     <div class="bg-slate-900 border-2 border-amber-500 rounded-3xl p-5 md:p-6 max-w-sm w-full shadow-2xl relative text-slate-100 animate-dialog flex flex-col gap-3">
-      <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-2xl mx-auto animate-bounce">
+      <div id="warningIcon" class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-2xl mx-auto animate-bounce">
         ⚠️
       </div>
       <div class="text-center">
-        <h3 class="text-base font-black text-amber-300">아직 안 한 항목이 있어요</h3>
+        <h3 id="warningHeading" class="text-base font-black text-amber-300">아직 안 한 항목이 있어요</h3>
         <p class="text-xs text-slate-300 mt-1">
-          <strong id="warningTaskTitle" class="text-white">아이 목욕</strong> · 한 항목은 눌러서 체크하세요
+          <strong id="warningTaskTitle" class="text-white">아이 목욕</strong> · <span id="warningSubText">한 항목은 눌러서 체크하세요</span>
         </p>
       </div>
 
@@ -2689,14 +2689,15 @@
       </div>
 
       <p id="warningPassNote" class="text-[11px] text-slate-400 text-center leading-relaxed">
-        빠진 채로 완료하면 <span class="text-amber-500 font-bold">배우자에게 빠진 항목이 알림</span>으로 가요
+        빠진 채로 완료하면 <span id="warningPassWho" class="text-amber-500 font-bold">배우자에게 빠진 항목이 알림</span>으로 가요
       </p>
 
       <div class="flex flex-col gap-2 pt-1">
+        <button id="warningAllBtn" type="button" onclick="checkAllWarningSubtasks()" class="hidden w-full py-2.5 bg-emerald-500 hover:brightness-110 text-white rounded-xl font-bold text-xs shadow-lg transition preserve-white">✓ 전부 다 했어요</button>
         <button id="warningPrimaryBtn" onclick="confirmIncompleteTaskPass()" class="w-full py-2.5 bg-amber-500 hover:brightness-110 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center justify-center gap-1 preserve-white">
           <span>⚠️ 빠진 채로 완료</span>
         </button>
-        <button onclick="closeSubtaskWarningModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-medium text-xs transition">
+        <button id="warningCancelBtn" onclick="closeSubtaskWarningModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-medium text-xs transition">
           마저 할게요
         </button>
       </div>
@@ -6800,16 +6801,16 @@
         <div class="status-chips">${COUPLE_STATUSES.map(([ic, t], i) => `<button type="button" class="status-chip ${cur === t ? 'is-on' : ''}" onclick="setMyStatus(${i})">${ic} ${t}</button>`).join('')}</div>
         <div class="gs-label">직접 쓰기</div>
         <div class="gs-row" style="margin-top:0"><input id="statusCustomInput" class="gs-input" maxlength="10" placeholder="예: 병원 가는 중" style="flex:1" /><button type="button" class="gs-btn is-primary" style="flex:0 0 auto;padding:0 18px" onclick="setMyStatus(-1)">알리기</button></div>
-        <div class="gs-row"><button type="button" class="gs-btn is-ghost" onclick="closeStatusSheet()">닫기</button>${window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge ? `<button type="button" class="gs-btn is-ghost" onclick="pinStatusWidget()">📲 홈 화면에 위젯 추가</button>` : ''}</div>
+        <div class="gs-row"><button type="button" class="gs-btn is-ghost" onclick="closeStatusSheet()">닫기</button>${window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge ? `<button type="button" class="gs-btn is-ghost" onclick="pinStatusWidget()">📲 위젯 (크게)</button><button type="button" class="gs-btn is-ghost" onclick="pinStatusWidget('small')">📲 위젯 (작게)</button>` : ''}</div>
       </div>`;
       el.addEventListener('click', e => { if (e.target === el) closeStatusSheet(); });
       document.body.appendChild(el);
     }
-    async function pinStatusWidget() {
+    async function pinStatusWidget(size) {
       const W = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.WidgetBridge;
       if (!W) return;
       try {
-        const r = await W.pinWidget();
+        const r = await W.pinWidget({ size: size || 'large' }); // 'small' = 2×2 (ADR 78)
         if (!r || !r.requested) showToast('홈 화면을 꾹 눌러 위젯 → 뽀마키즈 → 부부 상태를 추가해 주세요');
       } catch (e) { showToast('홈 화면을 꾹 눌러 위젯 → 뽀마키즈 → 부부 상태를 추가해 주세요'); }
     }
@@ -9564,10 +9565,13 @@
               <div class="tr-subtasks">
                 ${subtasks.map(st => {
                   const isSubDone = !!rec.subtaskDone[st.id];
+                  const by = isSubDone && rec.subtaskBy ? rec.subtaskBy[st.id] : null;
+                  const canTick = isMine || !isPenalty;
                   return `
-                    <div onclick="${isMine ? `toggleSubtask('${task.id}', '${st.id}', event, '${userKey}')` : `tryToggleSpouseTask('${task.assignee}', '${userKey}')`}" data-no-swipe="true" class="flex items-center gap-2 py-1 cursor-pointer">
+                    <div onclick="${canTick ? `toggleSubtask('${task.id}', '${st.id}', event, '${userKey}')` : `tryToggleSpouseTask('${task.assignee}', '${userKey}')`}" data-no-swipe="true" class="flex items-center gap-2 py-1 cursor-pointer">
                       <span class="w-4 h-4 rounded border ${isSubDone ? 'bg-[#10B981] border-[#10B981] text-white preserve-white' : 'border-slate-400'} flex items-center justify-center text-[10px] font-bold shrink-0">${isSubDone ? '✓' : ''}</span>
                       <span class="tr-sub !mt-0 truncate ${isSubDone ? 'line-through opacity-60' : ''}">${st.text}</span>
+                      ${by && by !== task.assignee ? `<span class="tr-sub !mt-0 shrink-0" style="color:${by === 'dad' ? '#3182F6' : '#F04452'};font-weight:700;">🤝 ${getDisplayName(by)}</span>` : ''}
                     </div>
                   `;
                 }).join('')}
@@ -11070,7 +11074,8 @@
     }
 
     // 👼 Help Partner Task Feature
-    function helpSpouseTask(helperKey, taskId) {
+    // missing: 세부 체크 창에서 '빠진 채로 대신 완료'를 고른 경우 빠진 항목 이름들 (세부 체크리스트 대신 돕기)
+    function helpSpouseTask(helperKey, taskId, missing) {
       const task = STATE.tasks.find(t => t.id === taskId);
       if (!task) return;
       if (task.isPenaltyTask) { showToast('⚡ 벌칙은 받은 사람이 직접 해야 해요'); return; }
@@ -11078,11 +11083,17 @@
       const selDate = STATE.selectedDate || todayStr();
       if (!canCompleteOnDate(selDate)) return;
       const rec = getTaskDateRecord(task, selDate);
+      // 세부 항목이 남아 있으면 먼저 '어디까지 해줬는지' 체크하는 창
+      if (!missing && (task.subtasks || []).some(st => !rec.subtaskDone[st.id])) {
+        openSubtaskWarning(taskId, helperKey, true);
+        return;
+      }
       const wasRequested = !!rec.helpRequested;
       rec.done = true;
       rec.overdue = false;
       rec.helper = helperKey;
       rec.helpRequested = false;
+      rec.incompleteNotice = missing && missing.length ? { missingSubtasks: missing, time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) } : null;
       if (wasRequested) onQuestProgress('q_help_answer', 1, helperKey);
       onTaskDoneForQuests(task, helperKey, selDate);
 
@@ -11104,7 +11115,7 @@
         type: 'battle',
         icon: '👼',
         title: '천사 배우자 가사 돕기',
-        message: `👼 ${helper.name}님이 ${spouse.name}님의 [${task.title}]을(를) 대신 완료해주었습니다! (+35 EXP)`
+        message: `👼 ${helper.name}님이 ${spouse.name}님의 [${task.title}]을(를) 대신 완료해주었습니다! (+35 EXP)` + (missing && missing.length ? ` · [${missing.join(', ')}]은(는) 못 했대요` : '')
       });
 
       STATE.pet.speech = `${helper.name}님이 ${spouse.name}님을 도와주었어요! 천사 인정! 👼💖`;
@@ -11132,15 +11143,19 @@
       const task = STATE.tasks.find(t => t.id === taskId);
       if (!task || !task.subtasks) return;
 
-      if (userKey && task.assignee !== userKey) {
-        tryToggleSpouseTask(task.assignee, userKey);
-        return;
-      }
+      const helping = !!userKey && task.assignee !== userKey;
+      if (helping && task.isPenaltyTask) { showToast('⚡ 벌칙은 받은 사람이 직접 해야 해요'); return; }
 
       const selDate = STATE.selectedDate || todayStr();
+      if (helping && !canCompleteOnDate(selDate)) return;
       const rec = getTaskDateRecord(task, selDate);
 
       rec.subtaskDone[subtaskId] = !rec.subtaskDone[subtaskId];
+      markSubtaskBy(rec, subtaskId, helping ? userKey : null);
+      if (helping && rec.subtaskDone[subtaskId]) {
+        const st = task.subtasks.find(x => x.id === subtaskId);
+        showToast(`🤝 ${getDisplayName(task.assignee)}님 대신 '${st ? st.text : '항목'}' 체크했어요`);
+      }
 
       // If all subtasks now completed and had incomplete notice, clear notice
       if (task.subtasks.every(s => !!rec.subtaskDone[s.id]) && rec.incompleteNotice) {
@@ -11233,7 +11248,9 @@
 
     // ⚠️ 세부 항목 미완료 확인창: 처음에 남아 있던 항목을 강조해서 보여주고, 누르면 체크/해제
     var warningItemIds = [];
-    function openSubtaskWarning(taskId, userKey) {
+    var pendingWarningHelp = false; // true = 배우자 할 일을 대신 돕는 중
+    function openSubtaskWarning(taskId, userKey, help) {
+      pendingWarningHelp = !!help;
       const task = STATE.tasks.find(t => t.id === taskId);
       if (!task) return;
       const rec = getTaskDateRecord(task, STATE.selectedDate || todayStr());
@@ -11242,6 +11259,16 @@
       warningItemIds = (task.subtasks || []).filter(st => !rec.subtaskDone[st.id]).map(st => st.id);
       const titleEl = document.getElementById('warningTaskTitle');
       if (titleEl) titleEl.innerText = `'${task.title}'`;
+      const head = document.getElementById('warningHeading');
+      const sub = document.getElementById('warningSubText');
+      const who = document.getElementById('warningPassWho');
+      if (head) head.innerText = pendingWarningHelp ? '👼 어디까지 해줬어요?' : '아직 안 한 항목이 있어요';
+      if (sub) sub.innerText = pendingWarningHelp ? '대신 한 항목을 눌러서 체크하세요' : '한 항목은 눌러서 체크하세요';
+      const icon = document.getElementById('warningIcon');
+      const cancel = document.getElementById('warningCancelBtn');
+      if (icon) icon.innerText = pendingWarningHelp ? '👼' : '⚠️';
+      if (cancel) cancel.innerText = pendingWarningHelp ? '취소' : '마저 할게요';
+      if (who) who.innerText = pendingWarningHelp ? `${getDisplayName(task.assignee)}님에게 남은 항목이 알림` : '배우자에게 빠진 항목이 알림';
       renderSubtaskWarning();
       triggerHaptic('light');
       const modal = document.getElementById('subtaskWarningModal');
@@ -11262,23 +11289,52 @@
       const note = document.getElementById('warningPassNote');
       if (btn) {
         btn.className = `w-full py-2.5 ${left ? 'bg-amber-500' : 'bg-emerald-500'} hover:brightness-110 text-white rounded-xl font-bold text-xs shadow-lg transition flex items-center justify-center gap-1 preserve-white`;
-        btn.innerHTML = left ? `<span>⚠️ ${left}개 빠진 채로 완료</span>` : '<span>✅ 다 했어요 · 완료하기</span>';
+        btn.innerHTML = pendingWarningHelp
+          ? (left ? `<span>⚠️ ${left}개 빼고 대신 완료</span>` : '<span>👼 다 했어요 · 대신 완료</span>')
+          : (left ? `<span>⚠️ ${left}개 빠진 채로 완료</span>` : '<span>✅ 다 했어요 · 완료하기</span>');
       }
       if (note) note.classList.toggle('hidden', !left);
+      const allBtn = document.getElementById('warningAllBtn');
+      if (allBtn) allBtn.classList.toggle('hidden', !(pendingWarningHelp && left >= 2));
     }
     function toggleWarningSubtask(stId) {
       const task = STATE.tasks.find(t => t.id === pendingWarningTaskId);
       if (!task) return;
       const rec = getTaskDateRecord(task, STATE.selectedDate || todayStr());
       rec.subtaskDone[stId] = !rec.subtaskDone[stId];
+      if (pendingWarningHelp) markSubtaskBy(rec, stId, pendingWarningUserKey);
       triggerHaptic('light');
       renderSubtaskWarning();
       renderApp('mom'); renderApp('dad');
     }
 
+    // 누가 대신 체크했는지 기록 (본인이 체크하면 지움)
+    function markSubtaskBy(rec, stId, who) {
+      if (!rec.subtaskBy) rec.subtaskBy = {};
+      if (rec.subtaskDone[stId] && who) rec.subtaskBy[stId] = who;
+      else delete rec.subtaskBy[stId];
+    }
+    function checkAllWarningSubtasks() {
+      const task = STATE.tasks.find(t => t.id === pendingWarningTaskId);
+      if (!task) return;
+      const rec = getTaskDateRecord(task, STATE.selectedDate || todayStr());
+      (task.subtasks || []).forEach(st => {
+        if (!rec.subtaskDone[st.id]) { rec.subtaskDone[st.id] = true; if (pendingWarningHelp) markSubtaskBy(rec, st.id, pendingWarningUserKey); }
+      });
+      confirmIncompleteTaskPass();
+    }
+
     function confirmIncompleteTaskPass() {
       const task = STATE.tasks.find(t => t.id === pendingWarningTaskId);
       if (!task) return;
+      if (pendingWarningHelp) {
+        const recH = getTaskDateRecord(task, STATE.selectedDate || todayStr());
+        const missing = (task.subtasks || []).filter(st => !recH.subtaskDone[st.id]).map(st => st.text);
+        const id = task.id, helper = pendingWarningUserKey;
+        closeSubtaskWarningModal();
+        helpSpouseTask(helper, id, missing);
+        return;
+      }
       // 창에서 남은 항목을 모두 체크했다면 정상 완료
       const recNow = getTaskDateRecord(task, STATE.selectedDate || todayStr());
       if ((task.subtasks || []).every(st => recNow.subtaskDone[st.id])) {
@@ -11336,6 +11392,7 @@
       if (modal) modal.classList.add('hidden');
       pendingWarningTaskId = null;
       pendingWarningUserKey = null;
+      pendingWarningHelp = false;
     }
 
     // --- 👉 Nudge Gesture Feature (Warning / Rush / Praise) ---

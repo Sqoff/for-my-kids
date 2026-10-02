@@ -94,7 +94,7 @@ public class WidgetBridgePlugin extends Plugin {
         JSObject o = new JSObject();
         AppWidgetManager mgr = AppWidgetManager.getInstance(getContext());
         boolean ok = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && mgr.isRequestPinAppWidgetSupported();
-        if (ok) ok = mgr.requestPinAppWidget(new ComponentName(getContext(), CoupleStatusWidget.class), null, null);
+        if (ok) ok = mgr.requestPinAppWidget(new ComponentName(getContext(), "small".equals(call.getString("size")) ? CoupleStatusSmallWidget.class : CoupleStatusWidget.class), null, null);
         o.put("requested", ok);
         call.resolve(o);
     }

@@ -177,13 +177,13 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         v.setTextViewText(timeId, stale ? ago(since) : hhmm(since) + "부터");
     }
 
-    private static String hhmm(long ms) {
+    static String hhmm(long ms) {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(ms);
         return String.format("%02d:%02d", cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE));
     }
 
-    private static String ago(long ms) {
+    static String ago(long ms) {
         long h = (System.currentTimeMillis() - ms) / 3600000L;
         return h >= 24 ? (h / 24) + "일 전" : h + "시간 전";
     }

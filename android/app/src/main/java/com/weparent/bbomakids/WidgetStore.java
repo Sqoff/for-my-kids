@@ -96,10 +96,15 @@ public final class WidgetStore {
 
     /** 홈 화면에 놓인 모든 부부 상태 위젯을 다시 그림 */
     public static void refreshAll(Context c) {
+        refresh(c, CoupleStatusWidget.class);
+        refresh(c, CoupleStatusSmallWidget.class); // 2×2 작은 위젯 (ADR 78)
+    }
+
+    private static void refresh(Context c, Class<?> provider) {
         AppWidgetManager mgr = AppWidgetManager.getInstance(c);
-        int[] ids = mgr.getAppWidgetIds(new ComponentName(c, CoupleStatusWidget.class));
+        int[] ids = mgr.getAppWidgetIds(new ComponentName(c, provider));
         if (ids == null || ids.length == 0) return;
-        Intent i = new Intent(c, CoupleStatusWidget.class);
+        Intent i = new Intent(c, provider);
         i.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
         i.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
         c.sendBroadcast(i);

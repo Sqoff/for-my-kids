@@ -57,6 +57,18 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/couple_status_widget_info" />
         </receiver>
+        <receiver
+            android:name=".CoupleStatusSmallWidget"
+            android:label="@string/widget_small_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/couple_status_small_widget_info" />
+        </receiver>
         <activity
             android:name=".StatusPickerActivity"
             android:theme="@style/StatusPickerTheme"

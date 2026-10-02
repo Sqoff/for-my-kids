@@ -5,5 +5,7 @@
     <string name="package_name">com.weparent.bbomakids</string>
     <string name="custom_url_scheme">com.weparent.bbomakids</string>
     <string name="widget_label">부부 상태</string>
+    <string name="widget_small_label">부부 상태 (작게)</string>
+    <string name="widget_small_desc">2×2 칸에 두 사람 상태만 한눈에</string>
     <string name="widget_desc">두 사람이 지금 뭐 하는지 한눈에, 한 번 탭으로 알려요</string>
 </resources>
