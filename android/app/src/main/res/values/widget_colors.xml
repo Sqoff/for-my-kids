@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- ADR 72: 크림 바탕 · 장식 지도 · 캐릭터 핀 -->
-    <color name="widget_bg">#FCFBF7EF</color>
-    <color name="widget_ink">#3A3330</color>
-    <color name="widget_sub">#9A918A</color>
+    <!-- ADR 74: 사용자 시안 색 -->
+    <color name="widget_bg">#FFFDFAF5</color>
+    <color name="widget_ink">#4A3B33</color>
+    <color name="widget_sub">#A39A93</color>
     <color name="widget_on_solid">#FFFFFF</color>
-    <color name="widget_mom">#E2668A</color>
-    <color name="widget_dad">#4E86D9</color>
-    <color name="widget_stale">#B8B0A8</color>
+    <color name="widget_mom">#E49AAB</color>
+    <color name="widget_dad">#8AA9D6</color>
+    <color name="widget_stale">#BDB4AC</color>
     <color name="widget_card">#FFFFFF</color>
-    <color name="widget_btn_gray">#ECE8E1</color>
-    <color name="widget_btn_lav">#E4DEFC</color>
-    <color name="widget_lav_ink">#4B3FA8</color>
-    <color name="widget_chip_green">#E2F3E6</color>
-    <color name="widget_green_ink">#2F8A4E</color>
-    <color name="widget_chip_neutral">#EFEBE4</color>
+    <color name="widget_card_shadow">#14705040</color>
+    <color name="widget_btn_gray">#EDEBE8</color>
+    <color name="widget_btn_lav">#E2D8FD</color>
+    <color name="widget_lav_ink">#4B3F9E</color>
+    <color name="widget_gray_ink">#4F4A47</color>
+    <color name="widget_chip_green">#DDF2DF</color>
+    <color name="widget_green_ink">#2E8B47</color>
+    <color name="widget_chip_neutral">#EFECE8</color>
+    <color name="widget_neutral_ink">#8A827C</color>
     <color name="widget_primary">#3182F6</color>
 </resources>
