@@ -84,7 +84,13 @@
             android:excludeFromRecents="true"
             android:taskAffinity=""
             android:launchMode="singleTask"
-            android:exported="false" />
+            android:exported="false">
+            <!-- 서버 위치 알림(loc_alert)을 누르면 열림 (ADR 85) -->
+            <intent-filter>
+                <action android:name="com.weparent.bbomakids.LOC_REQUEST" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <receiver
             android:name=".WidgetActionReceiver"
             android:exported="false" />

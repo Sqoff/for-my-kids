@@ -40,15 +40,37 @@ exports.spousePush = onDocumentUpdated({ document: 'couples/{code}', region: REG
       if (tokens[r]) jobs.push(getMessaging().send({ token: tokens[r], data, android: { priority: 'high' } }).catch(err => console.warn('status push fail', r, err.code || err.message)));
     }
   }
-  // 📍 위치 요청·공유가 바뀌면 두 폰에 데이터 푸시 → 위젯 갱신·요청 알림 (ADR 68)
+  // 📍 위치 요청·공유가 바뀌면 두 폰에 데이터 푸시 → 위젯 갱신 (ADR 68)
   if (JSON.stringify(before.loc || {}) !== JSON.stringify(after.loc || {}) && after.loc && after.loc.req) {
-    const req = after.loc.req, pos = after.loc.pos || {};
+    const req = after.loc.req, pos = after.loc.pos || {}, back = after.loc.back || {}, bpos = after.loc.backPos || {};
     const data = { type: 'loc', lfrom: String(req.from || ''), lto: String(req.to || ''), // 'from' 은 FCM 예약어라 못 씀
       state: String(req.state || ''), until: String(req.until || 0), at: String(req.at || 0),
-      addr: String(pos.addr || ''), lat: String(pos.lat || ''), lng: String(pos.lng || ''), fromName: displayName(after, req.from), toName: displayName(after, req.to) };
+      addr: String(pos.addr || ''), lat: String(pos.lat || ''), lng: String(pos.lng || ''), fromName: displayName(after, req.from), toName: displayName(after, req.to),
+      // ↔ 물어본 사람도 보여주는 위치 (ADR 85)
+      backState: String(back.state || ''), backUntil: String(back.until || 0), backAddr: String(bpos.addr || ''), backLat: String(bpos.lat || ''), backLng: String(bpos.lng || '') };
     for (const r of ['mom', 'dad']) {
       if (tokens[r]) jobs.push(getMessaging().send({ token: tokens[r], data, android: { priority: 'high' } }).catch(err => console.warn('loc push fail', r, err.code || err.message)));
     }
+    // 🔔 사람이 알아야 하는 순간은 '알림 메시지'로 — 앱이 잠들어 있어도 시스템이 진동과 함께 띄움 (ADR 85)
+    const breq = (before.loc || {}).req || {}, bback = (before.loc || {}).back || {};
+    const same = breq.at === req.at;
+    const fromN = displayName(after, req.from), toN = displayName(after, req.to);
+    const alert = (role, kind, title, body) => {
+      if (!tokens[role]) return;
+      jobs.push(getMessaging().send({
+        token: tokens[role],
+        notification: { title, body },
+        data: { ...data, type: 'loc_alert', kind },
+        android: { priority: 'high', notification: {
+          channelId: 'loc_alert', icon: 'ic_stat_bboma', tag: kind === 'asked' ? 'loc_req' : 'loc_' + kind, priority: 'max', visibility: 'public',
+          defaultSound: true, vibrateTimingsMillis: [0, 450, 180, 450],
+          ...(kind === 'asked' || kind === 'sharing' ? { clickAction: 'com.weparent.bbomakids.LOC_REQUEST' } : {}) } },
+      }).then(id => console.log('loc alert', kind, '->', role, id)).catch(err => console.warn('loc alert fail', kind, role, err.code || err.message)));
+    };
+    if (req.state === 'asked' && !(same && breq.state === 'asked')) alert(req.to, 'asked', `📍 ${fromN}님이 위치를 궁금해해요`, '눌러서 15분 보여주기 · 지금은 어려워요');
+    else if (req.state === 'sharing' && !(same && breq.state === 'sharing')) alert(req.from, 'sharing', `📍 ${toN}님이 위치를 보여주고 있어요`, '눌러서 지도 보기 · 내 위치도 보여줄 수 있어요');
+    else if (req.state === 'declined' && !(same && breq.state === 'declined')) alert(req.from, 'declined', `${toN}님이 지금은 어렵대요`, '이유는 묻지 않아요');
+    if (back.state === 'sharing' && bback.state !== 'sharing') alert(req.to, 'back', `📍 ${fromN}님도 위치를 보여줘요`, '서로의 위치를 위젯과 앱에서 볼 수 있어요');
   }
   for (const role of ['mom', 'dad']) {
     const token = tokens[role];
@@ -135,7 +157,7 @@ exports.eventReminders = onSchedule({ schedule: 'every 5 minutes', timeZone: 'As
     // 📍 시간이 지난 위치 요청·공유 정리: 위치는 지우고 끝냄 (공유하던 폰이 꺼져 있어도 기록이 남지 않게, ADR 68)
     const lr = data.loc && data.loc.req;
     if (lr && (lr.state === 'asked' || lr.state === 'sharing') && lr.until && Date.now() > lr.until + 60e3) {
-      jobs.push(doc.ref.update({ 'loc.req.state': lr.state === 'asked' ? 'expired' : 'ended', 'loc.pos': FieldValue.delete(), updatedBy: 'server' }).catch(() => {}));
+      jobs.push(doc.ref.update({ 'loc.req.state': lr.state === 'asked' ? 'expired' : 'ended', 'loc.pos': FieldValue.delete(), 'loc.back': FieldValue.delete(), 'loc.backPos': FieldValue.delete(), updatedBy: 'server' }).catch(() => {}));
     }
     // 할 일 마감 초과 → 페널티 부여권 (새 버전 앱이 켠 가족만)
     if (data.features && data.features.overdueGrant) jobs.push(checkOverdue(db, doc, data, date, min, once));

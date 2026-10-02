@@ -46,6 +46,9 @@ public class WidgetActionReceiver extends BroadcastReceiver {
         req.put("until", now + ASK_TTL_MS);
         Map<String, Object> f = new HashMap<>();
         f.put("loc.req", req);
+        f.put("loc.pos", com.google.firebase.firestore.FieldValue.delete());
+        f.put("loc.back", com.google.firebase.firestore.FieldValue.delete());
+        f.put("loc.backPos", com.google.firebase.firestore.FieldValue.delete());
         f.put("updatedBy", role);
         FamilyDoc.update(c, f);
         WidgetStore.saveLoc(c, role, to, "asked", now + ASK_TTL_MS, now, null, 0, 0);

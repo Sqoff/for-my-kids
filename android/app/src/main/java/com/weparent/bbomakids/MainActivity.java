@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(FocusServicePlugin.class);
         registerPlugin(WidgetBridgePlugin.class);
         super.onCreate(savedInstanceState);
+        LocAlerts.ensureChannel(this); // 서버 위치 알림이 진동으로 오게 채널을 미리 만듦 (ADR 85)
     }
 
     @Override

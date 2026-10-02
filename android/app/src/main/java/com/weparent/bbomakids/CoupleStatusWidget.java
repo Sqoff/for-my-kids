@@ -105,6 +105,16 @@ public class CoupleStatusWidget extends AppWidgetProvider {
                     btnPi = map;
                     v.setOnClickPendingIntent("mom".equals(sp) ? R.id.row_mom : R.id.row_dad, map);
                 }
+                // ↔ 내 카드: 나도 보여주기 (서로 보기도 본인이 눌러야만, ADR 85)
+                int myTime = "mom".equals(me) ? R.id.mom_time : R.id.dad_time;
+                if (WidgetStore.backSharing(c)) {
+                    v.setTextViewText(myTime, "📍 내 위치도 보여주는 중");
+                } else {
+                    v.setTextViewText(myTime, "↔ 내 위치도 보여주기");
+                    Intent back = new Intent(c, LocationRequestActivity.class).putExtra(LocationRequestActivity.EXTRA_BACK, true)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    v.setOnClickPendingIntent("mom".equals(me) ? R.id.row_mom : R.id.row_dad, PendingIntent.getActivity(c, 17, back, flags));
+                }
             } else if ("declined".equals(st)) {
                 chip = spName + "님이 지금은 어렵대요";
             }
@@ -122,6 +132,15 @@ public class CoupleStatusWidget extends AppWidgetProvider {
                 btnIcon = R.drawable.widget_ic_stop;
                 btn = "그만하기";
                 btnPi = broadcast(c, WidgetActionReceiver.STOP, 14, flags);
+                // 물어본 사람도 보여주면 그 카드에 주소 + 눌러서 지도 (ADR 85)
+                int spTime = "mom".equals(sp) ? R.id.mom_time : R.id.dad_time;
+                v.setTextViewText("mom".equals(me) ? R.id.mom_time : R.id.dad_time, until + "까지 보여줘요");
+                if (WidgetStore.backSharing(c)) {
+                    String baddr = WidgetStore.backAddr(c);
+                    v.setTextViewText(spTime, baddr == null || baddr.isEmpty() ? "위치 받는 중…" : "📍 " + baddr);
+                    PendingIntent bmap = mapIntentBack(c, spName, flags);
+                    if (bmap != null) { chipPi = bmap; v.setOnClickPendingIntent("mom".equals(sp) ? R.id.row_mom : R.id.row_dad, bmap); }
+                }
             }
         }
         // "위치공유 중" 칩은 실제로 공유 중일 때만 (ADR 72)
@@ -143,12 +162,20 @@ public class CoupleStatusWidget extends AppWidgetProvider {
 
     /** 카카오맵 링크로 그 자리 열기 (지도 앱이 없으면 브라우저) */
     static PendingIntent mapIntent(Context c, String name, int flags) {
-        String lat = WidgetStore.locLat(c), lng = WidgetStore.locLng(c);
+        return mapIntent(c, name, WidgetStore.locLat(c), WidgetStore.locLng(c), 15, flags);
+    }
+
+    /** 물어본 사람이 되돌려 보여준 위치 (ADR 85) */
+    static PendingIntent mapIntentBack(Context c, String name, int flags) {
+        return mapIntent(c, name, WidgetStore.backLat(c), WidgetStore.backLng(c), 16, flags);
+    }
+
+    private static PendingIntent mapIntent(Context c, String name, String lat, String lng, int code, int flags) {
         if (lat == null || lng == null) return null;
         String label;
         try { label = URLEncoder.encode(name, "UTF-8"); } catch (Exception e) { label = "here"; }
         Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("https://map.kakao.com/link/map/" + label + "," + lat + "," + lng)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        return PendingIntent.getActivity(c, 15, i, flags);
+        return PendingIntent.getActivity(c, code, i, flags);
     }
 
     private static void bindRow(Context c, RemoteViews v, String role, int nameId, int iconId, int statusId, int timeId, boolean large) {

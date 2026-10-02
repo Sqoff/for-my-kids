@@ -56,6 +56,14 @@ public class WidgetBridgePlugin extends Plugin {
                     try { lat = pos.getDouble("lat"); lng = pos.getDouble("lng"); addr = pos.getString("addr", ""); } catch (Exception ignored) {}
                 }
                 WidgetStore.saveLoc(getContext(), req.getString("from"), req.getString("to"), req.getString("state"), until, at, addr, lat, lng);
+                // ↔ 물어본 사람이 되돌려 보여주는 위치 (ADR 85)
+                JSObject back = null, bpos = null;
+                try { back = loc.getJSObject("back"); } catch (Exception ignored) {}
+                try { bpos = loc.getJSObject("backPos"); } catch (Exception ignored) {}
+                long buntil = 0; double blat = 0, blng = 0; String baddr = null;
+                try { if (back != null) buntil = back.getLong("until"); } catch (Exception ignored) {}
+                if (bpos != null) { try { blat = bpos.getDouble("lat"); blng = bpos.getDouble("lng"); baddr = bpos.getString("addr", ""); } catch (Exception ignored) {} }
+                WidgetStore.saveBack(getContext(), back == null ? null : back.getString("state"), buntil, baddr, blat, blng);
             }
         }
         WidgetStore.refreshAll(getContext());
@@ -67,6 +75,7 @@ public class WidgetBridgePlugin extends Plugin {
     public void shareLocation(PluginCall call) {
         Intent i = new Intent(getContext(), LocationRequestActivity.class)
             .putExtra(LocationRequestActivity.EXTRA_ACCEPT, true)
+            .putExtra(LocationRequestActivity.EXTRA_BACK, Boolean.TRUE.equals(call.getBoolean("back", false))) // ↔ 내 위치도 (ADR 85)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         getContext().startActivity(i);
         call.resolve();

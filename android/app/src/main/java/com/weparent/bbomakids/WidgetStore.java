@@ -57,6 +57,7 @@ public final class WidgetStore {
     public static void saveLoc(Context c, String from, String to, String state, long until, long reqAt, String addr, double lat, double lng) {
         SharedPreferences p = prefs(c);
         if (reqAt < p.getLong("loc_at", 0)) return;
+        if (reqAt > p.getLong("loc_at", 0)) p.edit().remove("back_state").remove("back_until").remove("back_addr").remove("back_lat").remove("back_lng").apply();
         SharedPreferences.Editor e = p.edit()
             .putString("loc_from", from).putString("loc_to", to).putString("loc_state", state)
             .putLong("loc_until", until).putLong("loc_at", reqAt);
@@ -84,6 +85,23 @@ public final class WidgetStore {
         p.edit().putString("loc_notified", key).apply();
         return true;
     }
+    /** ↔ 물어본 사람이 '내 위치도 보여주기'를 눌렀을 때 그 위치 (ADR 85). addr == null 이면 지움 */
+    public static void saveBack(Context c, String state, long until, String addr, double lat, double lng) {
+        SharedPreferences.Editor e = prefs(c).edit();
+        if (state == null || state.isEmpty()) e.remove("back_state").remove("back_until");
+        else e.putString("back_state", state).putLong("back_until", until);
+        if (addr != null) e.putString("back_addr", addr).putString("back_lat", String.valueOf(lat)).putString("back_lng", String.valueOf(lng));
+        else e.remove("back_addr").remove("back_lat").remove("back_lng");
+        e.apply();
+    }
+    /** 물어본 사람도 위치를 보여주는 중인지 */
+    public static boolean backSharing(Context c) {
+        SharedPreferences p = prefs(c);
+        return "sharing".equals(p.getString("back_state", null)) && System.currentTimeMillis() < p.getLong("back_until", 0);
+    }
+    public static String backAddr(Context c) { return prefs(c).getString("back_addr", null); }
+    public static String backLat(Context c) { return prefs(c).getString("back_lat", null); }
+    public static String backLng(Context c) { return prefs(c).getString("back_lng", null); }
     /** 지금 의미 있는 요청인지 (끝났거나 시간이 지났으면 null) */
     public static String activeLocState(Context c) {
         String st = locState(c);

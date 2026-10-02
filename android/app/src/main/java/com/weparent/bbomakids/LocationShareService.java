@@ -36,6 +36,8 @@ public class LocationShareService extends Service implements LocationListener {
     public static final String ACTION_START = "com.weparent.bbomakids.LOC_START";
     public static final String ACTION_STOP = "com.weparent.bbomakids.LOC_STOP";
     public static final long SHARE_MS = 15L * 60 * 1000;
+    /** true = 물어본 사람이 '내 위치도 보여주기'를 누름 → loc.back / loc.backPos 에 씀 (ADR 85) */
+    public static final String EXTRA_BACK = "back";
     private static final String CHANNEL = "loc_share";
     private static final int NOTIF_ID = 4815;
 
@@ -44,9 +46,12 @@ public class LocationShareService extends Service implements LocationListener {
     private long until;
     private long lastSent;
     private boolean running;
+    private boolean back;
 
-    public static void start(Context c) {
-        Intent i = new Intent(c, LocationShareService.class).setAction(ACTION_START);
+    public static void start(Context c) { start(c, false); }
+
+    public static void start(Context c, boolean back) {
+        Intent i = new Intent(c, LocationShareService.class).setAction(ACTION_START).putExtra(EXTRA_BACK, back);
         ContextCompat.startForegroundService(c, i);
     }
 
@@ -56,17 +61,26 @@ public class LocationShareService extends Service implements LocationListener {
         if (ACTION_STOP.equals(action)) { finish(true); return START_NOT_STICKY; }
         if (running) return START_NOT_STICKY;
         running = true;
+        back = intent != null && intent.getBooleanExtra(EXTRA_BACK, false);
         until = System.currentTimeMillis() + SHARE_MS;
+        // 되돌려 보여주기는 상대 공유가 끝나는 시각에 같이 끝냄
+        if (back && WidgetStore.locUntil(this) > System.currentTimeMillis()) until = Math.min(until, WidgetStore.locUntil(this));
         startInForeground();
         Map<String, Object> f = new HashMap<>();
-        f.put("loc.req.state", "sharing");
-        f.put("loc.req.until", until);
+        if (back) {
+            f.put("loc.back.state", "sharing");
+            f.put("loc.back.until", until);
+            WidgetStore.saveBack(this, "sharing", until, null, 0, 0);
+        } else {
+            f.put("loc.req.state", "sharing");
+            f.put("loc.req.until", until);
+            WidgetStore.saveLocState(this, "sharing", until);
+        }
         f.put("updatedBy", WidgetStore.role(this));
         FamilyDoc.update(this, f);
-        WidgetStore.saveLocState(this, "sharing", until);
         WidgetStore.refreshAll(this);
         startUpdates();
-        handler.postDelayed(() -> finish(true), SHARE_MS);
+        handler.postDelayed(() -> finish(true), Math.max(1000L, until - System.currentTimeMillis()));
         return START_NOT_STICKY;
     }
 
@@ -80,7 +94,7 @@ public class LocationShareService extends Service implements LocationListener {
         String spouse = WidgetStore.name(this, FamilyDoc.spouse(WidgetStore.role(this)));
         Notification n = new NotificationCompat.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_bboma)
-            .setContentTitle("📍 " + spouse + "님에게 위치를 보여주는 중")
+            .setContentTitle("📍 " + spouse + "님에게 " + (back ? "내 위치도 " : "위치를 ") + "보여주는 중")
             .setContentText(hhmm(until) + "까지 · 끝나면 위치는 지워져요")
             .setOngoing(true)
             .addAction(0, "그만", stop)
@@ -132,7 +146,7 @@ public class LocationShareService extends Service implements LocationListener {
             pos.put("addr", addr);
             pos.put("at", System.currentTimeMillis());
             Map<String, Object> f = new HashMap<>();
-            f.put("loc.pos", pos);
+            f.put(back ? "loc.backPos" : "loc.pos", pos);
             f.put("updatedBy", WidgetStore.role(this));
             FamilyDoc.update(this, f);
         }).start();
@@ -152,11 +166,17 @@ public class LocationShareService extends Service implements LocationListener {
         if (lm != null) { try { lm.removeUpdates(this); } catch (Exception ignored) {} }
         if (writeEnd && running) {
             Map<String, Object> f = new HashMap<>();
-            f.put("loc.req.state", "ended");
-            f.put("loc.pos", FieldValue.delete());
+            if (back) {
+                f.put("loc.back.state", "ended");
+                f.put("loc.backPos", FieldValue.delete());
+                WidgetStore.saveBack(this, null, 0, null, 0, 0);
+            } else {
+                f.put("loc.req.state", "ended");
+                f.put("loc.pos", FieldValue.delete());
+                WidgetStore.saveLocState(this, "ended", 0);
+            }
             f.put("updatedBy", WidgetStore.role(this));
             FamilyDoc.update(this, f);
-            WidgetStore.saveLocState(this, "ended", 0);
             WidgetStore.refreshAll(this);
         }
         running = false;
