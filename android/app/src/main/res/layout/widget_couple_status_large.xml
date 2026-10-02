@@ -1,76 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 부부 상태 위젯 — 넉넉한 크기 (ADR 74): 사용자 시안 그대로 -->
+<!-- 부부 상태 위젯 — 넉넉한 크기 (ADR 72): 장식 지도 위 캐릭터 핀 + 상태 카드 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/widget_bg"
-    android:paddingStart="22dp"
-    android:paddingEnd="22dp"
-    android:paddingTop="20dp"
-    android:paddingBottom="18dp">
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
+        android:minHeight="28dp"
         android:orientation="horizontal"
-        android:paddingStart="6dp"
-        android:paddingEnd="2dp">
-        <ImageView
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:src="@drawable/widget_ic_header_map" />
+        android:paddingStart="4dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🗺️"
+            android:textSize="17sp" />
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:fontFamily="sans-serif-medium"
             android:text="지금, 우리 가족은"
             android:textColor="@color/widget_ink"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:maxLines="1"
             android:ellipsize="end" />
-        <LinearLayout
+        <TextView
             android:id="@+id/loc_row"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
-            android:background="@drawable/widget_chip_neutral"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
+            android:background="@drawable/widget_chip_green"
+            android:fontFamily="sans-serif-medium"
+            android:maxWidth="170dp"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:paddingStart="10dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp">
-            <ImageView
-                android:id="@+id/loc_icon"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:src="@drawable/widget_ic_broadcast" />
-            <TextView
-                android:id="@+id/loc_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:fontFamily="sans-serif-medium"
-                android:maxWidth="150dp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:text="위치 비공개"
-                android:textColor="@color/widget_neutral_ink"
-                android:textSize="12sp" />
-        </LinearLayout>
+            android:paddingEnd="10dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:text="● 위치공유 중"
+            android:textColor="@color/widget_green_ink"
+            android:textSize="12sp"
+            android:visibility="gone" />
     </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="8dp">
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="10dp">
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -79,9 +65,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:paddingStart="2dp"
-            android:paddingEnd="2dp">
+            android:orientation="horizontal">
         <LinearLayout
             android:id="@+id/row_mom"
             android:layout_width="0dp"
@@ -90,23 +74,22 @@
             android:gravity="center"
             android:orientation="vertical">
             <ImageView
-                android:layout_width="50dp"
-                android:layout_height="58dp"
+                android:layout_width="46dp"
+                android:layout_height="54dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/widget_pin_mom" />
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="-8dp"
-                android:layout_marginStart="0dp"
+                android:layout_marginTop="2dp"
                 android:background="@drawable/widget_card"
-                android:gravity="center"
-                android:minWidth="96dp"
+                android:gravity="center_horizontal"
+                android:minWidth="92dp"
                 android:orientation="vertical"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:paddingTop="6dp"
-                android:paddingBottom="8dp">
+                android:paddingBottom="6dp">
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -127,30 +110,29 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:text="🏠"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
                 <TextView
                     android:id="@+id/mom_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
                     android:text="쉬는 중"
                     android:textColor="@color/widget_ink"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:maxLines="1"
-                    android:maxWidth="120dp"
+                    android:maxWidth="118dp"
                     android:ellipsize="end" />
                 <TextView
                     android:id="@+id/mom_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="08:40부터"
                     android:textColor="@color/widget_sub"
                     android:textSize="11sp"
                     android:maxLines="1"
-                    android:maxWidth="120dp"
-                    android:ellipsize="end"
-                    android:visibility="gone" />
+                    android:maxWidth="118dp"
+                    android:ellipsize="end" />
             </LinearLayout>
         </LinearLayout>
         <LinearLayout
@@ -161,23 +143,22 @@
             android:gravity="center"
             android:orientation="vertical">
             <ImageView
-                android:layout_width="50dp"
-                android:layout_height="58dp"
+                android:layout_width="46dp"
+                android:layout_height="54dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/widget_pin_dad" />
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="-8dp"
-                android:layout_marginStart="0dp"
+                android:layout_marginTop="2dp"
                 android:background="@drawable/widget_card"
-                android:gravity="center"
-                android:minWidth="96dp"
+                android:gravity="center_horizontal"
+                android:minWidth="92dp"
                 android:orientation="vertical"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:paddingTop="6dp"
-                android:paddingBottom="8dp">
+                android:paddingBottom="6dp">
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -198,30 +179,29 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="4dp"
                         android:text="💼"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
                 <TextView
                     android:id="@+id/dad_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
                     android:text="일하는 중"
                     android:textColor="@color/widget_ink"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:maxLines="1"
-                    android:maxWidth="120dp"
+                    android:maxWidth="118dp"
                     android:ellipsize="end" />
                 <TextView
                     android:id="@+id/dad_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="09:02부터"
                     android:textColor="@color/widget_sub"
                     android:textSize="11sp"
                     android:maxLines="1"
-                    android:maxWidth="120dp"
-                    android:ellipsize="end"
-                    android:visibility="gone" />
+                    android:maxWidth="118dp"
+                    android:ellipsize="end" />
             </LinearLayout>
         </LinearLayout>
         </LinearLayout>
@@ -230,50 +210,48 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingStart="6dp"
-        android:paddingEnd="6dp">
+        android:orientation="horizontal">
         <LinearLayout
             android:id="@+id/btn_open"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="54dp"
             android:layout_weight="1"
-            android:layout_marginEnd="14dp"
+            android:layout_marginEnd="8dp"
             android:background="@drawable/widget_btn_gray"
             android:gravity="center"
             android:orientation="vertical">
             <ImageView
                 android:id="@+id/btn_open_icon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:src="@drawable/widget_ic_pin" />
             <TextView
                 android:id="@+id/btn_open_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="3dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="위치 물어보기"
-                android:textColor="@color/widget_gray_ink"
+                android:textColor="@color/widget_ink"
                 android:textSize="14sp"
                 android:maxLines="1" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/btn_change"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="54dp"
             android:layout_weight="1"
             android:background="@drawable/widget_btn_lav"
             android:gravity="center"
             android:orientation="vertical">
             <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:src="@drawable/widget_ic_sliders" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="3dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="상태 바꾸기"
                 android:textColor="@color/widget_lav_ink"

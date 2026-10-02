@@ -86,19 +86,18 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         String until = hhmm(WidgetStore.locUntil(c));
         if (st != null && iAsked) {
             if ("asked".equals(st)) {
-                chip = "물어보는 중";
+                chip = "📍 물어보는 중";
                 btnIcon = R.drawable.widget_ic_close;
                 btn = "요청 취소";
                 btnPi = broadcast(c, WidgetActionReceiver.CANCEL, 12, flags);
             } else if ("sharing".equals(st)) {
-                chip = "위치공유 중";
+                chip = "● 위치공유 중 · " + until + "까지";
                 green = true;
                 String addr = WidgetStore.locAddr(c);
                 PendingIntent map = mapIntent(c, spName, flags);
                 // 상대 카드 맨 아래 줄에 주소 (지도 보기 버튼으로 카카오맵)
-                int spTime = "mom".equals(sp) ? R.id.mom_time : R.id.dad_time;
-                v.setViewVisibility(spTime, View.VISIBLE);
-                v.setTextViewText(spTime, addr == null || addr.isEmpty() ? "위치 받는 중…" : "📍 " + addr);
+                v.setTextViewText("mom".equals(sp) ? R.id.mom_time : R.id.dad_time,
+                    addr == null || addr.isEmpty() ? "위치 받는 중…" : "📍 " + addr);
                 if (map != null) {
                     chipPi = map;
                     btnIcon = R.drawable.widget_ic_map;
@@ -111,32 +110,28 @@ public class CoupleStatusWidget extends AppWidgetProvider {
             }
         } else if (st != null && askedMe) {
             if ("asked".equals(st)) {
-                chip = spName + "님이 궁금해해요";
+                chip = "📍 " + spName + "님이 궁금해해요";
                 Intent req = new Intent(c, LocationRequestActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 chipPi = PendingIntent.getActivity(c, 13, req, flags);
                 btnIcon = R.drawable.widget_ic_reply;
                 btn = "답하기";
                 btnPi = chipPi;
             } else if ("sharing".equals(st)) {
-                chip = "위치공유 중";
+                chip = "● 위치공유 중 · " + until + "까지";
                 green = true;
                 btnIcon = R.drawable.widget_ic_stop;
                 btn = "그만하기";
-                // 끝나는 시각은 내 카드 아래 줄에 (칩은 시안처럼 짧게)
-                int myTime = "mom".equals(me) ? R.id.mom_time : R.id.dad_time;
-                v.setViewVisibility(myTime, View.VISIBLE);
-                v.setTextViewText(myTime, until + "까지 보여줘요");
                 btnPi = broadcast(c, WidgetActionReceiver.STOP, 14, flags);
             }
         }
-        // 칩은 늘 보이되(시안), 초록 "위치공유 중"은 실제로 공유 중일 때만. 평소엔 회색 "위치 비공개" (ADR 72, 74)
-        if (chip == null) chip = "위치 비공개";
-        int chipInk = ContextCompat.getColor(c, green ? R.color.widget_green_ink : R.color.widget_neutral_ink);
-        v.setTextViewText(R.id.loc_text, chip);
-        v.setTextColor(R.id.loc_text, chipInk);
-        v.setInt(R.id.loc_icon, "setColorFilter", chipInk);
-        v.setInt(R.id.loc_row, "setBackgroundResource", green ? R.drawable.widget_chip_green : R.drawable.widget_chip_neutral);
-        v.setOnClickPendingIntent(R.id.loc_row, chipPi);
+        // "위치공유 중" 칩은 실제로 공유 중일 때만 (ADR 72)
+        v.setViewVisibility(R.id.loc_row, chip == null ? View.GONE : View.VISIBLE);
+        if (chip != null) {
+            v.setTextViewText(R.id.loc_row, chip);
+            v.setInt(R.id.loc_row, "setBackgroundResource", green ? R.drawable.widget_chip_green : R.drawable.widget_chip_neutral);
+            v.setTextColor(R.id.loc_row, ContextCompat.getColor(c, green ? R.color.widget_green_ink : R.color.widget_ink));
+            v.setOnClickPendingIntent(R.id.loc_row, chipPi);
+        }
         v.setImageViewResource(R.id.btn_open_icon, btnIcon);
         v.setTextViewText(R.id.btn_open_text, btn);
         v.setOnClickPendingIntent(R.id.btn_open, btnPi);
@@ -164,7 +159,7 @@ public class CoupleStatusWidget extends AppWidgetProvider {
             v.setViewVisibility(iconId, View.GONE);
             v.setTextViewText(statusId, "아직 안 알렸어요");
             v.setTextViewTextSize(statusId, android.util.TypedValue.COMPLEX_UNIT_SP, large ? 14 : 12); // 카드 폭에 한 줄로
-            v.setViewVisibility(timeId, View.GONE);
+            v.setTextViewText(timeId, "");
             v.setTextColor(statusId, ContextCompat.getColor(c, R.color.widget_sub));
             return;
         }
@@ -179,9 +174,7 @@ public class CoupleStatusWidget extends AppWidgetProvider {
         // 이름은 엄마·아빠 색으로, 오래된 상태면 흐리게 (두 모양 모두 같은 카드 디자인, ADR 70)
         int nameColor = stale ? ink : ContextCompat.getColor(c, "mom".equals(role) ? R.color.widget_mom : R.color.widget_dad);
         v.setTextColor(nameId, nameColor);
-        // 시안처럼 평소엔 이름·상태만, 오래된 상태일 때만 "N시간 전" (ADR 74)
-        v.setViewVisibility(timeId, stale ? View.VISIBLE : View.GONE);
-        if (stale) v.setTextViewText(timeId, ago(since));
+        v.setTextViewText(timeId, stale ? ago(since) : hhmm(since) + "부터");
     }
 
     private static String hhmm(long ms) {
